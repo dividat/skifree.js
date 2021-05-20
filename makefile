@@ -22,5 +22,5 @@ compile:
 	./node_modules/uglify-js/bin/uglifyjs dist/skifree.js -c > dist/skifree.min.js
 
 copy:
-	cp *.png index.html $(COPY_TO)
+	cp *.png index.html PlayEGI* $(COPY_TO)
 	cp -R css dist vendor $(COPY_TO)
