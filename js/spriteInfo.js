@@ -1,99 +1,106 @@
 (function (global) {
   var sprites = {
     'skier': {
-      $imageFile: 'sprite-characters.png',
       parts: {
         blank: [ 0, 0, 0, 0 ],
         east: [ 0, 0, 24, 34 ],
-        esEast: [ 24, 0, 24, 34 ],
-        sEast: [ 49, 0, 17, 34 ],
-        south: [ 65, 0, 17, 34 ],
-        sWest: [ 49, 37, 17, 34 ],
-        wsWest: [ 24, 37, 24, 34 ],
+        esEast: { frames: 3, fps: 4 },
+        sEast: { frames: 3, fps: 7, sizeMultiple: 0.182 },
+        south: { frames: 3, fps: 9 },
+        sWest: { frames: 3, fps: 7, sizeMultiple: 0.182 },
+        wsWest: { frames: 3, fps: 4 },
         west: [ 0, 37, 24, 34 ],
-        hit: [ 0, 78, 31, 31 ],
-        jumping: [ 84, 0, 32, 34 ],
+        hit: { frames: 2, fps: 0.8, sizeMultiple: 0.182 },
+        jumping: { frames: 3, fps: 7, sizeMultiple: 0.25 },
         somersault1: [ 116, 0, 32, 34 ],
         somersault2: [ 148, 0, 32, 34 ]
       },
+      sizeMultiple: 0.2,
       hitBoxes: {
         0: [ 7, 20, 27, 34 ]
       },
-      id: 'player',
-      hitBehaviour: {}
+      hitBehaviour: {},
+      name: 'skier'
     },
     'smallTree': {
-      $imageFile: 'skifree-objects.png',
       parts: {
         main: [ 0, 28, 30, 34 ]
       },
+      sizeMultiple: 0.2,
       hitBoxes: {
         0: [ 0, 18, 30, 34 ]
       },
-      hitBehaviour: {}
+      hitBehaviour: {},
+      name: 'smallTree'
     },
     'tallTree': {
-      $imageFile: 'skifree-objects.png',
       parts: {
         main: [ 95, 66, 32, 64 ]
       },
+      sizeMultiple: 0.2,
       zIndexesOccupied: [0, 1],
       hitBoxes: {
         0: [0, 54, 32, 64],
         1: [0, 10, 32, 54]
       },
-      hitBehaviour: {}
+      hitBehaviour: {},
+      name: 'tallTree'
     },
     'thickSnow': {
-      $imageFile: 'skifree-objects.png',
       parts: {
         main: [ 143, 53, 43, 10 ]
       },
-      hitBehaviour: {}
+      sizeMultiple: 0.2,
+      hitBehaviour: {},
+      name: 'thickSnow'
     },
     'rock': {
-      $imageFile: 'skifree-objects.png',
       parts: {
         main: [ 30, 52, 23, 11 ]
       },
-      hitBehaviour: {}
+      sizeMultiple: 0.2,
+      hitBehaviour: {},
+      name: 'rock'
     },
     'monster': {
-      $imageFile: 'sprite-characters.png',
       parts: {
-        sEast1: [ 64, 112, 26, 43 ],
-        sEast2: [ 90, 112, 32, 43 ],
-        sWest1: [ 64, 158, 26, 43 ],
-        sWest2: [ 90, 158, 32, 43 ],
-        eating1: [ 122, 112, 34, 43 ],
-        eating2: [ 156, 112, 31, 43 ],
-        eating3: [ 187, 112, 31, 43 ],
-        eating4: [ 219, 112, 25, 43 ],
-        eating5: [ 243, 112, 26, 43 ]
+	sEast: { frames: 11, fps: 7 },
+	sWest: { frames: 11, fps: 7 },
+        eating1: {},
+        eating2: {},
+        eating3: {},
+        eating4: {},
+        eating5: {},
+        eating6: {}
       },
-      hitBehaviour: {}
+      sizeMultiple: 0.2,
+      hitBehaviour: {},
+      name: 'monster'
     },
     'jump': {
-      $imageFile: 'skifree-objects.png',
       parts: {
         main: [ 109, 55, 32, 8 ]
       },
-      hitBehaviour: {}
+      sizeMultiple: 0.2,
+      hitBehaviour: {},
+      name: 'jump'
     },
     'signStart': {
-      $imageFile: 'skifree-objects.png',
       parts: {
         main: [ 260, 103, 42, 27 ]
       },
-      hitBehaviour: {}
+      sizeMultiple: 0.15,
+      hitBehaviour: {},
+      name: 'signStart'
     },
     'snowboarder': {
-      $imageFile: 'sprite-characters.png',
       parts: {
-        sEast: [ 73, 229, 20, 29 ],
-        sWest: [ 95, 228, 26, 30 ]
+        sEast: { frames: 3, fps: 7 },
+        sWest: { frames: 3, fps: 7 }
       },
-      hitBehaviour: {}
+      sizeMultiple: 0.28,
+      hitBehaviour: {},
+      name: 'snowboarder'
     }
   }
 

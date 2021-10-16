@@ -23,4 +23,4 @@ compile:
 
 copy:
 	cp *.png index.html PlayEGI* $(COPY_TO)
-	cp -R css dist vendor $(COPY_TO)
+	cp -R css dist vendor sprites $(COPY_TO)

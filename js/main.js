@@ -14,10 +14,28 @@ var Game = require('./lib/game')
 // Local variables for starting the game
 var mainCanvas = document.getElementById('skifree-canvas')
 var dContext = mainCanvas.getContext('2d')
-var imageSources = [ 'sprite-characters.png', 'skifree-objects.png' ]
 var global = this
 var infoBoxControls = 'Use the mouse or WASD to control the player'
 var sprites = require('./spriteInfo')
+var imageSources = []
+;(function () {
+  for (var key in sprites) {
+      for (var partKey in sprites[key].parts) {
+          var part = sprites[key].parts[partKey]
+
+          if (part.frames > 0) {
+              for (var i = 1; i <= part.frames; i++) {
+                  imageSources.push("sprites/" + key + "-" + partKey + i + ".png")
+              }
+	  } else {
+              imageSources.push("sprites/" + key + "-" + partKey + ".png")
+	  }
+      }
+  }
+})()
+
+// Set global rendering flags
+window.zoom = parseFloat(new URLSearchParams(document.location.search).get("zoom")) || window.devicePixelRatio || 1
 
 var pixelsPerMetre = 18
 var distanceTravelledInMetres = 0
@@ -45,6 +63,7 @@ function loadImages (sources, next) {
   sources.each(function (src) {
     var im = new Image()
     im.onload = finish
+    im.onerror = finish
     im.src = src
     dContext.storeLoadedImage(src, im)
   })
@@ -256,14 +275,14 @@ function linearInterpolX (state) {
   return sumOfX
 }
 
-function resizeCanvas () {
+function setupCanvas () {
   mainCanvas.width = window.innerWidth
   mainCanvas.height = window.innerHeight
+
+  dContext.imageSmoothingQuality = 'high'
 }
-
-window.addEventListener('resize', resizeCanvas, false)
-
-resizeCanvas()
+window.addEventListener('resize', setupCanvas, false)
+setupCanvas()
 
 loadImages(imageSources, startNeverEndingGame)
 

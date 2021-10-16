@@ -91,15 +91,34 @@
     }
 
     this.draw = function (dCtx, spriteFrame) {
-      var zoom = 1.5
-      var fr = that.data.parts[spriteFrame]
-      that.height = fr[3] * zoom
-      that.width = fr[2] * zoom
+      var part = that.data.parts[spriteFrame]
+      var overridePath = "sprites/" + that.data.name + "-" + spriteFrame + ".png"
+
+      var frames = part.frames
+      var fps = part.fps
+
+      if (typeof frames === 'number' && typeof fps === 'number') {
+        var deltaT = Math.floor(1000 / fps)
+        var frame = Math.floor(Date.now() / deltaT) % frames + 1
+        overridePath = "sprites/" + that.data.name + "-" + spriteFrame + frame + ".png"
+      }
+
+      var img = dCtx.getLoadedImage(overridePath)
+
+      if (!img || !img.complete || img.naturalHeight === 0) { console.log(that.data.name, spriteFrame); return }
+
+      var spriteZoom = 1
+      if (typeof that.data.sizeMultiple === 'number') {
+        var spriteZoom = part.sizeMultiple || that.data.sizeMultiple
+      }
+      var fr = [0, 0, img.width, img.height]
+      that.width = fr[2] * spriteZoom * zoom
+      that.height = fr[3] * spriteZoom * zoom
 
       var newCanvasPosition = dCtx.mapPositionToCanvasPosition(that.mapPosition)
       that.setCanvasPosition(newCanvasPosition[0], newCanvasPosition[1])
 
-      dCtx.drawImage(dCtx.getLoadedImage(that.data.$imageFile), fr[0], fr[1], fr[2], fr[3], that.canvasX, that.canvasY, fr[2] * zoom, fr[3] * zoom)
+      dCtx.drawImage(img, fr[0], fr[1], fr[2], fr[3], that.canvasX, that.canvasY, that.width, that.height)
     }
 
     this.setMapPosition = function (x, y, z) {
