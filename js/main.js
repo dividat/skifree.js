@@ -277,8 +277,13 @@ function linearInterpolX (state) {
 }
 
 function setupCanvas () {
-  mainCanvas.width = window.innerWidth
-  mainCanvas.height = window.innerHeight
+  var dpr = window.devicePixelRatio || 1
+
+  mainCanvas.width = window.innerWidth * dpr
+  mainCanvas.height = window.innerHeight * dpr
+
+  mainCanvas.style.width = window.innerWidth + 'px'
+  mainCanvas.style.height = window.innerHeight + 'px'
 
   dContext.imageSmoothingQuality = 'high'
 }
