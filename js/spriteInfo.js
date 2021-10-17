@@ -101,6 +101,14 @@
       hitBehaviour: {},
       name: 'signStart'
     },
+    'cottage': {
+      parts: {
+        main: { frames: 12, fps: 4, delay: 3000 }
+      },
+      sizeMultiple: 0.2,
+      hitBehaviour: {},
+      name: 'cottage'
+    },
     'snowboarder': {
       parts: {
         sEast: { frames: 3, fps: 7 },

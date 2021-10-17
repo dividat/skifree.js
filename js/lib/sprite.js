@@ -99,7 +99,10 @@
 
       if (typeof frames === 'number' && typeof fps === 'number') {
         var deltaT = Math.floor(1000 / fps)
-        var frame = Math.floor(Date.now() / deltaT) % frames + 1
+	var firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) : 1
+
+        var frame = Math.max(0, Math.floor(Date.now() / deltaT) % (frames + firstFrameRepetitions) - firstFrameRepetitions) + 1
+
         overridePath = "sprites/" + that.data.name + "-" + spriteFrame + frame + ".png"
       }
 

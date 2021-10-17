@@ -86,6 +86,7 @@ function monsterHitsSkierBehaviour (monster, skier) {
 function startNeverEndingGame (images) {
   var player
   var startSign
+  var cottage
   var game
 
   function detectEnd () {
@@ -139,6 +140,11 @@ function startNeverEndingGame (images) {
   startSign = new Sprite(sprites.signStart)
   game.addStaticObject(startSign)
   startSign.setMapPosition(-50, 0)
+
+  cottage = new Sprite(sprites.cottage)
+  game.addStaticObject(cottage)
+  cottage.setMapPosition(100, -180)
+
   dContext.followSprite(player)
 
   game.beforeCycle(function () {
