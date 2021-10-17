@@ -103,18 +103,25 @@ var SpriteArray = require('./spriteArray');
     that.draw = function () {
       dContext.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 
-      player.draw(dContext)
+      // Draw static objects 'below' skier
+      staticObjects.each(function (staticObject, i) {
+        if (staticObject.draw && (!staticObject.data.zIndexesOccupied || player.isJumping)) {
+          staticObject.draw(dContext, 'main')
+        }
+      })
 
+      player.draw(dContext)
       player.cycle()
+
+      // Draw static objects 'above' skier
+      staticObjects.each(function (staticObject, i) {
+        if (staticObject.draw && staticObject.data.zIndexesOccupied && !player.isJumping) {
+          staticObject.draw(dContext, 'main')
+        }
+      })
 
       movingObjects.each(function (movingObject, i) {
         movingObject.draw(dContext)
-      })
-
-      staticObjects.each(function (staticObject, i) {
-        if (staticObject.draw) {
-          staticObject.draw(dContext, 'main')
-        }
       })
 
       uiElements.each(function (uiElement, i) {
