@@ -54,6 +54,14 @@
       hitBehaviour: {},
       name: 'thickSnow'
     },
+    'thickerSnow': {
+      parts: {
+        main: [ 143, 53, 43, 10 ]
+      },
+      sizeMultiple: 0.2,
+      hitBehaviour: {},
+      name: 'thickerSnow'
+    },
     'rock': {
       parts: {
         main: [ 30, 52, 23, 11 ]

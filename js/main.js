@@ -41,7 +41,7 @@ var pixelsPerMetre = 18
 var distanceTravelledInMetres = 0
 var monsterDistanceThreshold = 2000
 var loseLifeOnObstacleHit = false
-var dropRates = {smallTree: 4, tallTree: 2, jump: 1, thickSnow: 1, rock: 1}
+var dropRates = {smallTree: 4, tallTree: 2, jump: 1, thickSnow: 0.7, thickerSnow: 0.3, rock: 1}
 
 var balanceFactor = 1
 var settings = {
@@ -149,6 +149,7 @@ function startNeverEndingGame (images) {
         { sprite: sprites.tallTree, dropRate: dropRates.tallTree },
         { sprite: sprites.jump, dropRate: dropRates.jump },
         { sprite: sprites.thickSnow, dropRate: dropRates.thickSnow },
+        { sprite: sprites.thickerSnow, dropRate: dropRates.thickerSnow },
         { sprite: sprites.rock, dropRate: dropRates.rock }
       ], {
         rateModifier: Math.max(800 - mainCanvas.width, 0),
