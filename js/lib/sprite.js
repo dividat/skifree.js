@@ -21,6 +21,7 @@
     that.deleted = false
     that.isStatic = false
     that.isMoving = true
+    that.part = null
 
     if (!that.data.parts) {
       that.data.parts = {}
@@ -47,6 +48,9 @@
         if (data.hitBoxes[forZIndex]) {
           return data.hitBoxes[forZIndex]
         }
+      }
+      if (that.data.parts[that.part] && that.data.parts[that.part].offsets) {
+        return that.data.parts[that.part].offsets
       }
     }
 
@@ -91,6 +95,8 @@
     }
 
     this.draw = function (dCtx, spriteFrame) {
+      that.part = spriteFrame
+
       var part = that.data.parts[spriteFrame]
       var overridePath = "sprites/" + that.data.name + "-" + spriteFrame + ".png"
 
@@ -114,14 +120,18 @@
       if (typeof that.data.sizeMultiple === 'number') {
         var spriteZoom = part.sizeMultiple || that.data.sizeMultiple
       }
+
+      var targetWidth = Math.round(img.naturalWidth * spriteZoom * zoom)
+      var targetHeight = Math.round(img.naturalHeight * spriteZoom * zoom)
+
       var fr = [0, 0, img.width, img.height]
-      that.width = fr[2] * spriteZoom * zoom
-      that.height = fr[3] * spriteZoom * zoom
+      that.width = targetWidth
+      that.height = targetHeight
 
       var newCanvasPosition = dCtx.mapPositionToCanvasPosition(that.mapPosition)
       that.setCanvasPosition(newCanvasPosition[0], newCanvasPosition[1])
 
-      dCtx.drawImage(img, fr[0], fr[1], fr[2], fr[3], that.canvasX, that.canvasY, that.width, that.height)
+      dCtx.drawImage(img, fr[0], fr[1], fr[2], fr[3], that.canvasX, that.canvasY, targetWidth, targetHeight)
     }
 
     this.setMapPosition = function (x, y, z) {
@@ -163,7 +173,7 @@
       zIndex = zIndex || 0
       var lhbe = this.getCanvasPositionX()
       if (getHitBox(zIndex)) {
-        lhbe += getHitBox(zIndex)[0]
+        lhbe += getHitBox(zIndex)[3] * that.width
       }
       return lhbe
     }
@@ -172,7 +182,7 @@
       zIndex = zIndex || 0
       var thbe = this.getCanvasPositionY()
       if (getHitBox(zIndex)) {
-        thbe += getHitBox(zIndex)[1]
+        thbe += getHitBox(zIndex)[0] * that.height
       }
       return thbe
     }
@@ -181,7 +191,7 @@
       zIndex = zIndex || 0
 
       if (getHitBox(zIndex)) {
-        return that.canvasX + getHitBox(zIndex)[2]
+        return that.canvasX + (1 - getHitBox(zIndex)[1]) * that.width
       }
 
       return that.canvasX + that.width
@@ -191,7 +201,7 @@
       zIndex = zIndex || 0
 
       if (getHitBox(zIndex)) {
-        return that.canvasY + getHitBox(zIndex)[3]
+        return that.canvasY + (1 - getHitBox(zIndex)[2]) * that.height
       }
 
       return that.canvasY + that.height

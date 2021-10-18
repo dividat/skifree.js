@@ -16,9 +16,7 @@
         somersault2: [ 148, 0, 32, 34 ]
       },
       sizeMultiple: 0.2,
-      hitBoxes: {
-        0: [ 7, 20, 27, 34 ]
-      },
+      //hitBoxes: { 0: [ 7, 20, 27, 34 ] },
       hitBehaviour: {},
       name: 'skier'
     },
@@ -27,22 +25,17 @@
         main: [ 0, 28, 30, 34 ]
       },
       sizeMultiple: 0.2,
-      hitBoxes: {
-        0: [ 0, 18, 30, 34 ]
-      },
+      //hitBoxes: { 0: [ 0, 18, 30, 34 ] },
       hitBehaviour: {},
       name: 'smallTree'
     },
     'tallTree': {
       parts: {
-        main: [ 95, 66, 32, 64 ]
+        main: { offsets: [ 0.2, 0, 0.1, 0 ] }
       },
       sizeMultiple: 0.2,
       zIndexesOccupied: [0, 1],
-      hitBoxes: {
-        0: [0, 54, 32, 64],
-        1: [0, 10, 32, 54]
-      },
+      //hitBoxes: { 0: [0, 54, 32, 64], 1: [0, 10, 32, 54] },
       hitBehaviour: {},
       name: 'tallTree'
     },
@@ -64,7 +57,7 @@
     },
     'rock': {
       parts: {
-        main: [ 30, 52, 23, 11 ]
+        main: { offsets: [ 0, 0, 0, 0.3 ] }
       },
       sizeMultiple: 0.2,
       hitBehaviour: {},
