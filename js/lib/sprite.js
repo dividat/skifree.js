@@ -18,9 +18,6 @@
     that.metresDownTheMountain = 0
     that.movingWithConviction = false
     that.deleted = false
-    that.maxHeight = (function () {
-      return Object.values(that.data.parts).map(function (p) { return p[3] }).max()
-    }())
     that.isMoving = true
 
     if (!that.data.parts) {
@@ -208,10 +205,6 @@
 
     this.setWidth = function (w) {
       that.width = w
-    }
-
-    this.getMaxHeight = function () {
-      return that.maxHeight
     }
 
     that.getMovingTowardOpposite = function () {
