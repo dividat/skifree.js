@@ -89,7 +89,9 @@ function startNeverEndingGame (images) {
       game.pause()
       game.cycle()
       window.PlayEGI.finish({
-        distance: { type: 'RawInt', value: parseInt(distanceTravelledInMetres) }
+        distance: { type: 'RawInt', value: parseInt(distanceTravelledInMetres) },
+        jumps: { type: 'RawInt', value: player.jumps },
+        collisions: { type: 'RawInt', value: player.collisions },
       })
     }
   }
