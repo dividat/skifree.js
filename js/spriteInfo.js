@@ -31,11 +31,9 @@
     },
     'tallTree': {
       parts: {
-        main: { offsets: [ 0.2, 0, 0.1, 0 ] }
+        main: { offsets: [ 0.25, 0.2, 0.1, 0.2 ] }
       },
       sizeMultiple: 0.2,
-      zIndexesOccupied: [0, 1],
-      //hitBoxes: { 0: [0, 54, 32, 64], 1: [0, 10, 32, 54] },
       hitBehaviour: {},
       name: 'tallTree'
     },
@@ -45,6 +43,7 @@
       },
       sizeMultiple: 0.2,
       hitBehaviour: {},
+      isPassable: true,
       name: 'thickSnow'
     },
     'thickerSnow': {
@@ -53,6 +52,7 @@
       },
       sizeMultiple: 0.2,
       hitBehaviour: {},
+      isPassable: true,
       name: 'thickerSnow'
     },
     'rock': {
@@ -84,6 +84,7 @@
       },
       sizeMultiple: 0.2,
       hitBehaviour: {},
+      isPassable: true,
       name: 'jump'
     },
     'signStart': {
@@ -92,6 +93,7 @@
       },
       sizeMultiple: 0.15,
       hitBehaviour: {},
+      isPassable: true,
       name: 'signStart'
     },
     'cottage': {
@@ -100,6 +102,7 @@
       },
       sizeMultiple: 0.2,
       hitBehaviour: {},
+      isPassable: true,
       name: 'cottage'
     },
     'snowboarder': {

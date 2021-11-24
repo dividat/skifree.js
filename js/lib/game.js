@@ -105,7 +105,7 @@ var SpriteArray = require('./spriteArray');
 
       // Draw static objects 'below' skier
       staticObjects.each(function (staticObject, i) {
-        if (staticObject.draw && (!staticObject.data.zIndexesOccupied || player.isJumping)) {
+        if (staticObject.draw && (staticObject.isPassable() || player.isJumping)) {
           staticObject.draw(dContext, 'main')
         }
       })
@@ -115,7 +115,7 @@ var SpriteArray = require('./spriteArray');
 
       // Draw static objects 'above' skier
       staticObjects.each(function (staticObject, i) {
-        if (staticObject.draw && staticObject.data.zIndexesOccupied && !player.isJumping) {
+        if (staticObject.draw && !staticObject.isPassable() && !player.isJumping) {
           staticObject.draw(dContext, 'main')
         }
       })

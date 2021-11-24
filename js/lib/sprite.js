@@ -376,6 +376,10 @@
       return (that.canvasY) > cy
     }
 
+    this.isPassable = function () {
+      return Boolean(that.data.isPassable)
+    }
+
     return that
   }
 
