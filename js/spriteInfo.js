@@ -4,28 +4,26 @@
       parts: {
         blank: [ 0, 0, 0, 0 ],
         east: [ 0, 0, 24, 34 ],
-        esEast: { frames: 3, fps: 4 },
-        sEast: { frames: 3, fps: 7, sizeMultiple: 0.182 },
-        south: { frames: 3, fps: 9 },
-        sWest: { frames: 3, fps: 7, sizeMultiple: 0.182 },
-        wsWest: { frames: 3, fps: 4 },
+        esEast: { frames: 3, fps: 4, offsets: [ 0.5, 0.1, 0.05, 0.5 ] },
+        sEast: { frames: 3, fps: 7, sizeMultiple: 0.182, offsets: [ 0.4, 0.2, 0.1, 0.3 ] },
+        south: { frames: 3, fps: 9, offsets: [ 0.15, 0.3, 0.15, 0.2 ] },
+        sWest: { frames: 3, fps: 7, sizeMultiple: 0.182, offsets: [ 0.4, 0.3, 0.1, 0.2 ] },
+        wsWest: { frames: 3, fps: 4, offsets: [ 0.5, 0.5, 0.05, 0.1 ] },
         west: [ 0, 37, 24, 34 ],
         hit: { frames: 2, fps: 0.8, sizeMultiple: 0.182 },
-        jumping: { frames: 3, fps: 7, sizeMultiple: 0.25 },
+        jumping: { frames: 3, fps: 7, sizeMultiple: 0.25, offsets: [ 0.25, 0.4, 0.3, 0.4 ] },
         somersault1: [ 116, 0, 32, 34 ],
         somersault2: [ 148, 0, 32, 34 ]
       },
       sizeMultiple: 0.2,
-      //hitBoxes: { 0: [ 7, 20, 27, 34 ] },
       hitBehaviour: {},
       name: 'skier'
     },
     'smallTree': {
       parts: {
-        main: [ 0, 28, 30, 34 ]
+        main: { offsets: [ 0.2, 0.3, 0.1, 0.35 ] }
       },
       sizeMultiple: 0.2,
-      //hitBoxes: { 0: [ 0, 18, 30, 34 ] },
       hitBehaviour: {},
       name: 'smallTree'
     },
@@ -80,7 +78,7 @@
     },
     'jump': {
       parts: {
-        main: [ 109, 55, 32, 8 ]
+        main: { offsets: [ 0, 0.25, 0.6, 0.2 ] }
       },
       sizeMultiple: 0.2,
       hitBehaviour: {},
