@@ -53,7 +53,7 @@
     },
     'rock': {
       parts: {
-        main: { offsets: [ 0, 0, 0, 0.3 ] }
+        main: { offsets: [ 0.05, 0.05, 0.1, 0.3 ] }
       },
       sizeMultiple: 0.2,
       hitBehaviour: {},
