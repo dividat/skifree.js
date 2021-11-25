@@ -103,8 +103,8 @@
     },
     'snowboarder': {
       parts: {
-        sEast: { frames: 3, fps: 7 },
-        sWest: { frames: 3, fps: 7 }
+        sEast: { frames: 3, fps: 7, offsets: [ 0.3, 0.3, 0.2, 0.2 ] },
+        sWest: { frames: 3, fps: 7, offsets: [ 0.3, 0.3, 0.2, 0.2 ] }
       },
       sizeMultiple: 0.28,
       hitBehaviour: {},
