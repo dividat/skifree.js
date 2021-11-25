@@ -12,8 +12,6 @@
         west: [ 0, 37, 24, 34 ],
         hit: { frames: 2, fps: 0.8, sizeMultiple: 0.182 },
         jumping: { frames: 3, fps: 7, sizeMultiple: 0.25, offsets: [ 0.25, 0.4, 0.3, 0.4 ] },
-        somersault1: [ 116, 0, 32, 34 ],
-        somersault2: [ 148, 0, 32, 34 ]
       },
       sizeMultiple: 0.2,
       hitBehaviour: {},
