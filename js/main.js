@@ -62,6 +62,8 @@ function monsterHitsSkierBehaviour (monster, skier) {
     monster.stopFollowing()
     var randomPositionAbove = dContext.getRandomMapPositionAboveViewport()
     monster.setMapPositionTarget(randomPositionAbove[0], randomPositionAbove[1])
+    // Delete some time after it moved off screen
+    setTimeout(function () { monster.deleteOnNextCycle() }, 5000)
   })
 }
 

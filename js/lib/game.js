@@ -77,6 +77,7 @@ var SpriteArray = require('./spriteArray');
 
       player.cycle()
 
+      movingObjects.cull()
       movingObjects.each(function (movingObject, i) {
         movingObject.cycle(dContext)
       })
