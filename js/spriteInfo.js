@@ -61,8 +61,8 @@
     },
     'monster': {
       parts: {
-	sEast: { frames: 11, fps: 7 },
-	sWest: { frames: 11, fps: 7 },
+        sEast: { frames: 11, fps: 7, offsets: [ 0.2, 0.2, 0.35, 0.2 ] },
+        sWest: { frames: 11, fps: 7, offsets: [ 0.2, 0.2, 0.35, 0.2 ]},
         eating1: {},
         eating2: {},
         eating3: {},
