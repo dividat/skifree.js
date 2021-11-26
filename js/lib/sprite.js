@@ -314,30 +314,15 @@
     }
 
     this.hits = function (other) {
-      var verticalIntersect = false
-      var horizontalIntersect = false
+      var thatZ = that.mapPosition[2]
+      var otherZ = other.mapPosition[2]
 
-      // Test that THIS has a bottom edge inside of the other object
-      if (other.getTopHitBoxEdge(that.mapPosition[2]) <= that.getBottomHitBoxEdge(that.mapPosition[2]) && other.getBottomHitBoxEdge(that.mapPosition[2]) >= that.getBottomHitBoxEdge(that.mapPosition[2])) {
-        verticalIntersect = true
-      }
-
-      // Test that THIS has a top edge inside of the other object
-      if (other.getTopHitBoxEdge(that.mapPosition[2]) <= that.getTopHitBoxEdge(that.mapPosition[2]) && other.getBottomHitBoxEdge(that.mapPosition[2]) >= that.getTopHitBoxEdge(that.mapPosition[2])) {
-        verticalIntersect = true
-      }
-
-      // Test that THIS has a right edge inside of the other object
-      if (other.getLeftHitBoxEdge(that.mapPosition[2]) <= that.getRightHitBoxEdge(that.mapPosition[2]) && other.getRightHitBoxEdge(that.mapPosition[2]) >= that.getRightHitBoxEdge(that.mapPosition[2])) {
-        horizontalIntersect = true
-      }
-
-      // Test that THIS has a left edge inside of the other object
-      if (other.getLeftHitBoxEdge(that.mapPosition[2]) <= that.getLeftHitBoxEdge(that.mapPosition[2]) && other.getRightHitBoxEdge(that.mapPosition[2]) >= that.getLeftHitBoxEdge(that.mapPosition[2])) {
-        horizontalIntersect = true
-      }
-
-      return verticalIntersect && horizontalIntersect
+      return (
+        that.getLeftHitBoxEdge(thatZ) <= other.getRightHitBoxEdge(otherZ) &&
+        that.getRightHitBoxEdge(thatZ) >= other.getLeftHitBoxEdge(otherZ) &&
+        that.getTopHitBoxEdge(thatZ) <= other.getBottomHitBoxEdge(otherZ) &&
+        that.getBottomHitBoxEdge(thatZ) >= other.getTopHitBoxEdge(otherZ)
+      )
     }
 
     this.isAboveOnCanvas = function (cy) {
