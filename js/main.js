@@ -186,14 +186,6 @@ function startNeverEndingGame (images) {
     }
   })
 
-  game.afterCycle(function () {
-    if (livesLeft === 0) {
-      detectEnd()
-    }
-  })
-
-  // game.addUIElement(infoBox)
-
   var haveSeenSensoState = false
   window.PlayEGI.onSignal(function (signal) {
     switch (signal.type) {
