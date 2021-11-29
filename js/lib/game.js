@@ -15,12 +15,17 @@ var SpriteArray = require('./spriteArray');
     var runningTime = 0
     var lastStepAt = null
 
-    this.addStaticObject = function (sprite) {
-      staticObjects.push(sprite)
+    this.addStaticObject = function (sprite, shouldAvoidCollisions) {
+      // Determine graphical properties to enable hit check
+      sprite.determineNextFrame(dContext, 'main')
+      if (!shouldAvoidCollisions || !staticObjects.any(function (other) { return other.hits(sprite) })) {
+        staticObjects.push(sprite)
+      }
     }
 
-    this.addStaticObjects = function (sprites) {
-      sprites.forEach(this.addStaticObject.bind(this))
+    this.addStaticObjects = function (sprites, shouldAvoidCollisions) {
+      var that = this
+      sprites.forEach(function (sprite) { that.addStaticObject(sprite, shouldAvoidCollisions) })
     }
 
     this.addMovingObject = function (movingObject, movingObjectType) {

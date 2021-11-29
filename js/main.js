@@ -167,7 +167,7 @@ function startNeverEndingGame (images) {
       })
     }
     if (!game.isPaused()) {
-      game.addStaticObjects(newObjects)
+      game.addStaticObjects(newObjects, true)
 
       randomlySpawnNPC(spawnBoarder, 0.1)
       distanceTravelledInMetres = parseFloat(player.getPixelsTravelledDownMountain() / pixelsPerMetre).toFixed(1)

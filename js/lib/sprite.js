@@ -94,7 +94,7 @@
       that.setMapPosition(currentX, currentY)
     }
 
-    this.draw = function (dCtx, spriteFrame) {
+    this.determineNextFrame = function (dCtx, spriteFrame) {
       that.part = spriteFrame
 
       var part = that.data.parts[spriteFrame]
@@ -114,7 +114,11 @@
 
       var img = dCtx.getLoadedImage(overridePath)
 
-      if (!img || !img.complete || img.naturalHeight === 0) { console.log(that.data.name, spriteFrame); return }
+      if (!img || !img.complete || img.naturalHeight === 0) {
+        that.width = 0
+        that.height = 0
+        return
+      }
 
       var spriteZoom = 1
       if (typeof that.data.sizeMultiple === 'number') {
@@ -124,14 +128,36 @@
       var targetWidth = Math.round(img.naturalWidth * spriteZoom * zoom)
       var targetHeight = Math.round(img.naturalHeight * spriteZoom * zoom)
 
-      var fr = [0, 0, img.width, img.height]
       that.width = targetWidth
       that.height = targetHeight
 
       var newCanvasPosition = dCtx.mapPositionToCanvasPosition(that.mapPosition)
       that.setCanvasPosition(newCanvasPosition[0], newCanvasPosition[1])
 
-      dCtx.drawImage(img, fr[0], fr[1], fr[2], fr[3], that.canvasX, that.canvasY, targetWidth, targetHeight)
+      return img
+    }
+
+    this.draw = function (dCtx, spriteFrame) {
+      var img = that.determineNextFrame(dCtx, spriteFrame)
+      if (img == null) return
+
+      var fr = [0, 0, img.width, img.height]
+
+      dCtx.drawImage(img, fr[0], fr[1], fr[2], fr[3], that.canvasX, that.canvasY, that.width, that.height)
+
+      if (window.debugHitBox) {
+        var thbe = this.getTopHitBoxEdge(that.mapPosition[2])
+        var bhbe = this.getBottomHitBoxEdge(that.mapPosition[2])
+        var lhbe = this.getLeftHitBoxEdge(that.mapPosition[2])
+        var rhbe = this.getRightHitBoxEdge(that.mapPosition[2])
+        dCtx.moveTo(lhbe, thbe)
+        dCtx.lineTo(rhbe, thbe)
+        dCtx.lineTo(rhbe, bhbe)
+        dCtx.lineTo(lhbe, bhbe)
+        dCtx.lineTo(lhbe, thbe)
+        dCtx.strokeStyle = 'red'
+        dCtx.stroke()
+      }
     }
 
     this.setMapPosition = function (x, y, z) {
