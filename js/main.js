@@ -223,6 +223,13 @@ function startNeverEndingGame (images) {
 
       case 'Resume':
         game.resume()
+        window.PlayEGI.led({
+          channel: 2, // center
+          symbol: 2, // plus
+          mode: 1, // on
+          color: { r: 1, g: 1, b: 1 }, // white
+          brightness: 50, // default
+        })
         break
 
       case 'Ping':
