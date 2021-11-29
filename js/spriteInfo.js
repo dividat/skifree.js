@@ -112,19 +112,6 @@
     }
   }
 
-  function monsterHitsTreeBehaviour (monster) {
-    monster.deleteOnNextCycle()
-  }
-
-  sprites.monster.hitBehaviour.tree = monsterHitsTreeBehaviour
-
-  function treeHitsMonsterBehaviour (tree, monster) {
-    monster.deleteOnNextCycle()
-  }
-
-  sprites.smallTree.hitBehaviour.monster = treeHitsMonsterBehaviour
-  sprites.tallTree.hitBehaviour.monster = treeHitsMonsterBehaviour
-
   function skierHitsTreeBehaviour (skier, tree) {
     skier.hasHitObstacle(tree)
   }
