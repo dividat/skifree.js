@@ -2,7 +2,7 @@
   var sprites = {
     'skier': {
       parts: {
-        blank: [ 0, 0, 0, 0 ],
+        blank: {},
         east: { offsets: [ 0.1, 0.125, 0.15, 0.45 ] },
         esEast: { frames: 3, fps: 4, offsets: [ 0.5, 0.2, 0.15, 0.5 ] },
         sEast: { frames: 3, fps: 7, sizeMultiple: 0.182, offsets: [ 0.4, 0.2, 0.15, 0.45] },
@@ -35,7 +35,7 @@
     },
     'thickSnow': {
       parts: {
-        main: [ 143, 53, 43, 10 ]
+        main: {}
       },
       sizeMultiple: 0.2,
       hitBehaviour: {},
@@ -44,7 +44,7 @@
     },
     'thickerSnow': {
       parts: {
-        main: [ 143, 53, 43, 10 ]
+        main: {}
       },
       sizeMultiple: 0.2,
       hitBehaviour: {},
@@ -85,7 +85,7 @@
     },
     'signStart': {
       parts: {
-        main: [ 260, 103, 42, 27 ]
+        main: {}
       },
       sizeMultiple: 0.15,
       hitBehaviour: {},
