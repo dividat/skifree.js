@@ -18,6 +18,7 @@
     that.metresDownTheMountain = 0
     that.movingWithConviction = false
     that.deleted = false
+    that.isStatic = false
     that.isMoving = true
 
     if (!that.data.parts) {
@@ -235,7 +236,14 @@
       })
     }
 
+    this.checkOffScreen = function () {
+      if (that.isStatic && that.isAboveOnCanvas(0)) {
+        that.deleted = true
+      }
+    }
+
     this.cycle = function () {
+      that.checkOffScreen()
       that.checkHittableObjects()
 
       if (trackedSpriteToMoveToward) {
@@ -341,7 +349,8 @@
     opts = Object.merge(opts, {
       rateModifier: 0,
       dropRate: 1,
-      position: [0, 0]
+      position: [0, 0],
+      isStatic: false
     }, false, false)
 
     function createOne (spriteInfo) {
@@ -355,6 +364,8 @@
         }
 
         sprite.setMapPosition(position[0], position[1])
+
+        sprite.isStatic = opts.isStatic
 
         if (spriteInfo.sprite.hitBehaviour && spriteInfo.sprite.hitBehaviour.skier && opts.player) {
           sprite.onHitting(opts.player, spriteInfo.sprite.hitBehaviour.skier)

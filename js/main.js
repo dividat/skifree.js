@@ -164,6 +164,7 @@ function startNeverEndingGame (images) {
         position: function () {
           return dContext.getRandomMapPositionBelowViewport()
         },
+        isStatic: true,
         player: player
       })
     }
