@@ -191,6 +191,7 @@ function startNeverEndingGame (images) {
 
   // game.addUIElement(infoBox)
 
+  var haveSeenSensoState = false
   window.PlayEGI.onSignal(function (signal) {
     switch (signal.type) {
       case 'Hello':
@@ -226,6 +227,8 @@ function startNeverEndingGame (images) {
         break
 
       case 'Step':
+        // Ignore steps when controlled by continuous signal
+        if (haveSeenSensoState) return
         switch (signal.direction) {
           case 'Up':
             player.stop()
@@ -255,6 +258,7 @@ function startNeverEndingGame (images) {
         break
 
       case 'SensoState':
+        haveSeenSensoState = true
         var x = linearInterpolX(signal.state) * (settings.wheelchair ? 3 : 1)
         var canvasX = x * balanceFactor * mainCanvas.width + mainCanvas.width / 2
         game.setMouseX(canvasX)
