@@ -101,8 +101,7 @@ var SpriteArray = require('./spriteArray');
     }
 
     that.draw = function () {
-      // Clear canvas
-      mainCanvas.width = mainCanvas.width
+      dContext.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 
       player.draw(dContext)
 
