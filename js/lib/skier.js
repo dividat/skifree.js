@@ -281,8 +281,6 @@ var Sprite = require('./sprite');
       }
 
       sup.cycle()
-
-      that.checkHittableObjects()
     }
 
     that.draw = function (dContext) {

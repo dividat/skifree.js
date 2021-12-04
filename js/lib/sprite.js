@@ -1,6 +1,7 @@
 (function (global) {
   var GUID = require('./guid')
   function Sprite (data) {
+    var hasHittableObjects = false
     var hittableObjects = {}
     var zIndexesOccupied = [ 0 ]
     var that = this
@@ -244,7 +245,7 @@
 
     this.cycle = function () {
       that.checkOffScreen()
-      that.checkHittableObjects()
+      if (hasHittableObjects) that.checkHittableObjects()
 
       if (trackedSpriteToMoveToward) {
         that.setMapPositionTarget(trackedSpriteToMoveToward.mapPosition[0], trackedSpriteToMoveToward.mapPosition[1], true)
@@ -311,6 +312,8 @@
         object: objectToHit,
         callbacks: [ callback ]
       }
+
+      hasHittableObjects = true    
     }
 
     this.deleteOnNextCycle = function () {
