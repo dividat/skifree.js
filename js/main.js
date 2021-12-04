@@ -35,7 +35,7 @@ var imageSources = []
 })()
 
 // Set global rendering flags
-window.zoom = parseFloat(new URLSearchParams(document.location.search).get("zoom")) || window.devicePixelRatio || 1
+window.zoom = (parseFloat(new URLSearchParams(document.location.search).get("zoom")) || window.devicePixelRatio || 1) * 2
 
 var pixelsPerMetre = 18
 var distanceTravelledInMetres = 0
