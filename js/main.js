@@ -46,7 +46,7 @@ var monsterDistanceThreshold = 2000
 var loseLifeOnObstacleHit = false
 var dropRates = {smallTree: 4, tallTree: 2, jump: 1, thickSnow: 0.7, thickerSnow: 0.3, rock: 1}
 
-var balanceFactor = 1
+var balanceFactor = 0.33
 var settings = {
   duration: 60000,
   wheelchair: false
@@ -276,14 +276,15 @@ function startNeverEndingGame (images) {
 }
 
 // return linear interpolation of x on f, as relative coordinates (centered on 0)
+var directions = ['center', 'up', 'right', 'down', 'left']
 function linearInterpolX (state) {
-  var sumOfX = ['center', 'up', 'right', 'down', 'left'].map(function (d) {
-    return state[d].f * (state[d].x - 1.5)
-  }).reduce(function (sum, value) {
-    return sum + value
-  }, 0)
+  var totalForce = directions.reduce(function (sum, d) { return state[d].f + sum }, 0)
+  // Avoid brownian skiing when plate empty
+  if (totalForce < 0.05) return 0
 
-  return sumOfX
+  var fusedX = directions.reduce(function (sum, d) { return state[d].f/totalForce * state[d].x + sum }, 0)
+
+  return (fusedX - 1.5)
 }
 
 function setupCanvas () {
