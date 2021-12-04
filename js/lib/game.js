@@ -1,5 +1,4 @@
-var SpriteArray = require('./spriteArray')
-var EventedLoop = require('eventedloop');
+var SpriteArray = require('./spriteArray');
 
 (function (global) {
   function Game (mainCanvas, player) {
@@ -13,9 +12,8 @@ var EventedLoop = require('eventedloop');
     var that = this
     var beforeCycleCallbacks = []
     var afterCycleCallbacks = []
-    var gameLoop = new EventedLoop()
     var runningTime = 0
-    var loopDuration = 20
+    var lastStepAt = null
 
     this.addStaticObject = function (sprite) {
       staticObjects.push(sprite)
@@ -77,8 +75,6 @@ var EventedLoop = require('eventedloop');
 
       intervalNum++
 
-      runningTime += loopDuration
-
       player.cycle()
 
       movingObjects.each(function (movingObject, i) {
@@ -129,17 +125,17 @@ var EventedLoop = require('eventedloop');
     }
 
     this.start = function () {
-      gameLoop.start()
+      this.step()
     }
 
     this.pause = function () {
       paused = true
-      gameLoop.stop()
+      lastStepAt = null
     }
 
     this.resume = function () {
       paused = false
-      gameLoop.start()
+      this.step()
     }
 
     this.isPaused = function () {
@@ -162,8 +158,22 @@ var EventedLoop = require('eventedloop');
       runningTime = 0
     }.bind(this)
 
-    gameLoop.on(loopDuration, this.cycle)
-    gameLoop.on(loopDuration, this.draw)
+    this.step = function (now) {
+      if (paused) return
+
+      var dt = 0
+      if (lastStepAt != null) {
+        dt = now - lastStepAt
+      }
+      lastStepAt = now
+      runningTime += dt
+
+      this.cycle()
+      this.draw()
+
+      requestAnimationFrame(this.step.bind(this))
+    }
+
   }
 
   global.game = Game

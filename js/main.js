@@ -3,10 +3,6 @@ require('./lib/canvasRenderingContext2DExtensions')
 require('./lib/extenders')
 require('./lib/plugins')
 
-// External dependencies
-var Hammer = require('hammerjs')
-var Mousetrap = require('br-mousetrap')
-
 // Game Objects
 var SpriteArray = require('./lib/spriteArray')
 var Monster = require('./lib/monster')
