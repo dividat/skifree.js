@@ -21,6 +21,9 @@ var imageSources = []
 ;(function () {
   for (var key in sprites) {
       for (var partKey in sprites[key].parts) {
+          // Skip monkey patching debris
+          if (partKey === 'superior') continue
+
           var part = sprites[key].parts[partKey]
 
           if (part.frames > 0) {

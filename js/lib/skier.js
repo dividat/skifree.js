@@ -287,11 +287,10 @@ var Sprite = require('./sprite');
     }
 
     that.draw = function (dContext) {
-      var spritePartToUse = function () {
-        if (that.isBeingEaten) {
-          return getBeingEatenSprite()
-        }
+      // Part of monster sprite while being eaten
+      if (that.isBeingEaten) return
 
+      var spritePartToUse = function () {
         if (that.isJumping) {
           if (that.isPerformingTrick) {
             return getTrickSprite()
