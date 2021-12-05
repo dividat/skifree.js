@@ -137,13 +137,14 @@ function startNeverEndingGame (images) {
 
   game = new Game(mainCanvas, player)
 
+  player.determineNextFrame(dContext, 'east')
   startSign = new Sprite(sprites.signStart)
   game.addStaticObject(startSign)
-  startSign.setMapPosition(-50, 0)
+  startSign.setMapPosition(-0.4 * player.width, -0.1 * player.height)
 
   cottage = new Sprite(sprites.cottage)
   game.addStaticObject(cottage)
-  cottage.setMapPosition(100, -180)
+  cottage.setMapPosition(0.7 * player.width, -1.2 * player.height)
 
   dContext.followSprite(player)
 
