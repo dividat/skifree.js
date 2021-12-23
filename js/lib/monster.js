@@ -25,7 +25,7 @@ var Sprite = require('./sprite');
         }
         if (that.movingToward[0] > that.mapPosition[0]) {
           return 'sEast' + Math.ceil(spriteVersion)
-        } else if (xDiff < 0) {
+        } else {
           return 'sWest' + Math.ceil(spriteVersion)
         }
       }
