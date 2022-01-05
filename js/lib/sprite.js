@@ -67,26 +67,29 @@
       var currentX = that.mapPosition[0]
       var currentY = that.mapPosition[1]
 
+      // Assume original magic numbers for speed were created for a typical 2013 resolution
+      var factor = window.devicePixelRatio * window.innerHeight/800
+
       if (typeof that.direction !== 'undefined') {
         // For this we need to modify the that.direction so it relates to the horizontal
         var d = that.direction - 90
         if (d < 0) d = 360 + d
-        currentX += roundHalf(that.speed * Math.cos(d * (Math.PI / 180)))
-        currentY += roundHalf(that.speed * Math.sin(d * (Math.PI / 180)))
+        currentX += roundHalf(that.speed * Math.cos(d * (Math.PI / 180))) * factor
+        currentY += roundHalf(that.speed * Math.sin(d * (Math.PI / 180))) * factor
       } else {
         if (typeof that.movingToward[0] !== 'undefined') {
           if (currentX > that.movingToward[0]) {
-            currentX -= Math.min(that.getSpeedX(), Math.abs(currentX - that.movingToward[0]))
+            currentX -= Math.min(that.getSpeedX() * factor, Math.abs(currentX - that.movingToward[0]))
           } else if (currentX < that.movingToward[0]) {
-            currentX += Math.min(that.getSpeedX(), Math.abs(currentX - that.movingToward[0]))
+            currentX += Math.min(that.getSpeedX() * factor, Math.abs(currentX - that.movingToward[0]))
           }
         }
 
         if (typeof that.movingToward[1] !== 'undefined') {
           if (currentY > that.movingToward[1]) {
-            currentY -= Math.min(that.getSpeedY(), Math.abs(currentY - that.movingToward[1]))
+            currentY -= Math.min(that.getSpeedY() * factor, Math.abs(currentY - that.movingToward[1]))
           } else if (currentY < that.movingToward[1]) {
-            currentY += Math.min(that.getSpeedY(), Math.abs(currentY - that.movingToward[1]))
+            currentY += Math.min(that.getSpeedY() * factor, Math.abs(currentY - that.movingToward[1]))
           }
         }
       }

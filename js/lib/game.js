@@ -66,7 +66,7 @@ var SpriteArray = require('./spriteArray');
 
     var intervalNum = 0
 
-    this.cycle = function () {
+    this.cycle = function (dt) {
       beforeCycleCallbacks.each(function (c) {
         c()
       })
