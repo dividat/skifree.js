@@ -39,7 +39,7 @@ var imageSources = []
 
 // Set global configuration
 window.skiCfg = {
-  zoom: (parseFloat(new URLSearchParams(document.location.search).get("zoom")) || window.devicePixelRatio || 1) * 2,
+  zoom: (parseFloat(new URLSearchParams(document.location.search).get("zoom")) || window.devicePixelRatio || 1) * 3,
   originalFrameInterval: 20,
   debug: new URLSearchParams(document.location.search).has("debug")
 }
