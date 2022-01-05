@@ -60,9 +60,15 @@ function loadImages (sources, next) {
   var loaded = 0
   var images = {}
 
+  var indicator = document.getElementById('loading-indicator')
+  indicator.max = sources.length
+
   function finish () {
     loaded += 1
+    indicator.value = loaded
+
     if (loaded === sources.length) {
+      document.getElementById('loader').classList.add('done')
       next(images)
     }
   }
