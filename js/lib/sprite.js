@@ -125,8 +125,8 @@
         var spriteZoom = part.sizeMultiple || that.data.sizeMultiple
       }
 
-      var targetWidth = Math.round(img.naturalWidth * spriteZoom * zoom)
-      var targetHeight = Math.round(img.naturalHeight * spriteZoom * zoom)
+      var targetWidth = Math.round(img.naturalWidth * spriteZoom * skiCfg.zoom)
+      var targetHeight = Math.round(img.naturalHeight * spriteZoom * skiCfg.zoom)
 
       that.width = targetWidth
       that.height = targetHeight
@@ -145,7 +145,7 @@
 
       dCtx.drawImage(img, fr[0], fr[1], fr[2], fr[3], that.canvasX, that.canvasY, that.width, that.height)
 
-      if (window.debugHitBox) {
+      if (skiCfg.debug) {
         var thbe = this.getTopHitBoxEdge(that.mapPosition[2])
         var bhbe = this.getBottomHitBoxEdge(that.mapPosition[2])
         var lhbe = this.getLeftHitBoxEdge(that.mapPosition[2])
@@ -420,7 +420,7 @@
 
     function createOne (spriteInfo) {
       var position = opts.position
-      if (Number.random(100 + opts.rateModifier) <= spriteInfo.dropRate/zoom) {
+      if (Number.random(100 + opts.rateModifier) <= spriteInfo.dropRate/skiCfg.zoom) {
         var sprite = new Sprite(spriteInfo.sprite)
         sprite.setSpeed(0)
 

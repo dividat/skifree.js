@@ -37,8 +37,11 @@ var imageSources = []
   }
 })()
 
-// Set global rendering flags
-window.zoom = (parseFloat(new URLSearchParams(document.location.search).get("zoom")) || window.devicePixelRatio || 1) * 2
+// Set global configuration
+window.skiCfg = {
+  zoom: (parseFloat(new URLSearchParams(document.location.search).get("zoom")) || window.devicePixelRatio || 1) * 2,
+  debug: new URLSearchParams(document.location.search).has("debug")
+}
 
 var pixelsPerMetre = 18
 var distanceTravelledInMetres = 0
