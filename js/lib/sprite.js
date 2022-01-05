@@ -1,6 +1,7 @@
 (function (global) {
   var GUID = require('./guid')
   function Sprite (data) {
+    var hasHittableObjects = false
     var hittableObjects = {}
     var zIndexesOccupied = [ 0 ]
     var that = this
@@ -18,9 +19,7 @@
     that.metresDownTheMountain = 0
     that.movingWithConviction = false
     that.deleted = false
-    that.maxHeight = (function () {
-      return Object.values(that.data.parts).map(function (p) { return p[3] }).max()
-    }())
+    that.isStatic = false
     that.isMoving = true
 
     if (!that.data.parts) {
@@ -210,10 +209,6 @@
       that.width = w
     }
 
-    this.getMaxHeight = function () {
-      return that.maxHeight
-    }
-
     that.getMovingTowardOpposite = function () {
       if (!that.isMoving) {
         return [0, 0]
@@ -242,8 +237,15 @@
       })
     }
 
+    this.checkOffScreen = function () {
+      if (that.isStatic && that.isAboveOnCanvas(0)) {
+        that.deleted = true
+      }
+    }
+
     this.cycle = function () {
-      that.checkHittableObjects()
+      that.checkOffScreen()
+      if (hasHittableObjects) that.checkHittableObjects()
 
       if (trackedSpriteToMoveToward) {
         that.setMapPositionTarget(trackedSpriteToMoveToward.mapPosition[0], trackedSpriteToMoveToward.mapPosition[1], true)
@@ -310,6 +312,8 @@
         object: objectToHit,
         callbacks: [ callback ]
       }
+
+      hasHittableObjects = true    
     }
 
     this.deleteOnNextCycle = function () {
@@ -321,30 +325,15 @@
     }
 
     this.hits = function (other) {
-      var verticalIntersect = false
-      var horizontalIntersect = false
+      var thatZ = that.mapPosition[2]
+      var otherZ = other.mapPosition[2]
 
-      // Test that THIS has a bottom edge inside of the other object
-      if (other.getTopHitBoxEdge(that.mapPosition[2]) <= that.getBottomHitBoxEdge(that.mapPosition[2]) && other.getBottomHitBoxEdge(that.mapPosition[2]) >= that.getBottomHitBoxEdge(that.mapPosition[2])) {
-        verticalIntersect = true
-      }
-
-      // Test that THIS has a top edge inside of the other object
-      if (other.getTopHitBoxEdge(that.mapPosition[2]) <= that.getTopHitBoxEdge(that.mapPosition[2]) && other.getBottomHitBoxEdge(that.mapPosition[2]) >= that.getTopHitBoxEdge(that.mapPosition[2])) {
-        verticalIntersect = true
-      }
-
-      // Test that THIS has a right edge inside of the other object
-      if (other.getLeftHitBoxEdge(that.mapPosition[2]) <= that.getRightHitBoxEdge(that.mapPosition[2]) && other.getRightHitBoxEdge(that.mapPosition[2]) >= that.getRightHitBoxEdge(that.mapPosition[2])) {
-        horizontalIntersect = true
-      }
-
-      // Test that THIS has a left edge inside of the other object
-      if (other.getLeftHitBoxEdge(that.mapPosition[2]) <= that.getLeftHitBoxEdge(that.mapPosition[2]) && other.getRightHitBoxEdge(that.mapPosition[2]) >= that.getLeftHitBoxEdge(that.mapPosition[2])) {
-        horizontalIntersect = true
-      }
-
-      return verticalIntersect && horizontalIntersect
+      return (
+        that.getLeftHitBoxEdge(thatZ) <= other.getRightHitBoxEdge(otherZ) &&
+        that.getRightHitBoxEdge(thatZ) >= other.getLeftHitBoxEdge(otherZ) &&
+        that.getTopHitBoxEdge(thatZ) <= other.getBottomHitBoxEdge(otherZ) &&
+        that.getBottomHitBoxEdge(thatZ) >= other.getTopHitBoxEdge(otherZ)
+      )
     }
 
     this.isAboveOnCanvas = function (cy) {
@@ -363,7 +352,8 @@
     opts = Object.merge(opts, {
       rateModifier: 0,
       dropRate: 1,
-      position: [0, 0]
+      position: [0, 0],
+      isStatic: false
     }, false, false)
 
     function createOne (spriteInfo) {
@@ -377,6 +367,8 @@
         }
 
         sprite.setMapPosition(position[0], position[1])
+
+        sprite.isStatic = opts.isStatic
 
         if (spriteInfo.sprite.hitBehaviour && spriteInfo.sprite.hitBehaviour.skier && opts.player) {
           sprite.onHitting(opts.player, spriteInfo.sprite.hitBehaviour.skier)

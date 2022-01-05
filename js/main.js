@@ -3,17 +3,12 @@ require('./lib/canvasRenderingContext2DExtensions')
 require('./lib/extenders')
 require('./lib/plugins')
 
-// External dependencies
-var Hammer = require('hammerjs')
-var Mousetrap = require('br-mousetrap')
-
 // Game Objects
 var SpriteArray = require('./lib/spriteArray')
 var Monster = require('./lib/monster')
 var Sprite = require('./lib/sprite')
 var Snowboarder = require('./lib/snowboarder')
 var Skier = require('./lib/skier')
-var InfoBox = require('./lib/infoBox')
 var Game = require('./lib/game')
 
 // Local variables for starting the game
@@ -27,7 +22,6 @@ var sprites = require('./spriteInfo')
 var pixelsPerMetre = 18
 var distanceTravelledInMetres = 0
 var monsterDistanceThreshold = 2000
-var livesLeft = 5
 var loseLifeOnObstacleHit = false
 var dropRates = {smallTree: 4, tallTree: 2, jump: 1, thickSnow: 1, rock: 1}
 
@@ -58,7 +52,6 @@ function loadImages (sources, next) {
 
 function monsterHitsSkierBehaviour (monster, skier) {
   skier.isEatenBy(monster, function () {
-    livesLeft -= 1
     monster.isFull = true
     monster.isEating = false
     skier.isBeingEaten = false
@@ -66,32 +59,24 @@ function monsterHitsSkierBehaviour (monster, skier) {
     monster.stopFollowing()
     var randomPositionAbove = dContext.getRandomMapPositionAboveViewport()
     monster.setMapPositionTarget(randomPositionAbove[0], randomPositionAbove[1])
+    // Delete some time after it moved off screen
+    setTimeout(function () { monster.deleteOnNextCycle() }, 5000)
   })
 }
 
 function startNeverEndingGame (images) {
   var player
   var startSign
-  var infoBox
   var game
-
-  function resetGame () {
-    distanceTravelledInMetres = 0
-    livesLeft = 5
-    game.reset()
-    game.addStaticObject(startSign)
-  }
 
   function detectEnd () {
     if (!game.isPaused()) {
-      infoBox.setLines([
-        'Game over!',
-        'Hit space to restart'
-      ])
       game.pause()
       game.cycle()
       window.PlayEGI.finish({
-        distance: { type: 'RawInt', value: parseInt(distanceTravelledInMetres) }
+        distance: { type: 'RawInt', value: parseInt(distanceTravelledInMetres) },
+        jumps: { type: 'RawInt', value: player.jumps },
+        collisions: { type: 'RawInt', value: player.collisions },
       })
     }
   }
@@ -128,11 +113,6 @@ function startNeverEndingGame (images) {
   player = new Skier(sprites.skier)
   player.setMapPosition(0, 0)
   player.setMapPositionTarget(0, -10)
-  if (loseLifeOnObstacleHit) {
-    player.setHitObstacleCb(function () {
-      livesLeft -= 1
-    })
-  }
 
   game = new Game(mainCanvas, player)
 
@@ -140,17 +120,6 @@ function startNeverEndingGame (images) {
   game.addStaticObject(startSign)
   startSign.setMapPosition(-50, 0)
   dContext.followSprite(player)
-
-  infoBox = new InfoBox({
-    initialLines: [
-      'Travelled 0m',
-      'Skiers left: ' + livesLeft
-    ],
-    position: {
-      top: 15,
-      right: 10
-    }
-  })
 
   game.beforeCycle(function () {
     var newObjects = []
@@ -166,6 +135,7 @@ function startNeverEndingGame (images) {
         position: function () {
           return dContext.getRandomMapPositionBelowViewport()
         },
+        isStatic: true,
         player: player
       })
     }
@@ -179,22 +149,10 @@ function startNeverEndingGame (images) {
         randomlySpawnNPC(spawnMonster, 0.001)
       }
 
-      infoBox.setLines([
-        'Travelled ' + distanceTravelledInMetres + 'm',
-        'Skiers left: ' + livesLeft,
-        'Current Speed: ' + player.getSpeed()
-      ])
     }
   })
 
-  game.afterCycle(function () {
-    if (livesLeft === 0) {
-      detectEnd()
-    }
-  })
-
-  // game.addUIElement(infoBox)
-
+  var haveSeenSensoState = false
   window.PlayEGI.onSignal(function (signal) {
     switch (signal.type) {
       case 'Hello':
@@ -237,6 +195,8 @@ function startNeverEndingGame (images) {
         break
 
       case 'Step':
+        // Ignore steps when controlled by continuous signal
+        if (haveSeenSensoState) return
         switch (signal.direction) {
           case 'Up':
             player.stop()
@@ -266,6 +226,7 @@ function startNeverEndingGame (images) {
         break
 
       case 'SensoState':
+        haveSeenSensoState = true
         var x = linearInterpolX(signal.state) * (settings.wheelchair ? 3 : 1)
         var canvasX = x * balanceFactor * mainCanvas.width + mainCanvas.width / 2
         game.setMouseX(canvasX)

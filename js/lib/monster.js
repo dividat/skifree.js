@@ -14,8 +14,6 @@ var Sprite = require('./sprite');
 
     that.draw = function (dContext) {
       var spritePartToUse = function () {
-        var xDiff = that.movingToward[0] - that.canvasX
-
         if (that.isEating) {
           return 'eating' + eatingStage
         }
@@ -25,9 +23,9 @@ var Sprite = require('./sprite');
         } else {
           spriteVersion += 0.1
         }
-        if (xDiff >= 0) {
+        if (that.movingToward[0] > that.mapPosition[0]) {
           return 'sEast' + Math.ceil(spriteVersion)
-        } else if (xDiff < 0) {
+        } else {
           return 'sWest' + Math.ceil(spriteVersion)
         }
       }

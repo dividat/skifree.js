@@ -48,6 +48,9 @@ var Sprite = require('./sprite');
     that.onHitObstacleCb = function () {}
     that.setSpeed(standardSpeed)
 
+    that.jumps = 0
+    that.collisions = 0
+
     that.reset = function () {
       obstaclesHit = []
       pixelsTravelled = 0
@@ -281,8 +284,6 @@ var Sprite = require('./sprite');
       }
 
       sup.cycle()
-
-      that.checkHittableObjects()
     }
 
     that.draw = function (dContext) {
@@ -433,6 +434,7 @@ var Sprite = require('./sprite');
     }
 
     that.hasHitObstacle = function (obs) {
+      that.collisions++
       setCrashed()
 
       obstaclesHit.push(obs.id)
@@ -449,6 +451,7 @@ var Sprite = require('./sprite');
     }
 
     that.hasHitJump = function () {
+      that.jumps++
       setJumping()
 
       if (cancelableStateTimeout) {
