@@ -80,23 +80,23 @@ var SpriteArray = require('./spriteArray');
 
       intervalNum++
 
-      player.cycle()
+      player.cycle(dt)
 
       movingObjects.cull()
       movingObjects.each(function (movingObject, i) {
-        movingObject.cycle(dContext)
+        movingObject.cycle(dt, dContext)
       })
 
       staticObjects.cull()
       staticObjects.each(function (staticObject, i) {
         if (staticObject.cycle) {
-          staticObject.cycle()
+          staticObject.cycle(dt)
         }
       })
 
       uiElements.each(function (uiElement, i) {
         if (uiElement.cycle) {
-          uiElement.cycle()
+          uiElement.cycle(dt)
         }
       })
 
@@ -180,7 +180,7 @@ var SpriteArray = require('./spriteArray');
       lastStepAt = now
       runningTime += dt
 
-      this.cycle()
+      this.cycle(dt)
       this.draw()
 
       requestAnimationFrame(this.step.bind(this))

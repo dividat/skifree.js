@@ -59,7 +59,7 @@
       return num
     }
 
-    function move () {
+    function move (dt) {
       if (!that.isMoving) {
         return
       }
@@ -68,7 +68,10 @@
       var currentY = that.mapPosition[1]
 
       // Assume original magic numbers for speed were created for a typical 2013 resolution
-      var factor = window.devicePixelRatio * window.innerHeight/800
+      var heightFactor = window.devicePixelRatio * window.innerHeight/800
+      // Adjust for FPS different than the 50 FPS assumed by original game
+      var lagFactor = (dt || skiCfg.originalFrameInterval)/skiCfg.originalFrameInterval
+      var factor = heightFactor * lagFactor
 
       if (typeof that.direction !== 'undefined') {
         // For this we need to modify the that.direction so it relates to the horizontal
@@ -304,7 +307,7 @@
       }
     }
 
-    this.cycle = function () {
+    this.cycle = function (dt) {
       that.checkOffScreen()
       if (hasHittableObjects) that.checkHittableObjects()
 
@@ -312,7 +315,7 @@
         that.setMapPositionTarget(trackedSpriteToMoveToward.mapPosition[0], trackedSpriteToMoveToward.mapPosition[1], true)
       }
 
-      move()
+      move(dt)
     }
 
     this.setMapPositionTarget = function (x, y, override) {
