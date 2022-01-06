@@ -426,7 +426,7 @@
 
     function createOne (spriteInfo) {
       var position = opts.position
-      if (Number.random(100 + opts.rateModifier) <= spriteInfo.dropRate/skiCfg.zoom) {
+      if (Number.random(100 + opts.rateModifier) <= spriteInfo.dropRate) {
         var sprite = new Sprite(spriteInfo.sprite)
         sprite.setSpeed(0)
 
