@@ -74,6 +74,7 @@ function startNeverEndingGame (images) {
       game.pause()
       game.cycle()
       window.PlayEGI.finish({
+        duration: { type: 'Duration', value: settings.duration },
         distance: { type: 'RawInt', value: parseInt(distanceTravelledInMetres) },
         jumps: { type: 'RawInt', value: player.jumps },
         collisions: { type: 'RawInt', value: player.collisions },
