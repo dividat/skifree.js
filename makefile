@@ -1,7 +1,5 @@
 VERSION ?= edge
 
-COPY_TO = ../diviapps/frontend/src/external/skifree.js
-
 CFLAGS = -c -g -D $(VERSION)
 
 help:
@@ -27,6 +25,9 @@ sprites: materials/sprites-full-size
 	# https://pngquant.org/
 	cd sprites && pngquant 100 --speed 1 --force --strip --ext .png --verbose *.png
 
-copy:
-	cp *.png index.html PlayEGI* $(COPY_TO)
-	cp -R css dist vendor sprites $(COPY_TO)
+.PHONY: bundle
+bundle: compile
+	rm -rf $@
+	mkdir $@
+	cp index.html PlayEGI* $@
+	cp -R css dist vendor sprites $@
