@@ -32,7 +32,7 @@ html, body {
 #loading-indicator {
 	appearance: none;
 	border: none;
-	background-color: rgba(100, 100, 100, 0.5);
+	background-color: #EE4175;
 	border-radius: 3px;
 	padding: 5px;
 
@@ -46,11 +46,11 @@ html, body {
 	background-color: transparent;
 }
 #loading-indicator::-webkit-progress-value {
-	background-color: violet;
+	background-color: white;
 	border-radius: 3px;
 }
 #loading-indicator::-moz-progress-bar {
-	background-color: violet;
+	background-color: white;
 	border-radius: 3px;
 }
 :indeterminate::-moz-progress-bar {
