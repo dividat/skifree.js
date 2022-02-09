@@ -21,6 +21,7 @@
     that.deleted = false
     that.isStatic = false
     that.isMoving = true
+    that.part = null
 
     if (!that.data.parts) {
       that.data.parts = {}
@@ -48,6 +49,9 @@
           return data.hitBoxes[forZIndex]
         }
       }
+      if (that.data.parts[that.part] && that.data.parts[that.part].offsets) {
+        return that.data.parts[that.part].offsets
+      }
     }
 
     function roundHalf (num) {
@@ -55,7 +59,7 @@
       return num
     }
 
-    function move () {
+    function move (dt) {
       if (!that.isMoving) {
         return
       }
@@ -63,26 +67,32 @@
       var currentX = that.mapPosition[0]
       var currentY = that.mapPosition[1]
 
+      // Assume original magic numbers for speed were created for a typical 2013 resolution
+      var heightFactor = window.devicePixelRatio * window.innerHeight/800
+      // Adjust for FPS different than the 50 FPS assumed by original game
+      var lagFactor = (dt || skiCfg.originalFrameInterval)/skiCfg.originalFrameInterval
+      var factor = heightFactor * lagFactor
+
       if (typeof that.direction !== 'undefined') {
         // For this we need to modify the that.direction so it relates to the horizontal
         var d = that.direction - 90
         if (d < 0) d = 360 + d
-        currentX += roundHalf(that.speed * Math.cos(d * (Math.PI / 180)))
-        currentY += roundHalf(that.speed * Math.sin(d * (Math.PI / 180)))
+        currentX += roundHalf(that.speed * Math.cos(d * (Math.PI / 180))) * factor
+        currentY += roundHalf(that.speed * Math.sin(d * (Math.PI / 180))) * factor
       } else {
         if (typeof that.movingToward[0] !== 'undefined') {
           if (currentX > that.movingToward[0]) {
-            currentX -= Math.min(that.getSpeedX(), Math.abs(currentX - that.movingToward[0]))
+            currentX -= Math.min(that.getSpeedX() * factor, Math.abs(currentX - that.movingToward[0]))
           } else if (currentX < that.movingToward[0]) {
-            currentX += Math.min(that.getSpeedX(), Math.abs(currentX - that.movingToward[0]))
+            currentX += Math.min(that.getSpeedX() * factor, Math.abs(currentX - that.movingToward[0]))
           }
         }
 
         if (typeof that.movingToward[1] !== 'undefined') {
           if (currentY > that.movingToward[1]) {
-            currentY -= Math.min(that.getSpeedY(), Math.abs(currentY - that.movingToward[1]))
+            currentY -= Math.min(that.getSpeedY() * factor, Math.abs(currentY - that.movingToward[1]))
           } else if (currentY < that.movingToward[1]) {
-            currentY += Math.min(that.getSpeedY(), Math.abs(currentY - that.movingToward[1]))
+            currentY += Math.min(that.getSpeedY() * factor, Math.abs(currentY - that.movingToward[1]))
           }
         }
       }
@@ -90,16 +100,70 @@
       that.setMapPosition(currentX, currentY)
     }
 
-    this.draw = function (dCtx, spriteFrame) {
-      var zoom = 1.5
-      var fr = that.data.parts[spriteFrame]
-      that.height = fr[3] * zoom
-      that.width = fr[2] * zoom
+    this.determineNextFrame = function (dCtx, spriteFrame) {
+      that.part = spriteFrame
+
+      var part = that.data.parts[spriteFrame]
+      var overridePath = "sprites/" + that.data.name + "-" + spriteFrame + ".png"
+
+      var frames = part.frames
+      var fps = part.fps
+
+      if (typeof frames === 'number' && typeof fps === 'number') {
+        var deltaT = Math.floor(1000 / fps)
+	var firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) : 1
+
+        var frame = Math.max(0, Math.floor(Date.now() / deltaT) % (frames + firstFrameRepetitions) - firstFrameRepetitions) + 1
+
+        overridePath = "sprites/" + that.data.name + "-" + spriteFrame + frame + ".png"
+      }
+
+      var img = dCtx.getLoadedImage(overridePath)
+
+      if (!img || !img.complete || img.naturalHeight === 0) {
+        that.width = 0
+        that.height = 0
+        return
+      }
+
+      var spriteZoom = 1
+      if (typeof that.data.sizeMultiple === 'number') {
+        var spriteZoom = part.sizeMultiple || that.data.sizeMultiple
+      }
+
+      var targetWidth = Math.round(img.naturalWidth * spriteZoom * skiCfg.zoom)
+      var targetHeight = Math.round(img.naturalHeight * spriteZoom * skiCfg.zoom)
+
+      that.width = targetWidth
+      that.height = targetHeight
 
       var newCanvasPosition = dCtx.mapPositionToCanvasPosition(that.mapPosition)
       that.setCanvasPosition(newCanvasPosition[0], newCanvasPosition[1])
 
-      dCtx.drawImage(dCtx.getLoadedImage(that.data.$imageFile), fr[0], fr[1], fr[2], fr[3], that.canvasX, that.canvasY, fr[2] * zoom, fr[3] * zoom)
+      return img
+    }
+
+    this.draw = function (dCtx, spriteFrame) {
+      var img = that.determineNextFrame(dCtx, spriteFrame)
+      if (img == null) return
+
+      var fr = [0, 0, img.width, img.height]
+
+      dCtx.drawImage(img, fr[0], fr[1], fr[2], fr[3], that.canvasX, that.canvasY, that.width, that.height)
+
+      if (skiCfg.debug) {
+        var thbe = this.getTopHitBoxEdge(that.mapPosition[2])
+        var bhbe = this.getBottomHitBoxEdge(that.mapPosition[2])
+        var lhbe = this.getLeftHitBoxEdge(that.mapPosition[2])
+        var rhbe = this.getRightHitBoxEdge(that.mapPosition[2])
+        dCtx.moveTo(lhbe, thbe)
+        dCtx.lineTo(rhbe, thbe)
+        dCtx.lineTo(rhbe, bhbe)
+        dCtx.lineTo(lhbe, bhbe)
+        dCtx.lineTo(lhbe, thbe)
+        dCtx.strokeStyle = 'red'
+        dCtx.stroke()
+      }
     }
 
     this.setMapPosition = function (x, y, z) {
@@ -141,7 +205,7 @@
       zIndex = zIndex || 0
       var lhbe = this.getCanvasPositionX()
       if (getHitBox(zIndex)) {
-        lhbe += getHitBox(zIndex)[0]
+        lhbe += getHitBox(zIndex)[3] * that.width
       }
       return lhbe
     }
@@ -150,7 +214,7 @@
       zIndex = zIndex || 0
       var thbe = this.getCanvasPositionY()
       if (getHitBox(zIndex)) {
-        thbe += getHitBox(zIndex)[1]
+        thbe += getHitBox(zIndex)[0] * that.height
       }
       return thbe
     }
@@ -159,7 +223,7 @@
       zIndex = zIndex || 0
 
       if (getHitBox(zIndex)) {
-        return that.canvasX + getHitBox(zIndex)[2]
+        return that.canvasX + (1 - getHitBox(zIndex)[1]) * that.width
       }
 
       return that.canvasX + that.width
@@ -169,7 +233,7 @@
       zIndex = zIndex || 0
 
       if (getHitBox(zIndex)) {
-        return that.canvasY + getHitBox(zIndex)[3]
+        return that.canvasY + (1 - getHitBox(zIndex)[2]) * that.height
       }
 
       return that.canvasY + that.height
@@ -243,7 +307,7 @@
       }
     }
 
-    this.cycle = function () {
+    this.cycle = function (dt) {
       that.checkOffScreen()
       if (hasHittableObjects) that.checkHittableObjects()
 
@@ -251,7 +315,7 @@
         that.setMapPositionTarget(trackedSpriteToMoveToward.mapPosition[0], trackedSpriteToMoveToward.mapPosition[1], true)
       }
 
-      move()
+      move(dt)
     }
 
     this.setMapPositionTarget = function (x, y, override) {
@@ -342,6 +406,10 @@
 
     this.isBelowOnCanvas = function (cy) {
       return (that.canvasY) > cy
+    }
+
+    this.isPassable = function () {
+      return Boolean(that.data.isPassable)
     }
 
     return that

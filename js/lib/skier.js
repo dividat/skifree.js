@@ -271,27 +271,26 @@ var Sprite = require('./sprite');
       that.setSpeed(standardSpeed)
     }
 
-    that.cycle = function () {
+    that.cycle = function (dt) {
       if (that.getSpeedX() <= 0 && that.getSpeedY() <= 0) {
         that.isMoving = false
       }
       if (that.isMoving) {
-        pixelsTravelled += that.speed
+        pixelsTravelled += that.speed * (dt || skiCfg.originalFrameInterval)/skiCfg.originalFrameInterval
       }
 
       if (that.isJumping) {
         that.setMapPositionTarget(undefined, that.mapPosition[1] + that.getSpeed())
       }
 
-      sup.cycle()
+      sup.cycle(dt)
     }
 
     that.draw = function (dContext) {
-      var spritePartToUse = function () {
-        if (that.isBeingEaten) {
-          return getBeingEatenSprite()
-        }
+      // Part of monster sprite while being eaten
+      if (that.isBeingEaten) return
 
+      var spritePartToUse = function () {
         if (that.isJumping) {
           if (that.isPerformingTrick) {
             return getTrickSprite()

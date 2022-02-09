@@ -26,7 +26,7 @@ var Sprite = require('./sprite');
       }
     }
 
-    that.cycle = function (dContext) {
+    that.cycle = function (dt, dContext) {
       if (Number.random(10) === 1) {
         that.setMapPositionTarget(dContext.getRandomlyInTheCentreOfMap())
         that.setSpeed(standardSpeed + Number.random(-1, 1))
@@ -34,7 +34,7 @@ var Sprite = require('./sprite');
 
       that.setMapPositionTarget(undefined, dContext.getMapBelowViewport() + 600)
 
-      sup.cycle()
+      sup.cycle(dt)
     }
 
     that.draw = function (dContext) {

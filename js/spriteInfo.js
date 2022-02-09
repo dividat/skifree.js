@@ -1,114 +1,115 @@
 (function (global) {
   var sprites = {
     'skier': {
-      $imageFile: 'sprite-characters.png',
       parts: {
-        blank: [ 0, 0, 0, 0 ],
-        east: [ 0, 0, 24, 34 ],
-        esEast: [ 24, 0, 24, 34 ],
-        sEast: [ 49, 0, 17, 34 ],
-        south: [ 65, 0, 17, 34 ],
-        sWest: [ 49, 37, 17, 34 ],
-        wsWest: [ 24, 37, 24, 34 ],
-        west: [ 0, 37, 24, 34 ],
-        hit: [ 0, 78, 31, 31 ],
-        jumping: [ 84, 0, 32, 34 ],
-        somersault1: [ 116, 0, 32, 34 ],
-        somersault2: [ 148, 0, 32, 34 ]
+        east: { offsets: [ 0.1, 0.125, 0.15, 0.45 ] },
+        esEast: { frames: 3, fps: 4, offsets: [ 0.5, 0.2, 0.15, 0.5 ] },
+        sEast: { frames: 3, fps: 7, sizeMultiple: 0.182, offsets: [ 0.4, 0.2, 0.15, 0.45] },
+        south: { frames: 3, fps: 9, offsets: [ 0.15, 0.3, 0.15, 0.2 ] },
+        sWest: { frames: 3, fps: 7, sizeMultiple: 0.182, offsets: [ 0.4, 0.45, 0.15, 0.2 ] },
+        wsWest: { frames: 3, fps: 4, offsets: [ 0.5, 0.5, 0.15, 0.2 ] },
+        west: { offsets: [ 0.1, 0.45, 0.15, 0.125 ] },
+        hit: { frames: 2, fps: 0.8, sizeMultiple: 0.182 },
+        jumping: { frames: 3, fps: 7, sizeMultiple: 0.25, offsets: [ 0.25, 0.4, 0.3, 0.4 ] },
       },
-      hitBoxes: {
-        0: [ 7, 20, 27, 34 ]
-      },
-      id: 'player',
-      hitBehaviour: {}
+      sizeMultiple: 0.2,
+      hitBehaviour: {},
+      name: 'skier'
     },
     'smallTree': {
-      $imageFile: 'skifree-objects.png',
       parts: {
-        main: [ 0, 28, 30, 34 ]
+        main: { offsets: [ 0.2, 0.3, 0.1, 0.35 ] }
       },
-      hitBoxes: {
-        0: [ 0, 18, 30, 34 ]
-      },
-      hitBehaviour: {}
+      sizeMultiple: 0.2,
+      hitBehaviour: {},
+      name: 'smallTree'
     },
     'tallTree': {
-      $imageFile: 'skifree-objects.png',
       parts: {
-        main: [ 95, 66, 32, 64 ]
+        main: { offsets: [ 0.25, 0.2, 0.1, 0.2 ] }
       },
-      zIndexesOccupied: [0, 1],
-      hitBoxes: {
-        0: [0, 54, 32, 64],
-        1: [0, 10, 32, 54]
-      },
-      hitBehaviour: {}
+      sizeMultiple: 0.2,
+      hitBehaviour: {},
+      name: 'tallTree'
     },
     'thickSnow': {
-      $imageFile: 'skifree-objects.png',
       parts: {
-        main: [ 143, 53, 43, 10 ]
+        main: {}
       },
-      hitBehaviour: {}
+      sizeMultiple: 0.2,
+      hitBehaviour: {},
+      isPassable: true,
+      name: 'thickSnow'
+    },
+    'thickerSnow': {
+      parts: {
+        main: {}
+      },
+      sizeMultiple: 0.2,
+      hitBehaviour: {},
+      isPassable: true,
+      name: 'thickerSnow'
     },
     'rock': {
-      $imageFile: 'skifree-objects.png',
       parts: {
-        main: [ 30, 52, 23, 11 ]
+        main: { offsets: [ 0.05, 0.05, 0.1, 0.3 ] }
       },
-      hitBehaviour: {}
+      sizeMultiple: 0.2,
+      hitBehaviour: {},
+      name: 'rock'
     },
     'monster': {
-      $imageFile: 'sprite-characters.png',
       parts: {
-        sEast1: [ 64, 112, 26, 43 ],
-        sEast2: [ 90, 112, 32, 43 ],
-        sWest1: [ 64, 158, 26, 43 ],
-        sWest2: [ 90, 158, 32, 43 ],
-        eating1: [ 122, 112, 34, 43 ],
-        eating2: [ 156, 112, 31, 43 ],
-        eating3: [ 187, 112, 31, 43 ],
-        eating4: [ 219, 112, 25, 43 ],
-        eating5: [ 243, 112, 26, 43 ]
+        sEast: { frames: 11, fps: 7, offsets: [ 0.2, 0.2, 0.35, 0.2 ] },
+        sWest: { frames: 11, fps: 7, offsets: [ 0.2, 0.2, 0.35, 0.2 ]},
+        eating1: {},
+        eating2: {},
+        eating3: {},
+        eating4: {},
+        eating5: {},
+        eating6: {}
       },
-      hitBehaviour: {}
+      sizeMultiple: 0.2,
+      hitBehaviour: {},
+      name: 'monster'
     },
     'jump': {
-      $imageFile: 'skifree-objects.png',
       parts: {
-        main: [ 109, 55, 32, 8 ]
+        main: { offsets: [ 0, 0.25, 0.6, 0.2 ] }
       },
-      hitBehaviour: {}
+      sizeMultiple: 0.2,
+      hitBehaviour: {},
+      isPassable: true,
+      name: 'jump'
     },
     'signStart': {
-      $imageFile: 'skifree-objects.png',
       parts: {
-        main: [ 260, 103, 42, 27 ]
+        main: {}
       },
-      hitBehaviour: {}
+      sizeMultiple: 0.15,
+      hitBehaviour: {},
+      isPassable: true,
+      name: 'signStart'
+    },
+    'cottage': {
+      parts: {
+        main: { frames: 12, fps: 4, delay: 3000 }
+      },
+      sizeMultiple: 0.2,
+      hitBehaviour: {},
+      isPassable: true,
+      name: 'cottage'
     },
     'snowboarder': {
-      $imageFile: 'sprite-characters.png',
       parts: {
-        sEast: [ 73, 229, 20, 29 ],
-        sWest: [ 95, 228, 26, 30 ]
+        sEast: { frames: 3, fps: 7, offsets: [ 0.3, 0.3, 0.2, 0.2 ] },
+        sWest: { frames: 3, fps: 7, offsets: [ 0.3, 0.3, 0.2, 0.2 ] }
       },
-      hitBehaviour: {}
+      sizeMultiple: 0.28,
+      hitBehaviour: {},
+      name: 'snowboarder'
     }
   }
-
-  function monsterHitsTreeBehaviour (monster) {
-    monster.deleteOnNextCycle()
-  }
-
-  sprites.monster.hitBehaviour.tree = monsterHitsTreeBehaviour
-
-  function treeHitsMonsterBehaviour (tree, monster) {
-    monster.deleteOnNextCycle()
-  }
-
-  sprites.smallTree.hitBehaviour.monster = treeHitsMonsterBehaviour
-  sprites.tallTree.hitBehaviour.monster = treeHitsMonsterBehaviour
 
   function skierHitsTreeBehaviour (skier, tree) {
     skier.hasHitObstacle(tree)

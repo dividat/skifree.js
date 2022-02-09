@@ -15,12 +15,17 @@ var SpriteArray = require('./spriteArray');
     var runningTime = 0
     var lastStepAt = null
 
-    this.addStaticObject = function (sprite) {
-      staticObjects.push(sprite)
+    this.addStaticObject = function (sprite, shouldAvoidCollisions) {
+      // Determine graphical properties to enable hit check
+      sprite.determineNextFrame(dContext, 'main')
+      if (!shouldAvoidCollisions || !staticObjects.any(function (other) { return other.hits(sprite) })) {
+        staticObjects.push(sprite)
+      }
     }
 
-    this.addStaticObjects = function (sprites) {
-      sprites.forEach(this.addStaticObject.bind(this))
+    this.addStaticObjects = function (sprites, shouldAvoidCollisions) {
+      var that = this
+      sprites.forEach(function (sprite) { that.addStaticObject(sprite, shouldAvoidCollisions) })
     }
 
     this.addMovingObject = function (movingObject, movingObjectType) {
@@ -61,7 +66,7 @@ var SpriteArray = require('./spriteArray');
 
     var intervalNum = 0
 
-    this.cycle = function () {
+    this.cycle = function (dt) {
       beforeCycleCallbacks.each(function (c) {
         c()
       })
@@ -75,23 +80,23 @@ var SpriteArray = require('./spriteArray');
 
       intervalNum++
 
-      player.cycle()
+      player.cycle(dt)
 
       movingObjects.cull()
       movingObjects.each(function (movingObject, i) {
-        movingObject.cycle(dContext)
+        movingObject.cycle(dt, dContext)
       })
 
       staticObjects.cull()
       staticObjects.each(function (staticObject, i) {
         if (staticObject.cycle) {
-          staticObject.cycle()
+          staticObject.cycle(dt)
         }
       })
 
       uiElements.each(function (uiElement, i) {
         if (uiElement.cycle) {
-          uiElement.cycle()
+          uiElement.cycle(dt)
         }
       })
 
@@ -103,18 +108,25 @@ var SpriteArray = require('./spriteArray');
     that.draw = function () {
       dContext.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 
-      player.draw(dContext)
+      // Draw static objects 'below' skier
+      staticObjects.each(function (staticObject, i) {
+        if (staticObject.draw && (staticObject.isPassable() || player.isJumping)) {
+          staticObject.draw(dContext, 'main')
+        }
+      })
 
+      player.draw(dContext)
       player.cycle()
+
+      // Draw static objects 'above' skier
+      staticObjects.each(function (staticObject, i) {
+        if (staticObject.draw && !staticObject.isPassable() && !player.isJumping) {
+          staticObject.draw(dContext, 'main')
+        }
+      })
 
       movingObjects.each(function (movingObject, i) {
         movingObject.draw(dContext)
-      })
-
-      staticObjects.each(function (staticObject, i) {
-        if (staticObject.draw) {
-          staticObject.draw(dContext, 'main')
-        }
       })
 
       uiElements.each(function (uiElement, i) {
@@ -168,7 +180,7 @@ var SpriteArray = require('./spriteArray');
       lastStepAt = now
       runningTime += dt
 
-      this.cycle()
+      this.cycle(dt)
       this.draw()
 
       requestAnimationFrame(this.step.bind(this))

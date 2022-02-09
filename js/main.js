@@ -14,18 +14,43 @@ var Game = require('./lib/game')
 // Local variables for starting the game
 var mainCanvas = document.getElementById('skifree-canvas')
 var dContext = mainCanvas.getContext('2d')
-var imageSources = [ 'sprite-characters.png', 'skifree-objects.png' ]
 var global = this
 var infoBoxControls = 'Use the mouse or WASD to control the player'
 var sprites = require('./spriteInfo')
+var imageSources = []
+;(function () {
+  for (var key in sprites) {
+      for (var partKey in sprites[key].parts) {
+          // Skip monkey patching debris
+          if (partKey === 'superior') continue
+
+          var part = sprites[key].parts[partKey]
+
+          if (part.frames > 0) {
+              for (var i = 1; i <= part.frames; i++) {
+                  imageSources.push("sprites/" + key + "-" + partKey + i + ".png")
+              }
+	  } else {
+              imageSources.push("sprites/" + key + "-" + partKey + ".png")
+	  }
+      }
+  }
+})()
+
+// Set global configuration
+window.skiCfg = {
+  zoom: (parseFloat(new URLSearchParams(document.location.search).get("zoom")) || window.devicePixelRatio || 1) * 3,
+  originalFrameInterval: 20,
+  debug: new URLSearchParams(document.location.search).has("debug")
+}
 
 var pixelsPerMetre = 18
 var distanceTravelledInMetres = 0
 var monsterDistanceThreshold = 2000
 var loseLifeOnObstacleHit = false
-var dropRates = {smallTree: 4, tallTree: 2, jump: 1, thickSnow: 1, rock: 1}
+var dropRates = {smallTree: 4, tallTree: 2, jump: 1, thickSnow: 0.7, thickerSnow: 0.3, rock: 1}
 
-var balanceFactor = 1
+var balanceFactor = 0.33
 var settings = {
   duration: 60000,
   wheelchair: false
@@ -35,9 +60,15 @@ function loadImages (sources, next) {
   var loaded = 0
   var images = {}
 
+  var indicator = document.getElementById('loading-indicator')
+  indicator.max = sources.length
+
   function finish () {
     loaded += 1
+    indicator.value = loaded
+
     if (loaded === sources.length) {
+      document.getElementById('loader').classList.add('done')
       next(images)
     }
   }
@@ -45,6 +76,7 @@ function loadImages (sources, next) {
   sources.each(function (src) {
     var im = new Image()
     im.onload = finish
+    im.onerror = finish
     im.src = src
     dContext.storeLoadedImage(src, im)
   })
@@ -67,6 +99,7 @@ function monsterHitsSkierBehaviour (monster, skier) {
 function startNeverEndingGame (images) {
   var player
   var startSign
+  var cottage
   var game
 
   function detectEnd () {
@@ -117,9 +150,15 @@ function startNeverEndingGame (images) {
 
   game = new Game(mainCanvas, player)
 
+  player.determineNextFrame(dContext, 'east')
   startSign = new Sprite(sprites.signStart)
   game.addStaticObject(startSign)
-  startSign.setMapPosition(-50, 0)
+  startSign.setMapPosition(-0.4 * player.width, -0.1 * player.height)
+
+  cottage = new Sprite(sprites.cottage)
+  game.addStaticObject(cottage)
+  cottage.setMapPosition(0.7 * player.width, -1.2 * player.height)
+
   dContext.followSprite(player)
 
   game.beforeCycle(function () {
@@ -130,6 +169,7 @@ function startNeverEndingGame (images) {
         { sprite: sprites.tallTree, dropRate: dropRates.tallTree },
         { sprite: sprites.jump, dropRate: dropRates.jump },
         { sprite: sprites.thickSnow, dropRate: dropRates.thickSnow },
+        { sprite: sprites.thickerSnow, dropRate: dropRates.thickerSnow },
         { sprite: sprites.rock, dropRate: dropRates.rock }
       ], {
         rateModifier: Math.max(800 - mainCanvas.width, 0),
@@ -141,7 +181,7 @@ function startNeverEndingGame (images) {
       })
     }
     if (!game.isPaused()) {
-      game.addStaticObjects(newObjects)
+      game.addStaticObjects(newObjects, true)
 
       randomlySpawnNPC(spawnBoarder, 0.1)
       distanceTravelledInMetres = parseFloat(player.getPixelsTravelledDownMountain() / pixelsPerMetre).toFixed(1)
@@ -246,24 +286,30 @@ function startNeverEndingGame (images) {
 }
 
 // return linear interpolation of x on f, as relative coordinates (centered on 0)
+var directions = ['center', 'up', 'right', 'down', 'left']
 function linearInterpolX (state) {
-  var sumOfX = ['center', 'up', 'right', 'down', 'left'].map(function (d) {
-    return state[d].f * (state[d].x - 1.5)
-  }).reduce(function (sum, value) {
-    return sum + value
-  }, 0)
+  var totalForce = directions.reduce(function (sum, d) { return state[d].f + sum }, 0)
+  // Avoid brownian skiing when plate empty
+  if (totalForce < 0.05) return 0
 
-  return sumOfX
+  var fusedX = directions.reduce(function (sum, d) { return state[d].f/totalForce * state[d].x + sum }, 0)
+
+  return (fusedX - 1.5)
 }
 
-function resizeCanvas () {
-  mainCanvas.width = window.innerWidth
-  mainCanvas.height = window.innerHeight
+function setupCanvas () {
+  var dpr = window.devicePixelRatio || 1
+
+  mainCanvas.width = window.innerWidth * dpr
+  mainCanvas.height = window.innerHeight * dpr
+
+  mainCanvas.style.width = window.innerWidth + 'px'
+  mainCanvas.style.height = window.innerHeight + 'px'
+
+  dContext.imageSmoothingQuality = 'high'
 }
-
-window.addEventListener('resize', resizeCanvas, false)
-
-resizeCanvas()
+window.addEventListener('resize', setupCanvas, false)
+setupCanvas()
 
 loadImages(imageSources, startNeverEndingGame)
 

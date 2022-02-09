@@ -1,8 +1,18 @@
 # Skifree.js
 
-This fork is an integration example for Dividat's External Game Interface (EGI). Uses EGI scripts, with `PlayEGI.onSignal` to handle game lifecycle and player inputs, and `PlayEGI.finish` to push a new score. The green timer bar is done with `PlayEGIHelpers.timer`.
+This fork adds support for Dividat's External Game Interface (EGI), so the game may be played in Dividat Play.
 
-To test it with Play[dev], run `npm install && make compile`, then start a static web server in the repo (for instance `python -m http.server`). Go to https://play.dividat.com/playDev.html and then enter the `index.html` as requested.
+## Development
+
+To test it with Play[dev], run `npm install && make compile`, then start a static web server in the repo (for instance `python -m http.server`). Go to https://play.dividat.com/playDev.html and enter the URL of your local Python servver.
+
+## Builds
+
+You can create a complete build in `bundle/` using
+
+    make bundle
+
+Copy this directory anywhere you want to deploy it.
 
 ---
 
