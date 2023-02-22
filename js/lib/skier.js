@@ -372,23 +372,18 @@ var Sprite = require('./sprite');
     }
 
     that.getSpeedX = function () {
-      if (getDiscreteDirection() === 'esEast' || getDiscreteDirection() === 'wsWest') {
+      var dir = getDiscreteDirection()
+
+      if (dir === 'esEast' || dir === 'wsWest') {
         speedXFactor = 0.5
         speedX = easeSpeedToTargetUsingFactor(speedX, that.getSpeed() * speedXFactor, speedXFactor)
-
-        return speedX
-      }
-
-      if (getDiscreteDirection() === 'sEast' || getDiscreteDirection() === 'sWest') {
+      } else if (dir === 'sEast' || dir === 'sWest') {
         speedXFactor = 0.33
         speedX = easeSpeedToTargetUsingFactor(speedX, that.getSpeed() * speedXFactor, speedXFactor)
-
-        return speedX
+      } else {
+        // South
+        speedX = easeSpeedToTargetUsingFactor(speedX, 0, speedXFactor)
       }
-
-      // So it must be south
-
-      speedX = easeSpeedToTargetUsingFactor(speedX, 0, speedXFactor)
 
       return speedX
     }
@@ -398,36 +393,23 @@ var Sprite = require('./sprite');
     }
 
     that.getSpeedY = function () {
-      var targetSpeed
+      var dir = getDiscreteDirection()
 
       if (that.isJumping) {
-        return speedY
-      }
-
-      if (getDiscreteDirection() === 'esEast' || getDiscreteDirection() === 'wsWest') {
+        // Do nothing
+      } else if (dir === 'esEast' || dir === 'wsWest') {
         speedYFactor = 0.6
         speedY = easeSpeedToTargetUsingFactor(speedY, that.getSpeed() * 0.6, 0.6)
-
-        return speedY
-      }
-
-      if (getDiscreteDirection() === 'sEast' || getDiscreteDirection() === 'sWest') {
+      } else if (dir === 'sEast' || dir === 'sWest') {
         speedYFactor = 0.85
         speedY = easeSpeedToTargetUsingFactor(speedY, that.getSpeed() * 0.85, 0.85)
-
-        return speedY
-      }
-
-      if (getDiscreteDirection() === 'east' || getDiscreteDirection() === 'west') {
+      } else if (dir === 'east' || dir === 'west') {
         speedYFactor = 1
         speedY = 0
-
-        return speedY
+      } else {
+        // South
+        speedY = easeSpeedToTargetUsingFactor(speedY, that.getSpeed(), speedYFactor)
       }
-
-      // So it must be south
-
-      speedY = easeSpeedToTargetUsingFactor(speedY, that.getSpeed(), speedYFactor)
 
       return speedY
     }
