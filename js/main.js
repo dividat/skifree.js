@@ -144,7 +144,7 @@ function startNeverEndingGame (images) {
     game.addMovingObject(newBoarder)
   }
 
-  player = new Skier(sprites.skier)
+  player = new Skier(mainCanvas, sprites.skier)
   player.setMapPosition(0, 0)
   player.setMapPositionTarget(0, -10)
 
@@ -244,19 +244,11 @@ function startNeverEndingGame (images) {
             break
 
           case 'Left':
-            if (player.direction === 270) {
-              player.stepWest()
-            } else {
-              player.turnWest()
-            }
+            player.turnWest()
             break
 
           case 'Right':
-            if (player.direction === 90) {
-              player.stepEast()
-            } else {
-              player.turnEast()
-            }
+            player.turnEast()
             break
 
           case 'Down':

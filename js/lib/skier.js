@@ -1,6 +1,6 @@
 var Sprite = require('./sprite');
 (function (global) {
-  function Skier (data) {
+  function Skier (mainCanvas, data) {
     var discreteDirections = {
       'west': 270,
       'wsWest': 240,
@@ -133,9 +133,10 @@ var Sprite = require('./sprite');
           return 'wsWest'
         } else if (directions.sWest(xDiff)) {
           return 'sWest'
+        } else {
+          return 'south'
         }
       }
-      return 'south'
     }
 
     function setDiscreteDirection (d) {
@@ -372,19 +373,9 @@ var Sprite = require('./sprite');
     }
 
     that.getSpeedX = function () {
-      var dir = getDiscreteDirection()
-
-      if (dir === 'esEast' || dir === 'wsWest') {
-        speedXFactor = 0.5
-        speedX = easeSpeedToTargetUsingFactor(speedX, that.getSpeed() * speedXFactor, speedXFactor)
-      } else if (dir === 'sEast' || dir === 'sWest') {
-        speedXFactor = 0.33
-        speedX = easeSpeedToTargetUsingFactor(speedX, that.getSpeed() * speedXFactor, speedXFactor)
-      } else {
-        // South
-        speedX = easeSpeedToTargetUsingFactor(speedX, 0, speedXFactor)
-      }
-
+      var xDiff = Math.abs(that.movingToward[0] - that.mapPosition[0])
+      var speedXFactor = 3 * Math.min(mainCanvas.width / 4, xDiff) / mainCanvas.width
+      speedX = easeSpeedToTargetUsingFactor(speedX, that.getSpeed() * speedXFactor, speedXFactor)
       return speedX
     }
 
@@ -393,25 +384,15 @@ var Sprite = require('./sprite');
     }
 
     that.getSpeedY = function () {
-      var dir = getDiscreteDirection()
-
       if (that.isJumping) {
-        // Do nothing
-      } else if (dir === 'esEast' || dir === 'wsWest') {
-        speedYFactor = 0.6
-        speedY = easeSpeedToTargetUsingFactor(speedY, that.getSpeed() * 0.6, 0.6)
-      } else if (dir === 'sEast' || dir === 'sWest') {
-        speedYFactor = 0.85
-        speedY = easeSpeedToTargetUsingFactor(speedY, that.getSpeed() * 0.85, 0.85)
-      } else if (dir === 'east' || dir === 'west') {
-        speedYFactor = 1
-        speedY = 0
+        return speedY
       } else {
-        // South
-        speedY = easeSpeedToTargetUsingFactor(speedY, that.getSpeed(), speedYFactor)
+        var xDiff = Math.abs(that.movingToward[0] - that.mapPosition[0])
+        var speedXFactor = 3 * Math.min(mainCanvas.width / 4, xDiff) / mainCanvas.width
+        var speedYFactor = 1 - speedXFactor
+        speedY = that.getSpeed() * speedYFactor
+        return speedY
       }
-
-      return speedY
     }
 
     that.hasHitObstacle = function (obs) {
