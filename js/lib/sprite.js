@@ -392,11 +392,11 @@
       var thatZ = that.mapPosition[2]
       var otherZ = other.mapPosition[2]
 
-      return (
-        that.getLeftHitBoxEdge(thatZ) <= other.getRightHitBoxEdge(otherZ) &&
-        that.getRightHitBoxEdge(thatZ) >= other.getLeftHitBoxEdge(otherZ) &&
-        that.getTopHitBoxEdge(thatZ) <= other.getBottomHitBoxEdge(otherZ) &&
-        that.getBottomHitBoxEdge(thatZ) >= other.getTopHitBoxEdge(otherZ)
+      return !(
+        that.getLeftHitBoxEdge(thatZ) > other.getRightHitBoxEdge(otherZ) ||
+        that.getRightHitBoxEdge(thatZ) < other.getLeftHitBoxEdge(otherZ) ||
+        that.getTopHitBoxEdge(thatZ) > other.getBottomHitBoxEdge(otherZ) ||
+        that.getBottomHitBoxEdge(thatZ) < other.getTopHitBoxEdge(otherZ)
       )
     }
 
