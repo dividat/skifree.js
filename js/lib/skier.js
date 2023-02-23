@@ -39,6 +39,7 @@ var Sprite = require('./sprite');
     var speedXFactor = 0
     var speedY = 0
     var speedYFactor = 1
+    var invincibleAfterCrashDuration = 6000 // ms
 
     that.isMoving = true
     that.hasBeenHit = false
@@ -48,6 +49,7 @@ var Sprite = require('./sprite');
 
     that.jumps = 0
     that.collisions = 0
+    that.lastCollision = undefined
 
     that.reset = function () {
       obstaclesHit = []
@@ -273,22 +275,32 @@ var Sprite = require('./sprite');
     }
 
     that.draw = function (dContext) {
-      // Part of monster sprite while being eaten
-      if (that.isBeingEaten) return
-
-      var spritePartToUse = function () {
-        if (that.isJumping) {
-          return getJumpingSprite()
+      // Part of monster sprite while being eaten, also don’t show when blinking
+      if (!that.isBeingEaten && !that.isBlinking()) {
+        var spritePartToUse = function () {
+          if (that.isJumping) {
+            return getJumpingSprite()
+          } else if (that.hasBeenHit) {
+            return 'hit'
+          } else {
+            return getDiscreteDirection()
+          }
         }
 
-        if (that.hasBeenHit) {
-          return 'hit'
-        }
-
-        return getDiscreteDirection()
+        sup.draw(dContext, spritePartToUse())
       }
+    }
 
-      return sup.draw(dContext, spritePartToUse())
+    that.isBlinking = function () {
+      if (that.isInvincible() && !that.hasBeenHit) {
+        if (Date.now() < that.lastCollision + invincibleAfterCrashDuration - 1000) {
+          return Math.floor(Date.now() / 100) % 2 === 0
+        } else {
+          return Math.floor(Date.now() / 50) % 2 === 0
+        }
+      } else {
+        return false
+      }
     }
 
     that.hits = function (obs) {
@@ -365,32 +377,41 @@ var Sprite = require('./sprite');
     }
 
     that.hasHitObstacle = function (obs) {
-      that.collisions++
-      setCrashed()
+      if (!that.isInvincible()) {
+        that.collisions++
+        that.lastCollision = Date.now()
+        setCrashed()
 
-      obstaclesHit.push(obs.id)
+        obstaclesHit.push(obs.id)
 
-      that.resetSpeed()
-      that.onHitObstacleCb(obs)
+        that.resetSpeed()
+        that.onHitObstacleCb(obs)
 
-      if (cancelableStateTimeout) {
-        clearTimeout(cancelableStateTimeout)
+        if (cancelableStateTimeout) {
+          clearTimeout(cancelableStateTimeout)
+        }
+        cancelableStateTimeout = setTimeout(function () {
+          setNormal()
+        }, 1500)
       }
-      cancelableStateTimeout = setTimeout(function () {
-        setNormal()
-      }, 1500)
+    }
+
+    that.isInvincible = function () {
+      return that.lastCollision !== undefined && Date.now() - that.lastCollision < invincibleAfterCrashDuration
     }
 
     that.hasHitJump = function () {
-      that.jumps++
-      setJumping()
+      if (!that.isInvincible()) {
+        that.jumps++
+        setJumping()
 
-      if (cancelableStateTimeout) {
-        clearTimeout(cancelableStateTimeout)
+        if (cancelableStateTimeout) {
+          clearTimeout(cancelableStateTimeout)
+        }
+        cancelableStateTimeout = setTimeout(function () {
+          setNormal()
+        }, 1000)
       }
-      cancelableStateTimeout = setTimeout(function () {
-        setNormal()
-      }, 1000)
     }
 
     that.isEatenBy = function (monster, whenEaten) {
