@@ -39,12 +39,10 @@ var Sprite = require('./sprite');
     var speedXFactor = 0
     var speedY = 0
     var speedYFactor = 1
-    var trickStep = 0 // There are three of these
 
     that.isMoving = true
     that.hasBeenHit = false
     that.isJumping = false
-    that.isPerformingTrick = false
     that.onHitObstacleCb = function () {}
     that.setSpeed(standardSpeed)
 
@@ -65,7 +63,6 @@ var Sprite = require('./sprite');
       that.isMoving = true
       that.hasBeenHit = false
       that.isJumping = false
-      that.isPerformingTrick = false
       if (cancelableStateInterval) {
         clearInterval(cancelableStateInterval)
       }
@@ -76,7 +73,6 @@ var Sprite = require('./sprite');
       that.isMoving = false
       that.hasBeenHit = true
       that.isJumping = false
-      that.isPerformingTrick = false
       if (cancelableStateInterval) {
         clearInterval(cancelableStateInterval)
       }
@@ -157,17 +153,6 @@ var Sprite = require('./sprite');
 
     function getJumpingSprite () {
       return 'jumping'
-    }
-
-    function getTrickSprite () {
-      console.log('Trick step is', trickStep)
-      if (trickStep === 0) {
-        return 'jumping'
-      } else if (trickStep === 1) {
-        return 'somersault1'
-      } else {
-        return 'somersault2'
-      }
     }
 
     that.stop = function () {
@@ -293,9 +278,6 @@ var Sprite = require('./sprite');
 
       var spritePartToUse = function () {
         if (that.isJumping) {
-          if (that.isPerformingTrick) {
-            return getTrickSprite()
-          }
           return getJumpingSprite()
         }
 
@@ -336,19 +318,6 @@ var Sprite = require('./sprite');
             canSpeedBoost = true
           }, 10000)
         }, 2000)
-      }
-    }
-
-    that.attemptTrick = function () {
-      if (that.isJumping) {
-        that.isPerformingTrick = true
-        cancelableStateInterval = setInterval(function () {
-          if (trickStep >= 2) {
-            trickStep = 0
-          } else {
-            trickStep += 1
-          }
-        }, 300)
       }
     }
 
