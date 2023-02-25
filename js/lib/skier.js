@@ -354,9 +354,25 @@ var Sprite = require('./sprite');
     }
 
     that.getSpeedX = function () {
-      var xDiff = Math.abs(that.movingToward[0] - that.mapPosition[0])
-      var speedXFactor = 3 * Math.min(mainCanvas.width / 4, xDiff) / mainCanvas.width
-      speedX = easeSpeedToTargetUsingFactor(speedX, that.getSpeed() * speedXFactor, speedXFactor)
+      if (that.movingToward !== undefined) {
+        var xDiff = Math.abs(that.movingToward[0] - that.mapPosition[0])
+        var speedXFactor = 3 * Math.min(mainCanvas.width / 4, xDiff) / mainCanvas.width
+        speedX = easeSpeedToTargetUsingFactor(speedX, that.getSpeed() * speedXFactor, speedXFactor)
+      } else {
+        var dir = getDiscreteDirection()
+
+        if (dir === 'esEast' || dir === 'wsWest') {
+          speedXFactor = 0.5
+          speedX = easeSpeedToTargetUsingFactor(speedX, that.getSpeed() * speedXFactor, speedXFactor)
+        } else if (dir === 'sEast' || dir === 'sWest') {
+          speedXFactor = 0.33
+          speedX = easeSpeedToTargetUsingFactor(speedX, that.getSpeed() * speedXFactor, speedXFactor)
+        } else {
+          // South
+          speedX = easeSpeedToTargetUsingFactor(speedX, 0, speedXFactor)
+        }
+      }
+
       return speedX
     }
 
@@ -368,10 +384,30 @@ var Sprite = require('./sprite');
       if (that.isJumping) {
         return speedY
       } else {
-        var xDiff = Math.abs(that.movingToward[0] - that.mapPosition[0])
-        var speedXFactor = 3 * Math.min(mainCanvas.width / 4, xDiff) / mainCanvas.width
-        var speedYFactor = 1 - speedXFactor
-        speedY = that.getSpeed() * speedYFactor
+          if (that.movingToward !== undefined) {
+          var xDiff = Math.abs(that.movingToward[0] - that.mapPosition[0])
+          var speedXFactor = 3 * Math.min(mainCanvas.width / 4, xDiff) / mainCanvas.width
+          var speedYFactor = 1 - speedXFactor
+          speedY = that.getSpeed() * speedYFactor
+        } else {
+          var dir = getDiscreteDirection()
+
+          if (that.isJumping) {
+            // Do nothing
+          } else if (dir === 'esEast' || dir === 'wsWest') {
+            speedYFactor = 0.6
+            speedY = easeSpeedToTargetUsingFactor(speedY, that.getSpeed() * 0.6, 0.6)
+          } else if (dir === 'sEast' || dir === 'sWest') {
+            speedYFactor = 0.85
+            speedY = easeSpeedToTargetUsingFactor(speedY, that.getSpeed() * 0.85, 0.85)
+          } else if (dir === 'east' || dir === 'west') {
+            speedYFactor = 1
+            speedY = 0
+          } else {
+            // South
+            speedY = easeSpeedToTargetUsingFactor(speedY, that.getSpeed(), speedYFactor)
+          }
+        }
         return speedY
       }
     }

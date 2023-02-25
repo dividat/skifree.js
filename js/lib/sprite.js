@@ -302,7 +302,10 @@
     }
 
     this.checkOffScreen = function () {
-      if (that.isStatic && that.isAboveOnCanvas(0)) {
+      // Keep jumps to make sure we don’t drop objects in landing area
+      var deletePoint = that.data.name === 'jump' ? -1000 : 0
+
+      if (that.isStatic && that.isAboveOnCanvas(deletePoint)) {
         that.deleted = true
       }
     }
@@ -400,6 +403,27 @@
       )
     }
 
+    this.hitsLandingArea = function (other) {
+      if (that.data.name === 'jump' && other.data.name !== 'thickSnow' && other.data.name !== 'thickerSnow') {
+        // Obtained experimentally by increasing object drop rates
+        var sideWidth = 150
+        var jumpingH = 1200
+        var landingH = 500
+
+        var jumpZ = that.mapPosition[2]
+        var hittableZ = other.mapPosition[2]
+
+        return !(
+          other.getLeftHitBoxEdge(hittableZ) > (that.getRightHitBoxEdge(jumpZ) + sideWidth) ||
+          other.getRightHitBoxEdge(hittableZ) < (that.getLeftHitBoxEdge(jumpZ) - sideWidth) ||
+          other.getTopHitBoxEdge(hittableZ) > (that.getBottomHitBoxEdge(jumpZ) + jumpingH + landingH) ||
+          other.getBottomHitBoxEdge(hittableZ) < (that.getTopHitBoxEdge(jumpZ) + jumpingH)
+        )
+      } else {
+        return false
+      }
+    }
+
     this.isAboveOnCanvas = function (cy) {
       return (that.canvasY + that.height) < cy
     }
@@ -426,7 +450,11 @@
 
     function createOne (spriteInfo) {
       var position = opts.position
-      if (Number.random(100 + opts.rateModifier) <= spriteInfo.dropRate) {
+
+      // Using 1 - Math.random() to exclude 0: 1 - [0, 1[ -> ]0, 1]
+      var random = 100 * (1 - Math.random()) + opts.rateModifier
+
+      if (random <= spriteInfo.dropRate) {
         var sprite = new Sprite(spriteInfo.sprite)
         sprite.setSpeed(0)
 

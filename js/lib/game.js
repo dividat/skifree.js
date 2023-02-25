@@ -18,13 +18,19 @@ var SpriteArray = require('./spriteArray');
     this.addStaticObject = function (sprite, shouldAvoidCollisions) {
       // Determine graphical properties to enable hit check
       sprite.determineNextFrame(dContext, 'main')
-      if (!shouldAvoidCollisions || !staticObjects.any(function (other) { return other.hits(sprite) })) {
+      if (!shouldAvoidCollisions || that.canAddObject(sprite)) {
         staticObjects.push(sprite)
       }
     }
 
+    this.canAddObject = function (sprite) {
+      return !staticObjects.any(function (other) {
+        var b = other.hitsLandingArea(sprite)
+        return other.hits(sprite) || other.hitsLandingArea(sprite)
+      })
+    }
+
     this.addStaticObjects = function (sprites, shouldAvoidCollisions) {
-      var that = this
       sprites.forEach(function (sprite) { that.addStaticObject(sprite, shouldAvoidCollisions) })
     }
 
