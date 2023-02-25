@@ -353,6 +353,10 @@ var Sprite = require('./sprite');
       return sp
     }
 
+    that.getSpeedRatio = function () {
+      return that.getSpeed() / that.getStandardSpeed()
+    }
+
     that.getSpeedX = function () {
       if (that.movingToward !== undefined) {
         var xDiff = Math.abs(that.movingToward[0] - that.mapPosition[0])

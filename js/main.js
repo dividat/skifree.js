@@ -117,7 +117,7 @@ function startNeverEndingGame (images) {
 
   function randomlySpawnNPC (spawnFunction, dropRate) {
     var rateModifier = Math.max(800 - mainCanvas.width, 0)
-    if (Number.random(1000 + rateModifier) <= dropRate) {
+    if (Number.random(1000 + rateModifier) <= dropRate * player.getSpeedRatio()) {
       spawnFunction()
     }
   }
