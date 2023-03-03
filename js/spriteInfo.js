@@ -111,57 +111,31 @@
     }
   }
 
-  function skierHitsTreeBehaviour (skier, tree) {
+  function hitTree (tree, skier) {
     skier.hasHitObstacle(tree)
   }
 
-  function treeHitsSkierBehaviour (tree, skier) {
-    skier.hasHitObstacle(tree)
-  }
+  sprites.smallTree.hitBehaviour.skier = hitTree
+  sprites.tallTree.hitBehaviour.skier = hitTree
 
-  sprites.smallTree.hitBehaviour.skier = treeHitsSkierBehaviour
-  sprites.tallTree.hitBehaviour.skier = treeHitsSkierBehaviour
-
-  function rockHitsSkierBehaviour (rock, skier) {
+  sprites.rock.hitBehaviour.skier = function (rock, skier) {
     skier.hasHitObstacle(rock)
   }
 
-  sprites.rock.hitBehaviour.skier = rockHitsSkierBehaviour
-
-  function skierHitsJumpBehaviour (skier, jump) {
+  sprites.jump.hitBehaviour.skier = function(jump, skier) {
     skier.hasHitJump(jump)
   }
 
-  function jumpHitsSkierBehaviour (jump, skier) {
-    skier.hasHitJump(jump)
+  function hitSnow (snow, skier) {
+    skier.hasHitSnow(snow)
   }
 
-  sprites.jump.hitBehaviour.skier = jumpHitsSkierBehaviour
+  sprites.thickSnow.hitBehaviour.skier = hitSnow
+  sprites.thickerSnow.hitBehaviour.skier = hitSnow
 
-// Really not a fan of this behaviour.
-/*  function skierHitsThickSnowBehaviour(skier, thickSnow) {
-    // Need to implement this properly
-    skier.setSpeed(2);
-    setTimeout(function() {
-      skier.resetSpeed();
-    }, 700);
-  }
-
-  function thickSnowHitsSkierBehaviour(thickSnow, skier) {
-    // Need to implement this properly
-    skier.setSpeed(2);
-    setTimeout(function() {
-      skier.resetSpeed();
-    }, 300);
-  } */
-
-  // sprites.thickSnow.hitBehaviour.skier = thickSnowHitsSkierBehaviour;
-
-  function snowboarderHitsSkierBehaviour (snowboarder, skier) {
+  sprites.snowboarder.hitBehaviour.skier = function (snowboarder, skier) {
     skier.hasHitObstacle(snowboarder)
   }
-
-  sprites.snowboarder.hitBehaviour.skier = snowboarderHitsSkierBehaviour
 
   global.spriteInfo = sprites
 })(this)

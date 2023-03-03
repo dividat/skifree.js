@@ -362,6 +362,13 @@ var Sprite = require('./sprite');
       }
     }
 
+    that.hasHitSnow = function (obs) {
+      if (!that.isJumping && that.invincibleProgress() === undefined) {
+        obstaclesHit.push(obs.id)
+        speedY /= 2
+      }
+    }
+
     that.invincibleProgress = function () {
       var now = Date.now()
       var start = that.lastCollision + crashDuration
