@@ -128,7 +128,10 @@ function startNeverEndingGame (images) {
     newMonster.follow(player)
     newMonster.onHitting(player, monsterHitsSkierBehaviour)
 
-    game.addMovingObject(newMonster, 'monster')
+    game.addObject({
+      sprite: newMonster,
+      type: 'monster'
+    })
   }
 
   function spawnBoarder () {
@@ -139,7 +142,7 @@ function startNeverEndingGame (images) {
     newBoarder.setMapPositionTarget(randomPositionBelow[0], randomPositionBelow[1])
     newBoarder.onHitting(player, sprites.snowboarder.hitBehaviour.skier)
 
-    game.addMovingObject(newBoarder)
+    game.addObject({ sprite: newBoarder })
   }
 
   player = new Skier(mainCanvas, sprites.skier)
@@ -150,11 +153,11 @@ function startNeverEndingGame (images) {
 
   player.determineNextFrame(dContext, 'east')
   startSign = new Sprite(sprites.signStart)
-  game.addStaticObject(startSign)
+  game.addObject({ sprite: startSign })
   startSign.setMapPosition(-0.4 * player.width, -0.1 * player.height)
 
   cottage = new Sprite(sprites.cottage)
-  game.addStaticObject(cottage)
+  game.addObject({ sprite: cottage })
   cottage.setMapPosition(0.7 * player.width, -1.2 * player.height)
 
   dContext.followSprite(player)
@@ -179,15 +182,14 @@ function startNeverEndingGame (images) {
       })
     }
     if (!game.isPaused()) {
-      game.addStaticObjects(newObjects, true)
+      game.addObjects(newObjects, true)
 
       randomlySpawnNPC(spawnBoarder, 0.1)
       distanceTravelledInMetres = parseFloat(player.getPixelsTravelledDownMountain() / pixelsPerMetre).toFixed(1)
 
-      if (distanceTravelledInMetres > monsterDistanceThreshold && !game.hasMovingObject('monster')) {
+      if (distanceTravelledInMetres > monsterDistanceThreshold && !game.hasObject('monster')) {
         randomlySpawnNPC(spawnMonster, 0.001)
       }
-
     }
   })
 

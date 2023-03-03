@@ -2,9 +2,7 @@ var SpriteArray = require('./spriteArray');
 
 (function (global) {
   function Game (mainCanvas, player) {
-    var staticObjects = new SpriteArray()
-    var movingObjects = new SpriteArray()
-    var uiElements = new SpriteArray()
+    var objects = new SpriteArray()
     var dContext = mainCanvas.getContext('2d')
     var paused = false
     var that = this
@@ -13,39 +11,40 @@ var SpriteArray = require('./spriteArray');
     var runningTime = 0
     var lastStepAt = null
 
-    this.addStaticObject = function (sprite, shouldAvoidCollisions) {
+    // props: sprite, shouldAvoidCollisions, type
+    this.addObject = function(props) {
       // Determine graphical properties to enable hit check
-      sprite.determineNextFrame(dContext, 'main')
-      if (!shouldAvoidCollisions || that.canAddObject(sprite)) {
-        staticObjects.push(sprite)
+      if (props.sprite.data.parts.main !== undefined) {
+        props.sprite.determineNextFrame(dContext, 'main')
+      }
+
+      if (props.type !== undefined) {
+        objects.onPush(function (obj) {
+          if (obj.data && obj.data.hitBehaviour[props.type]) {
+            obj.onHitting(sprite, obj.data.hitBehaviour[props.type])
+          }
+        }, true)
+      }
+
+      if (!props.shouldAvoidCollisions || that.canAddObject(props.sprite)) {
+        objects.push(props.sprite)
       }
     }
 
     this.canAddObject = function (sprite) {
-      return !staticObjects.any(function (other) {
+      return !objects.any(function (other) {
         var b = other.hitsLandingArea(sprite)
         return other.hits(sprite) || other.hitsLandingArea(sprite)
       })
     }
 
-    this.addStaticObjects = function (sprites, shouldAvoidCollisions) {
-      sprites.forEach(function (sprite) { that.addStaticObject(sprite, shouldAvoidCollisions) })
-    }
-
-    this.addMovingObject = function (movingObject, movingObjectType) {
-      if (movingObjectType) {
-        staticObjects.onPush(function (obj) {
-          if (obj.data && obj.data.hitBehaviour[movingObjectType]) {
-            obj.onHitting(movingObject, obj.data.hitBehaviour[movingObjectType])
-          }
-        }, true)
-      }
-
-      movingObjects.push(movingObject)
-    }
-
-    this.addUIElement = function (element) {
-      uiElements.push(element)
+    this.addObjects = function (sprites, shouldAvoidCollisions) {
+      sprites.forEach(function (sprite) {
+        that.addObject({
+          sprite: sprite,
+          shouldAvoidCollisions: shouldAvoidCollisions
+        })
+      })
     }
 
     this.beforeCycle = function (callback) {
@@ -58,32 +57,17 @@ var SpriteArray = require('./spriteArray');
 
     dContext.followSprite(player)
 
-    var intervalNum = 0
-
     this.cycle = function (dt) {
       beforeCycleCallbacks.each(function (c) {
         c()
       })
 
-      intervalNum++
-
       player.cycle(dt)
 
-      movingObjects.cull()
-      movingObjects.each(function (movingObject, i) {
-        movingObject.cycle(dt, dContext)
-      })
-
-      staticObjects.cull()
-      staticObjects.each(function (staticObject, i) {
-        if (staticObject.cycle) {
-          staticObject.cycle(dt)
-        }
-      })
-
-      uiElements.each(function (uiElement, i) {
-        if (uiElement.cycle) {
-          uiElement.cycle(dt)
+      objects.cull()
+      objects.forEach(function (object) {
+        if (object.cycle) {
+          object.cycle(dt, dContext)
         }
       })
 
@@ -95,29 +79,27 @@ var SpriteArray = require('./spriteArray');
     that.draw = function () {
       dContext.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 
-      // Draw static objects 'below' skier
-      staticObjects.each(function (staticObject, i) {
-        if (staticObject.draw && (staticObject.isPassable() || player.isJumping)) {
-          staticObject.draw(dContext, 'main')
+      var allObjects = objects.slice() // Clone
+      allObjects.push(player)
+      allObjects.sort(function (a, b) {
+        if (isJumpingSkier(a)) {
+          return 1
+        } else if (isJumpingSkier(b)) {
+          return -1
+        } else if (isSnow(a)) {
+          return -1
+        } else if (isSnow(b)) {
+          return 1
+        } else {
+          var aBottom = a.getBottomHitBoxEdge(a.mapPosition[2])
+          var bBottom = b.getBottomHitBoxEdge(b.mapPosition[2])
+          return aBottom - bBottom
         }
       })
 
-      player.draw(dContext)
-
-      // Draw static objects 'above' skier
-      staticObjects.each(function (staticObject, i) {
-        if (staticObject.draw && !staticObject.isPassable() && !player.isJumping) {
-          staticObject.draw(dContext, 'main')
-        }
-      })
-
-      movingObjects.each(function (movingObject, i) {
-        movingObject.draw(dContext)
-      })
-
-      uiElements.each(function (uiElement, i) {
-        if (uiElement.draw) {
-          uiElement.draw(dContext, 'main')
+      allObjects.each(function (object) {
+        if (object.draw) {
+          object.draw(dContext, 'main')
         }
       })
     }
@@ -146,8 +128,7 @@ var SpriteArray = require('./spriteArray');
 
     this.reset = function () {
       paused = false
-      staticObjects = new SpriteArray()
-      movingObjects = new SpriteArray()
+      objects = new SpriteArray()
       player.reset()
       this.start()
       runningTime = 0
@@ -169,8 +150,8 @@ var SpriteArray = require('./spriteArray');
       requestAnimationFrame(this.step.bind(this))
     }
 
-    this.hasMovingObject = function (name) {
-      return movingObjects.any(function(obj) {
+    this.hasObject = function (name) {
+      return objects.any(function(obj) {
         return obj.data.name === name
       })
     }
@@ -181,4 +162,12 @@ var SpriteArray = require('./spriteArray');
 
 if (typeof module !== 'undefined') {
   module.exports = this.game
+}
+
+function isJumpingSkier (sprite) {
+  return sprite.data.name === 'skier' && sprite.isJumping
+}
+
+function isSnow (sprite) {
+  return sprite.data.name === 'thickSnow' || sprite.data.name === 'thickerSnow'
 }
