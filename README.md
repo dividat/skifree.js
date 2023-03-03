@@ -4,7 +4,10 @@ This fork adds support for Dividat's External Game Interface (EGI), so the game 
 
 ## Development
 
-To test it with Play[dev], run `npm install && make compile`, then start a static web server in the repo (for instance `python -m http.server`). Go to https://play.dividat.com/playDev.html and enter the URL of your local Python servver.
+To test it with Play[dev], enter `nix develop`, then run `bin/dev-server`.
+
+Finally, go to https://play.dividat.com/playDev.html and use
+`http://localhost:8000` as URL.
 
 ## Builds
 

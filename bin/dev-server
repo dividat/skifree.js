@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Run server
+
+python -m http.server 8000 &
+trap "fuser -k 8000/tcp" EXIT
+
+# Watch TypeScript
+
+watchexec --clear --watch js -- make compile

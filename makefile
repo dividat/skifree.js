@@ -6,7 +6,6 @@ help:
 	@echo "  deps        install dependencies"
 	@echo "  test        runs tests"
 	@echo "  compile     sets up your js files for production"
-	@echo "  serve       run the webserver"
 
 deps:
 	npm install
@@ -16,8 +15,7 @@ test:
 
 compile:
 	mkdir -p dist
-	./node_modules/browserify/bin/cmd.js js/main.js -d -o dist/skifree.js
-	./node_modules/uglify-js/bin/uglifyjs dist/skifree.js -c > dist/skifree.min.js
+	esbuild --bundle js/main.js --target=es2017 --outfile=dist/skifree.js
 
 sprites: materials/sprites-full-size
 	cp -r materials/sprites-full-size sprites
@@ -26,8 +24,9 @@ sprites: materials/sprites-full-size
 	cd sprites && pngquant 100 --speed 1 --force --strip --ext .png --verbose *.png
 
 .PHONY: bundle
-bundle: compile
+bundle:
 	rm -rf $@
 	mkdir $@
+	esbuild --bundle js/main.js --target=es2017 --minify --outfile=dist/skifree.min.js
 	cp index.html PlayEGI* $@
 	cp -R css dist vendor sprites $@
