@@ -1,15 +1,14 @@
 var Sprite = require('./sprite');
 
 (function (global) {
-  function Monster (data) {
+  function Monster (data, speed) {
     var that = new Sprite(data)
     var super_draw = that.superior('draw')
     var eatingStage = 0
-    var standardSpeed = 6
 
     that.isEating = false
     that.isFull = false
-    that.setSpeed(standardSpeed)
+    that.setSpeed(speed)
 
     that.draw = function (dContext) {
       var spritePartToUse = function () {

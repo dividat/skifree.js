@@ -54,11 +54,6 @@
       }
     }
 
-    function roundHalf (num) {
-      num = Math.round(num * 2) / 2
-      return num
-    }
-
     function move (dt) {
       if (!that.isMoving) {
         return
@@ -77,8 +72,8 @@
         // For this we need to modify the that.direction so it relates to the horizontal
         var d = that.direction - 90
         if (d < 0) d = 360 + d
-        currentX += roundHalf(that.speed * Math.cos(d * (Math.PI / 180))) * factor
-        currentY += roundHalf(that.speed * Math.sin(d * (Math.PI / 180))) * factor
+        currentX += that.getSpeedX() * Math.cos(d * (Math.PI / 180)) * factor
+        currentY += that.getSpeedY() * Math.sin(d * Math.PI / 180) * factor
       } else {
         if (typeof that.movingToward[0] !== 'undefined') {
           if (currentX > that.movingToward[0]) {
@@ -302,8 +297,8 @@
     }
 
     this.checkOffScreen = function () {
-      // Keep jumps to make sure we don’t drop objects in landing area
-      var deletePoint = that.data.name === 'jump' ? -1000 : 0
+      // Keep jumps a bit more to prevent creating objects in landing areas
+      var deletePoint = that.data.name === 'jump' ? -2000 : 0
 
       if (that.isStatic && that.isAboveOnCanvas(deletePoint)) {
         that.deleted = true

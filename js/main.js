@@ -48,7 +48,7 @@ var pixelsPerMetre = 18
 var distanceTravelledInMetres = 0
 var monsterDistanceThreshold = 2000
 var loseLifeOnObstacleHit = false
-var dropRates = {smallTree: 4, tallTree: 4, jump: 0.7, thickSnow: 1, thickerSnow: 0.5, rock: 2}
+var dropRates = {smallTree: 3.5, tallTree: 4, jump: 0.5, thickSnow: 0.8, thickerSnow: 0.5, rock: 1.5}
 
 var balanceFactor = 0.33
 var settings = {
@@ -87,7 +87,6 @@ function monsterHitsSkierBehaviour (monster, skier) {
     monster.isFull = true
     monster.isEating = false
     skier.isBeingEaten = false
-    monster.setSpeed(skier.getSpeed())
     monster.stopFollowing()
     var randomPositionAbove = dContext.getRandomMapPositionAboveViewport()
     monster.setMapPositionTarget(randomPositionAbove[0], randomPositionAbove[1])
@@ -123,11 +122,10 @@ function startNeverEndingGame (images) {
   }
 
   function spawnMonster () {
-    var newMonster = new Monster(sprites.monster)
+    var newMonster = new Monster(sprites.monster, player.getStandardSpeed() * 0.4)
     var randomPosition = dContext.getRandomMapPositionAboveViewport()
     newMonster.setMapPosition(randomPosition[0], randomPosition[1])
     newMonster.follow(player)
-    newMonster.setSpeed(player.getStandardSpeed())
     newMonster.onHitting(player, monsterHitsSkierBehaviour)
 
     game.addMovingObject(newMonster, 'monster')
@@ -186,7 +184,7 @@ function startNeverEndingGame (images) {
       randomlySpawnNPC(spawnBoarder, 0.1)
       distanceTravelledInMetres = parseFloat(player.getPixelsTravelledDownMountain() / pixelsPerMetre).toFixed(1)
 
-      if (distanceTravelledInMetres > monsterDistanceThreshold) {
+      if (distanceTravelledInMetres > monsterDistanceThreshold && !game.hasMovingObject('monster')) {
         randomlySpawnNPC(spawnMonster, 0.001)
       }
 
@@ -261,10 +259,9 @@ function startNeverEndingGame (images) {
       case 'SensoState':
         haveSeenSensoState = true
         var x = linearInterpolX(signal.state) * (settings.wheelchair ? 3 : 1)
-        var canvasX = x * balanceFactor * mainCanvas.width + mainCanvas.width / 2
-        game.setMouseX(canvasX)
-        game.setMouseY(mainCanvas.height)
-        player.resetDirection()
+        var amplitude = 100
+        var direction = (1 - x) * amplitude + 90 + (180 - amplitude) / 2
+        player.setDirection(direction)
         player.startMovingIfPossible()
         break
 
@@ -277,16 +274,37 @@ function startNeverEndingGame (images) {
   player.setDirection(270)
 }
 
-// return linear interpolation of x on f, as relative coordinates (centered on 0)
+// Linear interpolation of x on f, as relative coordinates [0; 1]
 var directions = ['center', 'up', 'right', 'down', 'left']
 function linearInterpolX (state) {
-  var totalForce = directions.reduce(function (sum, d) { return state[d].f + sum }, 0)
+  var totalForce = directions.reduce(
+    function (sum, d) {
+      return state[d].f + sum
+    },
+    0)
+
   // Avoid brownian skiing when plate empty
-  if (totalForce < 0.05) return 0
+  if (totalForce < 0.01) return 0.5
 
-  var fusedX = directions.reduce(function (sum, d) { return state[d].f/totalForce * state[d].x + sum }, 0)
+  var fusedX = directions.reduce(
+    function (sum, d) {
+      return state[d].f / totalForce * state[d].x + sum
+    },
+    0)
 
-  return (fusedX - 1.5)
+  return centerWithAmplitude(3, 1, fusedX)
+}
+
+// Return [0; 1] centered with the given amplitude
+function centerWithAmplitude (width, amplitude, x) {
+  var width = 3
+  var centered = x - width / 2
+  var halfAmplitude = amplitude / 2
+  return (clamp(-halfAmplitude, centered, halfAmplitude) + halfAmplitude) / amplitude
+}
+
+function clamp (min, x, max) {
+  return Math.max(min, Math.min(max, x))
 }
 
 function setupCanvas () {

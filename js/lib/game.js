@@ -6,8 +6,6 @@ var SpriteArray = require('./spriteArray');
     var movingObjects = new SpriteArray()
     var uiElements = new SpriteArray()
     var dContext = mainCanvas.getContext('2d')
-    var mouseX = dContext.getCentreOfViewport()
-    var mouseY = 0
     var paused = false
     var that = this
     var beforeCycleCallbacks = []
@@ -58,16 +56,6 @@ var SpriteArray = require('./spriteArray');
       afterCycleCallbacks.push(callback)
     }
 
-    this.setMouseX = function (x) {
-      mouseX = x
-    }
-
-    this.setMouseY = function (y) {
-      mouseY = y
-    }
-
-    player.setMapPosition(0, 0)
-    player.setMapPositionTarget(0, -10)
     dContext.followSprite(player)
 
     var intervalNum = 0
@@ -76,13 +64,6 @@ var SpriteArray = require('./spriteArray');
       beforeCycleCallbacks.each(function (c) {
         c()
       })
-
-      // Clear canvas
-      var mouseMapPosition = dContext.canvasPositionToMapPosition([mouseX, mouseY])
-
-      if (!player.isJumping) {
-        player.setMapPositionTarget(mouseMapPosition[0], mouseMapPosition[1])
-      }
 
       intervalNum++
 
@@ -122,7 +103,6 @@ var SpriteArray = require('./spriteArray');
       })
 
       player.draw(dContext)
-      player.cycle()
 
       // Draw static objects 'above' skier
       staticObjects.each(function (staticObject, i) {
@@ -168,10 +148,7 @@ var SpriteArray = require('./spriteArray');
       paused = false
       staticObjects = new SpriteArray()
       movingObjects = new SpriteArray()
-      mouseX = dContext.getCentreOfViewport()
-      mouseY = 0
       player.reset()
-      player.setMapPosition(0, 0, 0)
       this.start()
       runningTime = 0
     }.bind(this)
@@ -192,6 +169,11 @@ var SpriteArray = require('./spriteArray');
       requestAnimationFrame(this.step.bind(this))
     }
 
+    this.hasMovingObject = function (name) {
+      return movingObjects.any(function(obj) {
+        return obj.data.name === name
+      })
+    }
   }
 
   global.game = Game

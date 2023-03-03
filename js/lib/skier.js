@@ -16,7 +16,8 @@ var Sprite = require('./sprite');
       cycle: that.superior('cycle'),
       getSpeedX: that.superior('getSpeedX'),
       getSpeedY: that.superior('getSpeedY'),
-      hits: that.superior('hits')
+      hits: that.superior('hits'),
+      setDirection: that.superior('setDirection')
     }
     var directions = {
       esEast: function (xDiff) { return xDiff > 300 },
@@ -28,18 +29,14 @@ var Sprite = require('./sprite');
     var cancelableStateTimeout
     var cancelableStateInterval
 
-    var canSpeedBoost = true
-
     var obstaclesHit = []
     var pixelsTravelled = 0
-    var standardSpeed = 5
+    var standardSpeed = 15
     var boostMultiplier = 2
-    var turnEaseCycles = 70
     var speedX = 0
-    var speedXFactor = 0
     var speedY = 0
-    var speedYFactor = 1
-    var invincibleAfterCrashDuration = 6000 // ms
+    var crashDuration = 800 // ms
+    var invincibleAfterCrashDuration = 2000 // ms
 
     that.isMoving = true
     that.hasBeenHit = false
@@ -50,67 +47,52 @@ var Sprite = require('./sprite');
     that.jumps = 0
     that.collisions = 0
     that.lastCollision = undefined
-
-    that.reset = function () {
-      obstaclesHit = []
-      pixelsTravelled = 0
-      that.isMoving = true
-      that.hasBeenHit = false
-      canSpeedBoost = true
-      setNormal()
-    }
+    that.lastJump = undefined
 
     function setNormal () {
-      that.setSpeed(standardSpeed)
       that.isMoving = true
       that.hasBeenHit = false
       that.isJumping = false
       if (cancelableStateInterval) {
         clearInterval(cancelableStateInterval)
       }
-      that.setMapPosition(undefined, undefined, 0)
     }
 
     function setCrashed () {
       that.isMoving = false
       that.hasBeenHit = true
-      that.isJumping = false
+      speedY = 0
       if (cancelableStateInterval) {
         clearInterval(cancelableStateInterval)
       }
       window.PlayEGI.motor('negative')
-      that.setMapPosition(undefined, undefined, 0)
     }
 
     function setJumping () {
       var currentSpeed = that.getSpeed()
-      that.setSpeed(currentSpeed + 2)
-      that.setSpeedY(currentSpeed + 2)
       that.isMoving = true
-      that.hasBeenHit = false
       that.isJumping = true
+      that.lastJump = Date.now()
+      sup.setDirection(180)
       window.PlayEGI.motor('positive')
-      that.setMapPosition(undefined, undefined, 1)
     }
 
     function getDiscreteDirection () {
-      if (that.direction) {
+      if (that.direction !== undefined) {
         if (that.direction <= 90) {
           return 'east'
         } else if (that.direction > 90 && that.direction < 150) {
           return 'esEast'
-        } else if (that.direction >= 150 && that.direction < 180) {
+        } else if (that.direction >= 150 && that.direction < 170) {
           return 'sEast'
-        } else if (that.direction === 180) {
+        } else if (that.direction >= 170 && that.direction < 190) {
           return 'south'
-        } else if (that.direction > 180 && that.direction <= 210) {
+        } else if (that.direction > 190 && that.direction <= 210) {
           return 'sWest'
         } else if (that.direction > 210 && that.direction < 270) {
           return 'wsWest'
-        } else if (that.direction >= 270) {
-          return 'west'
         } else {
-          return 'south'
+          return 'west'
         }
       } else {
         var xDiff = that.movingToward[0] - that.mapPosition[0]
@@ -187,9 +169,6 @@ var Sprite = require('./sprite');
         case 'esEast':
           setDiscreteDirection('east')
           break
-        default:
-          setDiscreteDirection('south')
-          break
       }
     }
 
@@ -215,9 +194,6 @@ var Sprite = require('./sprite');
         case 'wsWest':
           setDiscreteDirection('west')
           break
-        default:
-          setDiscreteDirection('south')
-          break
       }
     }
 
@@ -237,18 +213,12 @@ var Sprite = require('./sprite');
       }
 
       that.movingToward = [ x, y ]
-
-      // that.resetDirection();
     }
 
     that.startMovingIfPossible = function () {
       if (!that.hasBeenHit && !that.isBeingEaten) {
         that.isMoving = true
       }
-    }
-
-    that.setTurnEaseCycles = function (c) {
-      turnEaseCycles = c
     }
 
     that.getPixelsTravelledDownMountain = function () {
@@ -260,7 +230,10 @@ var Sprite = require('./sprite');
     }
 
     that.cycle = function (dt) {
-      if (that.getSpeedX() <= 0 && that.getSpeedY() <= 0) {
+      that.cycleSpeedX()
+      that.cycleSpeedY(dt)
+
+      if (speedX <= 0 && speedY <= 0) {
         that.isMoving = false
       }
       if (that.isMoving) {
@@ -292,14 +265,13 @@ var Sprite = require('./sprite');
     }
 
     that.isBlinking = function () {
-      if (that.isInvincible() && !that.hasBeenHit) {
-        if (Date.now() < that.lastCollision + invincibleAfterCrashDuration - 1000) {
-          return Math.floor(Date.now() / 100) % 2 === 0
-        } else {
-          return Math.floor(Date.now() / 50) % 2 === 0
-        }
-      } else {
+      var invincibleProgress = that.invincibleProgress()
+      if (invincibleProgress === undefined) {
         return false
+      } else if (invincibleProgress < 0.6) {
+        return Math.floor(Date.now() / 100) % 2 === 0
+      } else {
+        return Math.floor(Date.now() / 50) % 2 === 0
       }
     }
 
@@ -319,105 +291,59 @@ var Sprite = require('./sprite');
       return false
     }
 
-    that.speedBoost = function () {
-      var originalSpeed = that.speed
-      if (canSpeedBoost) {
-        canSpeedBoost = false
-        that.setSpeed(that.speed * boostMultiplier)
-        setTimeout(function () {
-          that.setSpeed(originalSpeed)
-          setTimeout(function () {
-            canSpeedBoost = true
-          }, 10000)
-        }, 2000)
-      }
-    }
-
     that.getStandardSpeed = function () {
       return standardSpeed
-    }
-
-    function easeSpeedToTargetUsingFactor (sp, targetSpeed, f) {
-      if (f === 0 || f === 1) {
-        return targetSpeed
-      }
-
-      if (sp < targetSpeed) {
-        sp += that.getSpeed() * (f / turnEaseCycles)
-      }
-
-      if (sp > targetSpeed) {
-        sp -= that.getSpeed() * (f / turnEaseCycles)
-      }
-
-      return sp
     }
 
     that.getSpeedRatio = function () {
       return that.getSpeed() / that.getStandardSpeed()
     }
 
-    that.getSpeedX = function () {
-      if (that.movingToward !== undefined) {
-        var xDiff = Math.abs(that.movingToward[0] - that.mapPosition[0])
-        var speedXFactor = 3 * Math.min(mainCanvas.width / 4, xDiff) / mainCanvas.width
-        speedX = easeSpeedToTargetUsingFactor(speedX, that.getSpeed() * speedXFactor, speedXFactor)
+    that.cycleSpeedX = function () {
+      var dir = getDiscreteDirection()
+
+      if (dir === 'esEast' || dir === 'wsWest') {
+        speedX = that.getSpeed() * 0.5
+      } else if (dir === 'sEast' || dir === 'sWest') {
+        speedX = that.getSpeed() * 1
       } else {
-        var dir = getDiscreteDirection()
-
-        if (dir === 'esEast' || dir === 'wsWest') {
-          speedXFactor = 0.5
-          speedX = easeSpeedToTargetUsingFactor(speedX, that.getSpeed() * speedXFactor, speedXFactor)
-        } else if (dir === 'sEast' || dir === 'sWest') {
-          speedXFactor = 0.33
-          speedX = easeSpeedToTargetUsingFactor(speedX, that.getSpeed() * speedXFactor, speedXFactor)
-        } else {
-          // South
-          speedX = easeSpeedToTargetUsingFactor(speedX, 0, speedXFactor)
-        }
+        // South
+        speedX = that.getSpeed() * 0.2
       }
+    }
 
+    that.getSpeedX = function () {
       return speedX
     }
 
-    that.setSpeedY = function (sy) {
-      speedY = sy
-    }
-
-    that.getSpeedY = function () {
+    that.cycleSpeedY = function (dt) {
       if (that.isJumping) {
-        return speedY
-      } else {
-          if (that.movingToward !== undefined) {
-          var xDiff = Math.abs(that.movingToward[0] - that.mapPosition[0])
-          var speedXFactor = 3 * Math.min(mainCanvas.width / 4, xDiff) / mainCanvas.width
-          var speedYFactor = 1 - speedXFactor
-          speedY = that.getSpeed() * speedYFactor
-        } else {
-          var dir = getDiscreteDirection()
+        speedY = that.getSpeed() + 2
+      } else if (!that.hasBeenHit) {
+        var dir = getDiscreteDirection()
 
-          if (that.isJumping) {
-            // Do nothing
-          } else if (dir === 'esEast' || dir === 'wsWest') {
-            speedYFactor = 0.6
-            speedY = easeSpeedToTargetUsingFactor(speedY, that.getSpeed() * 0.6, 0.6)
-          } else if (dir === 'sEast' || dir === 'sWest') {
-            speedYFactor = 0.85
-            speedY = easeSpeedToTargetUsingFactor(speedY, that.getSpeed() * 0.85, 0.85)
-          } else if (dir === 'east' || dir === 'west') {
-            speedYFactor = 1
-            speedY = 0
-          } else {
-            // South
-            speedY = easeSpeedToTargetUsingFactor(speedY, that.getSpeed(), speedYFactor)
-          }
+        var targetSpeedY = 0
+        if (dir === 'esEast' || dir === 'wsWest') {
+          targetSpeedY = 0.3 * that.getSpeed()
+        } else if (dir === 'sEast' || dir === 'sWest') {
+          speedX = that.getSpeed() * 0.33
+          targetSpeedY = 0.7 * that.getSpeed()
+        } else {
+          // South
+          targetSpeedY = that.getSpeed()
         }
-        return speedY
+
+        var convergenceTime = speedY < targetSpeedY ? 2000 : 100
+        speedY = speedY + ((targetSpeedY - speedY) / convergenceTime) * dt
       }
     }
 
+    that.getSpeedY = function() {
+      return speedY
+    }
+
     that.hasHitObstacle = function (obs) {
-      if (!that.isInvincible()) {
+      if (!that.isJumping && that.invincibleProgress() === undefined) {
         that.collisions++
         that.lastCollision = Date.now()
         setCrashed()
@@ -432,16 +358,24 @@ var Sprite = require('./sprite');
         }
         cancelableStateTimeout = setTimeout(function () {
           setNormal()
-        }, 1500)
+        }, crashDuration)
       }
     }
 
-    that.isInvincible = function () {
-      return that.lastCollision !== undefined && Date.now() - that.lastCollision < invincibleAfterCrashDuration
+    that.invincibleProgress = function () {
+      var now = Date.now()
+      var start = that.lastCollision + crashDuration
+      var end = start + invincibleAfterCrashDuration
+      if (that.lastJump !== undefined && that.lastJump > that.lastCollision) {
+        // Jumping stops invincibility
+        return
+      } else if (that.lastCollision !== undefined && now >= start && now < end) {
+        return (now - start) / (end - start)
+      }
     }
 
     that.hasHitJump = function () {
-      if (!that.isInvincible()) {
+      if (!that.isJumping) {
         that.jumps++
         setJumping()
 
@@ -462,18 +396,16 @@ var Sprite = require('./sprite');
       that.isBeingEaten = true
     }
 
-    that.reset = function () {
-      obstaclesHit = []
-      pixelsTravelled = 0
-      that.isMoving = true
-      that.isJumping = false
-      that.hasBeenHit = false
-      canSpeedBoost = true
-    }
-
     that.setHitObstacleCb = function (fn) {
       that.onHitObstacleCb = fn || function () {}
     }
+
+    that.setDirection = function (angle) {
+      if (!that.isJumping) {
+        sup.setDirection(angle)
+      }
+    }
+
     return that
   }
 
