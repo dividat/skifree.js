@@ -1,23 +1,23 @@
-var Sprite = require('./sprite');
+const Sprite = require('./sprite');
 
 (function (global) {
   function Snowboarder (data) {
-    var that = new Sprite(data)
-    var sup = {
+    const that = new Sprite(data)
+    const sup = {
       draw: that.superior('draw'),
       cycle: that.superior('cycle')
     }
-    var directions = {
+    const directions = {
       sEast: function (xDiff) { return xDiff > 0 },
       sWest: function (xDiff) { return xDiff <= 0 }
     }
-    var standardSpeed = 3
+    const standardSpeed = 3
 
     that.setSpeed(standardSpeed)
 
     function getDirection () {
-      var xDiff = that.movingToward[0] - that.mapPosition[0]
-      var yDiff = that.movingToward[1] - that.mapPosition[1]
+      const xDiff = that.movingToward[0] - that.mapPosition[0]
+      const yDiff = that.movingToward[1] - that.mapPosition[1]
 
       if (directions.sEast(xDiff)) {
         return 'sEast'
@@ -38,7 +38,7 @@ var Sprite = require('./sprite');
     }
 
     that.draw = function (dContext) {
-      var spritePartToUse = function () {
+      const spritePartToUse = function () {
         return getDirection()
       }
 

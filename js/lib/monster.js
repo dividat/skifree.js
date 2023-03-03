@@ -1,17 +1,17 @@
-var Sprite = require('./sprite');
+const Sprite = require('./sprite');
 
 (function (global) {
   function Monster (data, speed) {
-    var that = new Sprite(data)
-    var super_draw = that.superior('draw')
-    var eatingStage = 0
+    const that = new Sprite(data)
+    const super_draw = that.superior('draw')
+    let eatingStage = 0
 
     that.isEating = false
     that.isFull = false
     that.setSpeed(speed)
 
     that.draw = function (dContext) {
-      var spritePartToUse = function () {
+      const spritePartToUse = function () {
         if (that.isEating) {
           return 'eating' + eatingStage
         }

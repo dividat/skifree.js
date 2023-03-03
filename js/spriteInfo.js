@@ -1,5 +1,5 @@
 (function (global) {
-  var sprites = {
+  const sprites = {
     'skier': {
       parts: {
         east: { offsets: [ 0.1, 0.125, 0.15, 0.45 ] },

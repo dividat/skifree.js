@@ -1,7 +1,7 @@
-var Sprite = require('./sprite');
+const Sprite = require('./sprite');
 (function (global) {
   function Skier (mainCanvas, data) {
-    var discreteDirections = {
+    const discreteDirections = {
       'west': 270,
       'wsWest': 240,
       'sWest': 195,
@@ -10,8 +10,8 @@ var Sprite = require('./sprite');
       'esEast': 120,
       'east': 90
     }
-    var that = new Sprite(data)
-    var sup = {
+    const that = new Sprite(data)
+    const sup = {
       draw: that.superior('draw'),
       cycle: that.superior('cycle'),
       getSpeedX: that.superior('getSpeedX'),
@@ -19,24 +19,25 @@ var Sprite = require('./sprite');
       hits: that.superior('hits'),
       setDirection: that.superior('setDirection')
     }
-    var directions = {
+    const directions = {
       esEast: function (xDiff) { return xDiff > 300 },
       sEast: function (xDiff) { return xDiff > 75 },
       wsWest: function (xDiff) { return xDiff < -300 },
       sWest: function (xDiff) { return xDiff < -75 }
     }
 
-    var cancelableStateTimeout
-    var cancelableStateInterval
+    let cancelableStateTimeout
+    let cancelableStateInterval
 
-    var obstaclesHit = []
-    var pixelsTravelled = 0
-    var standardSpeed = 15
-    var boostMultiplier = 2
-    var speedX = 0
-    var speedY = 0
-    var crashDuration = 800 // ms
-    var invincibleAfterCrashDuration = 2000 // ms
+    const obstaclesHit = []
+    const standardSpeed = 15
+    const boostMultiplier = 2
+    const crashDuration = 800 // ms
+    const invincibleAfterCrashDuration = 2000 // ms
+
+    let pixelsTravelled = 0
+    let speedX = 0
+    let speedY = 0
 
     that.isMoving = true
     that.hasBeenHit = false
@@ -69,7 +70,7 @@ var Sprite = require('./sprite');
     }
 
     function setJumping () {
-      var currentSpeed = that.getSpeed()
+      const currentSpeed = that.getSpeed()
       that.isMoving = true
       that.isJumping = true
       that.lastJump = Date.now()
@@ -95,8 +96,8 @@ var Sprite = require('./sprite');
           return 'west'
         }
       } else {
-        var xDiff = that.movingToward[0] - that.mapPosition[0]
-        var yDiff = that.movingToward[1] - that.mapPosition[1]
+        const xDiff = that.movingToward[0] - that.mapPosition[0]
+        const yDiff = that.movingToward[1] - that.mapPosition[1]
         if (yDiff <= 0) {
           if (xDiff > 0) {
             return 'east'
@@ -148,7 +149,7 @@ var Sprite = require('./sprite');
     }
 
     that.turnEast = function () {
-      var discreteDirection = getDiscreteDirection()
+      const discreteDirection = getDiscreteDirection()
 
       switch (discreteDirection) {
         case 'west':
@@ -173,7 +174,7 @@ var Sprite = require('./sprite');
     }
 
     that.turnWest = function () {
-      var discreteDirection = getDiscreteDirection()
+      const discreteDirection = getDiscreteDirection()
 
       switch (discreteDirection) {
         case 'east':
@@ -250,7 +251,7 @@ var Sprite = require('./sprite');
     that.draw = function (dContext) {
       // Part of monster sprite while being eaten, also don’t show when blinking
       if (!that.isBeingEaten && !that.isBlinking()) {
-        var spritePartToUse = function () {
+        const spritePartToUse = function () {
           if (that.isJumping) {
             return getJumpingSprite()
           } else if (that.hasBeenHit) {
@@ -265,7 +266,7 @@ var Sprite = require('./sprite');
     }
 
     that.isBlinking = function () {
-      var invincibleProgress = that.invincibleProgress()
+      const invincibleProgress = that.invincibleProgress()
       if (invincibleProgress === undefined) {
         return false
       } else if (invincibleProgress < 0.6) {
@@ -300,7 +301,7 @@ var Sprite = require('./sprite');
     }
 
     that.cycleSpeedX = function () {
-      var dir = getDiscreteDirection()
+      const dir = getDiscreteDirection()
 
       if (dir === 'esEast' || dir === 'wsWest') {
         speedX = that.getSpeed() * 0.5
@@ -320,9 +321,9 @@ var Sprite = require('./sprite');
       if (that.isJumping) {
         speedY = that.getSpeed() + 2
       } else if (!that.hasBeenHit) {
-        var dir = getDiscreteDirection()
+        const dir = getDiscreteDirection()
 
-        var targetSpeedY = 0
+        let targetSpeedY = 0
         if (dir === 'esEast' || dir === 'wsWest') {
           targetSpeedY = 0.3 * that.getSpeed()
         } else if (dir === 'sEast' || dir === 'sWest') {
@@ -333,7 +334,7 @@ var Sprite = require('./sprite');
           targetSpeedY = that.getSpeed()
         }
 
-        var convergenceTime = speedY < targetSpeedY ? 2000 : 100
+        const convergenceTime = speedY < targetSpeedY ? 2000 : 100
         speedY = speedY + ((targetSpeedY - speedY) / convergenceTime) * dt
       }
     }
@@ -370,10 +371,10 @@ var Sprite = require('./sprite');
     }
 
     that.invincibleProgress = function () {
-      var now = Date.now()
-      var start = that.lastCollision + crashDuration
-      var end = start + invincibleAfterCrashDuration
-      var jumpAfterCollision = that.lastJump !== undefined && that.lastJump > that.lastCollision
+      const now = Date.now()
+      const start = that.lastCollision + crashDuration
+      const end = start + invincibleAfterCrashDuration
+      const jumpAfterCollision = that.lastJump !== undefined && that.lastJump > that.lastCollision
       if (!jumpAfterCollision && that.lastCollision !== undefined && now >= start && now < end) {
         return (now - start) / (end - start)
       }

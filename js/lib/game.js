@@ -1,15 +1,15 @@
-var SpriteArray = require('./spriteArray');
+const SpriteArray = require('./spriteArray');
 
 (function (global) {
   function Game (mainCanvas, player) {
-    var objects = new SpriteArray()
-    var dContext = mainCanvas.getContext('2d')
-    var paused = false
-    var that = this
-    var beforeCycleCallbacks = []
-    var afterCycleCallbacks = []
-    var runningTime = 0
-    var lastStepAt = null
+    let objects = new SpriteArray()
+    const dContext = mainCanvas.getContext('2d')
+    let paused = false
+    const that = this
+    const beforeCycleCallbacks = []
+    const afterCycleCallbacks = []
+    let runningTime = 0
+    let lastStepAt = null
 
     // props: sprite, shouldAvoidCollisions, type
     this.addObject = function(props) {
@@ -33,7 +33,7 @@ var SpriteArray = require('./spriteArray');
 
     this.canAddObject = function (sprite) {
       return !objects.any(function (other) {
-        var b = other.hitsLandingArea(sprite)
+        const b = other.hitsLandingArea(sprite)
         return other.hits(sprite) || other.hitsLandingArea(sprite)
       })
     }
@@ -79,7 +79,7 @@ var SpriteArray = require('./spriteArray');
     that.draw = function () {
       dContext.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 
-      var allObjects = objects.slice() // Clone
+      const allObjects = objects.slice() // Clone
       allObjects.push(player)
       allObjects.sort(function (a, b) {
         if (isJumpingSkier(a)) {
@@ -91,8 +91,8 @@ var SpriteArray = require('./spriteArray');
         } else if (isSnow(b)) {
           return 1
         } else {
-          var aBottom = a.getBottomHitBoxEdge(a.mapPosition[2])
-          var bBottom = b.getBottomHitBoxEdge(b.mapPosition[2])
+          const aBottom = a.getBottomHitBoxEdge(a.mapPosition[2])
+          const bBottom = b.getBottomHitBoxEdge(b.mapPosition[2])
           return aBottom - bBottom
         }
       })
@@ -137,7 +137,7 @@ var SpriteArray = require('./spriteArray');
     this.step = function (now) {
       if (paused) return
 
-      var dt = 0
+      let dt = 0
       if (lastStepAt != null) {
         dt = now - lastStepAt
       }

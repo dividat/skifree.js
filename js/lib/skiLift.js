@@ -1,10 +1,10 @@
-var Sprite = require('./sprite')
+const Sprite = require('./sprite')
 
 function SkiLift (data) {
-  var that = new Sprite(data)
-  var super_draw = that.superior('draw')
-  var super_cycle = that.superior('cycle')
-  var standardSpeed = 6
+  const that = new Sprite(data)
+  const super_draw = that.superior('draw')
+  const super_cycle = that.superior('cycle')
+  const standardSpeed = 6
   that.setSpeed(standardSpeed)
 
   that.draw = function (dContext) {

@@ -24,20 +24,20 @@ CanvasRenderingContext2D.prototype.getCentralPosition = function () {
 }
 
 CanvasRenderingContext2D.prototype.mapPositionToCanvasPosition = function (position) {
-  var central = this.getCentralPosition()
-  var centralMapPosition = central.map
-  var centralCanvasPosition = central.canvas
-  var mapDifferenceX = centralMapPosition[0] - position[0]
-  var mapDifferenceY = centralMapPosition[1] - position[1]
+  const central = this.getCentralPosition()
+  const centralMapPosition = central.map
+  const centralCanvasPosition = central.canvas
+  const mapDifferenceX = centralMapPosition[0] - position[0]
+  const mapDifferenceY = centralMapPosition[1] - position[1]
   return [ centralCanvasPosition[0] - mapDifferenceX, centralCanvasPosition[1] - mapDifferenceY ]
 }
 
 CanvasRenderingContext2D.prototype.canvasPositionToMapPosition = function (position) {
-  var central = this.getCentralPosition()
-  var centralMapPosition = central.map
-  var centralCanvasPosition = central.canvas
-  var mapDifferenceX = centralCanvasPosition[0] - position[0]
-  var mapDifferenceY = centralCanvasPosition[1] - position[1]
+  const central = this.getCentralPosition()
+  const centralMapPosition = central.map
+  const centralCanvasPosition = central.canvas
+  const mapDifferenceX = centralCanvasPosition[0] - position[0]
+  const mapDifferenceY = centralCanvasPosition[1] - position[1]
   return [ centralMapPosition[0] - mapDifferenceX, centralMapPosition[1] - mapDifferenceY ]
 }
 
@@ -55,13 +55,13 @@ CanvasRenderingContext2D.prototype.getBelowViewport = function () {
 }
 
 CanvasRenderingContext2D.prototype.getMapBelowViewport = function () {
-  var below = this.getBelowViewport()
+  const below = this.getBelowViewport()
   return this.canvasPositionToMapPosition([ 0, below ])[1]
 }
 
 CanvasRenderingContext2D.prototype.getRandomlyInTheCentreOfCanvas = function (buffer) {
-  var min = 0
-  var max = this.canvas.width
+  let min = 0
+  let max = this.canvas.width
 
   if (buffer) {
     min -= buffer
@@ -72,19 +72,19 @@ CanvasRenderingContext2D.prototype.getRandomlyInTheCentreOfCanvas = function (bu
 }
 
 CanvasRenderingContext2D.prototype.getRandomlyInTheCentreOfMap = function (buffer) {
-  var random = this.getRandomlyInTheCentreOfCanvas(buffer)
+  const random = this.getRandomlyInTheCentreOfCanvas(buffer)
   return this.canvasPositionToMapPosition([ random, 0 ])[0]
 }
 
 CanvasRenderingContext2D.prototype.getRandomMapPositionBelowViewport = function () {
-  var xCanvas = this.getRandomlyInTheCentreOfCanvas()
-  var yCanvas = this.getBelowViewport()
+  const xCanvas = this.getRandomlyInTheCentreOfCanvas()
+  const yCanvas = this.getBelowViewport()
   return this.canvasPositionToMapPosition([ xCanvas, yCanvas ])
 }
 
 CanvasRenderingContext2D.prototype.getRandomMapPositionAboveViewport = function () {
-  var xCanvas = this.getRandomlyInTheCentreOfCanvas()
-  var yCanvas = this.getAboveViewport()
+  const xCanvas = this.getRandomlyInTheCentreOfCanvas()
+  const yCanvas = this.getAboveViewport()
   return this.canvasPositionToMapPosition([ xCanvas, yCanvas ])
 }
 

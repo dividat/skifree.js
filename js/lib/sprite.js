@@ -1,11 +1,11 @@
 (function (global) {
-  var GUID = require('./guid')
+  const GUID = require('./guid')
   function Sprite (data) {
-    var hasHittableObjects = false
-    var hittableObjects = {}
-    var zIndexesOccupied = [ 0 ]
-    var that = this
-    var trackedSpriteToMoveToward
+    let hasHittableObjects = false
+    const hittableObjects = {}
+    let zIndexesOccupied = [ 0 ]
+    const that = this
+    let trackedSpriteToMoveToward
     that.direction = undefined
     that.mapPosition = [0, 0, 0]
     that.id = GUID()
@@ -59,18 +59,18 @@
         return
       }
 
-      var currentX = that.mapPosition[0]
-      var currentY = that.mapPosition[1]
+      let currentX = that.mapPosition[0]
+      let currentY = that.mapPosition[1]
 
       // Assume original magic numbers for speed were created for a typical 2013 resolution
-      var heightFactor = window.devicePixelRatio * window.innerHeight/800
+      const heightFactor = window.devicePixelRatio * window.innerHeight/800
       // Adjust for FPS different than the 50 FPS assumed by original game
-      var lagFactor = (dt || skiCfg.originalFrameInterval)/skiCfg.originalFrameInterval
-      var factor = heightFactor * lagFactor
+      const lagFactor = (dt || skiCfg.originalFrameInterval)/skiCfg.originalFrameInterval
+      const factor = heightFactor * lagFactor
 
       if (typeof that.direction !== 'undefined') {
         // For this we need to modify the that.direction so it relates to the horizontal
-        var d = that.direction - 90
+        let d = that.direction - 90
         if (d < 0) d = 360 + d
         currentX += that.getSpeedX() * Math.cos(d * (Math.PI / 180)) * factor
         currentY += that.getSpeedY() * Math.sin(d * Math.PI / 180) * factor
@@ -98,22 +98,22 @@
     this.determineNextFrame = function (dCtx, spriteFrame) {
       that.part = spriteFrame
 
-      var part = that.data.parts[spriteFrame]
-      var overridePath = "sprites/" + that.data.name + "-" + spriteFrame + ".png"
+      const part = that.data.parts[spriteFrame]
+      let overridePath = "sprites/" + that.data.name + "-" + spriteFrame + ".png"
 
-      var frames = part.frames
-      var fps = part.fps
+      const frames = part.frames
+      const fps = part.fps
 
       if (typeof frames === 'number' && typeof fps === 'number') {
-        var deltaT = Math.floor(1000 / fps)
-	var firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) : 1
+        const deltaT = Math.floor(1000 / fps)
+	const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) : 1
 
-        var frame = Math.max(0, Math.floor(Date.now() / deltaT) % (frames + firstFrameRepetitions) - firstFrameRepetitions) + 1
+        const frame = Math.max(0, Math.floor(Date.now() / deltaT) % (frames + firstFrameRepetitions) - firstFrameRepetitions) + 1
 
         overridePath = "sprites/" + that.data.name + "-" + spriteFrame + frame + ".png"
       }
 
-      var img = dCtx.getLoadedImage(overridePath)
+      const img = dCtx.getLoadedImage(overridePath)
 
       if (!img || !img.complete || img.naturalHeight === 0) {
         that.width = 0
@@ -121,36 +121,36 @@
         return
       }
 
-      var spriteZoom = 1
+      let spriteZoom = 1
       if (typeof that.data.sizeMultiple === 'number') {
-        var spriteZoom = part.sizeMultiple || that.data.sizeMultiple
+        spriteZoom = part.sizeMultiple || that.data.sizeMultiple
       }
 
-      var targetWidth = Math.round(img.naturalWidth * spriteZoom * skiCfg.zoom)
-      var targetHeight = Math.round(img.naturalHeight * spriteZoom * skiCfg.zoom)
+      const targetWidth = Math.round(img.naturalWidth * spriteZoom * skiCfg.zoom)
+      const targetHeight = Math.round(img.naturalHeight * spriteZoom * skiCfg.zoom)
 
       that.width = targetWidth
       that.height = targetHeight
 
-      var newCanvasPosition = dCtx.mapPositionToCanvasPosition(that.mapPosition)
+      const newCanvasPosition = dCtx.mapPositionToCanvasPosition(that.mapPosition)
       that.setCanvasPosition(newCanvasPosition[0], newCanvasPosition[1])
 
       return img
     }
 
     this.draw = function (dCtx, spriteFrame) {
-      var img = that.determineNextFrame(dCtx, spriteFrame)
+      const img = that.determineNextFrame(dCtx, spriteFrame)
       if (img == null) return
 
-      var fr = [0, 0, img.width, img.height]
+      const fr = [0, 0, img.width, img.height]
 
       dCtx.drawImage(img, fr[0], fr[1], fr[2], fr[3], that.canvasX, that.canvasY, that.width, that.height)
 
       if (skiCfg.debug) {
-        var thbe = this.getTopHitBoxEdge(that.mapPosition[2])
-        var bhbe = this.getBottomHitBoxEdge(that.mapPosition[2])
-        var lhbe = this.getLeftHitBoxEdge(that.mapPosition[2])
-        var rhbe = this.getRightHitBoxEdge(that.mapPosition[2])
+        const thbe = this.getTopHitBoxEdge(that.mapPosition[2])
+        const bhbe = this.getBottomHitBoxEdge(that.mapPosition[2])
+        const lhbe = this.getLeftHitBoxEdge(that.mapPosition[2])
+        const rhbe = this.getRightHitBoxEdge(that.mapPosition[2])
         dCtx.moveTo(lhbe, thbe)
         dCtx.lineTo(rhbe, thbe)
         dCtx.lineTo(rhbe, bhbe)
@@ -198,7 +198,7 @@
 
     this.getLeftHitBoxEdge = function (zIndex) {
       zIndex = zIndex || 0
-      var lhbe = this.getCanvasPositionX()
+      let lhbe = this.getCanvasPositionX()
       if (getHitBox(zIndex)) {
         lhbe += getHitBox(zIndex)[3] * that.width
       }
@@ -207,7 +207,7 @@
 
     this.getTopHitBoxEdge = function (zIndex) {
       zIndex = zIndex || 0
-      var thbe = this.getCanvasPositionY()
+      let thbe = this.getCanvasPositionY()
       if (getHitBox(zIndex)) {
         thbe += getHitBox(zIndex)[0] * that.height
       }
@@ -273,11 +273,11 @@
         return [0, 0]
       }
 
-      var dx = (that.movingToward[0] - that.mapPosition[0])
-      var dy = (that.movingToward[1] - that.mapPosition[1])
+      const dx = (that.movingToward[0] - that.mapPosition[0])
+      const dy = (that.movingToward[1] - that.mapPosition[1])
 
-      var oppositeX = (Math.abs(dx) > 75 ? 0 - dx : 0)
-      var oppositeY = -dy
+      const oppositeX = (Math.abs(dx) > 75 ? 0 - dx : 0)
+      const oppositeY = -dy
 
       return [ oppositeX, oppositeY ]
     }
@@ -298,7 +298,7 @@
 
     this.checkOffScreen = function () {
       // Keep jumps a bit more to prevent creating objects in landing areas
-      var deletePoint = that.data.name === 'jump' ? -2000 : 0
+      const deletePoint = that.data.name === 'jump' ? -2000 : 0
 
       if (that.isStatic && that.isAboveOnCanvas(deletePoint)) {
         that.deleted = true
@@ -387,8 +387,8 @@
     }
 
     this.hits = function (other) {
-      var thatZ = that.mapPosition[2]
-      var otherZ = other.mapPosition[2]
+      const thatZ = that.mapPosition[2]
+      const otherZ = other.mapPosition[2]
 
       return !(
         that.getLeftHitBoxEdge(thatZ) > other.getRightHitBoxEdge(otherZ) ||
@@ -401,12 +401,12 @@
     this.hitsLandingArea = function (other) {
       if (that.data.name === 'jump' && other.data.name !== 'thickSnow' && other.data.name !== 'thickerSnow') {
         // Obtained experimentally by increasing object drop rates
-        var sideWidth = 150
-        var jumpingH = 1200
-        var landingH = 500
+        const sideWidth = 150
+        const jumpingH = 1200
+        const landingH = 500
 
-        var jumpZ = that.mapPosition[2]
-        var hittableZ = other.mapPosition[2]
+        const jumpZ = that.mapPosition[2]
+        const hittableZ = other.mapPosition[2]
 
         return !(
           other.getLeftHitBoxEdge(hittableZ) > (that.getRightHitBoxEdge(jumpZ) + sideWidth) ||
@@ -444,13 +444,13 @@
     }, false, false)
 
     function createOne (spriteInfo) {
-      var position = opts.position
+      let position = opts.position
 
       // Using 1 - Math.random() to exclude 0: 1 - [0, 1[ -> ]0, 1]
-      var random = 100 * (1 - Math.random()) + opts.rateModifier
+      const random = 100 * (1 - Math.random()) + opts.rateModifier
 
       if (random <= spriteInfo.dropRate * opts.player.getSpeedRatio()) {
-        var sprite = new Sprite(spriteInfo.sprite)
+        const sprite = new Sprite(spriteInfo.sprite)
         sprite.setSpeed(0)
 
         if (Object.isFunction(position)) {
@@ -469,7 +469,7 @@
       }
     }
 
-    var objects = spriteInfoArray.map(createOne).remove(undefined)
+    const objects = spriteInfoArray.map(createOne).remove(undefined)
 
     return objects
   }
