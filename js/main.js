@@ -48,7 +48,14 @@ var pixelsPerMetre = 18
 var distanceTravelledInMetres = 0
 var monsterDistanceThreshold = 2000
 var loseLifeOnObstacleHit = false
-var dropRates = {smallTree: 3.5, tallTree: 4, jump: 0.5, thickSnow: 0.8, thickerSnow: 0.5, rock: 1.5}
+var dropRates = {
+  smallTree: 7,
+  tallTree: 8,
+  jump: 1,
+  thickSnow: 1.5,
+  thickerSnow: 1,
+  rock: 3
+}
 
 var balanceFactor = 0.33
 var settings = {

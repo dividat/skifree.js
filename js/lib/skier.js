@@ -296,7 +296,7 @@ var Sprite = require('./sprite');
     }
 
     that.getSpeedRatio = function () {
-      return that.getSpeed() / that.getStandardSpeed()
+      return speedY / standardSpeed
     }
 
     that.cycleSpeedX = function () {
@@ -373,10 +373,8 @@ var Sprite = require('./sprite');
       var now = Date.now()
       var start = that.lastCollision + crashDuration
       var end = start + invincibleAfterCrashDuration
-      if (that.lastJump !== undefined && that.lastJump > that.lastCollision) {
-        // Jumping stops invincibility
-        return
-      } else if (that.lastCollision !== undefined && now >= start && now < end) {
+      var jumpAfterCollision = that.lastJump !== undefined && that.lastJump > that.lastCollision
+      if (!jumpAfterCollision && that.lastCollision !== undefined && now >= start && now < end) {
         return (now - start) / (end - start)
       }
     }

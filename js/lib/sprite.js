@@ -449,7 +449,7 @@
       // Using 1 - Math.random() to exclude 0: 1 - [0, 1[ -> ]0, 1]
       var random = 100 * (1 - Math.random()) + opts.rateModifier
 
-      if (random <= spriteInfo.dropRate) {
+      if (random <= spriteInfo.dropRate * opts.player.getSpeedRatio()) {
         var sprite = new Sprite(spriteInfo.sprite)
         sprite.setSpeed(0)
 
