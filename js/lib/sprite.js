@@ -1,482 +1,484 @@
-(function (global) {
-  const GUID = require('./guid')
-  function Sprite (data) {
-    let hasHittableObjects = false
-    const hittableObjects = {}
-    let zIndexesOccupied = [ 0 ]
-    const that = this
-    let trackedSpriteToMoveToward
-    that.direction = undefined
-    that.mapPosition = [0, 0, 0]
-    that.id = GUID()
-    that.canvasX = 0
-    that.canvasY = 0
-    that.canvasZ = 0
-    that.height = 0
-    that.speed = 0
-    that.data = data || { parts: {} }
-    that.movingToward = [ 0, 0 ]
-    that.metresDownTheMountain = 0
-    that.movingWithConviction = false
-    that.deleted = false
-    that.isStatic = false
-    that.isMoving = true
-    that.part = null
+import * as Random from './random'
+import GUID from './guid'
 
-    if (!that.data.parts) {
-      that.data.parts = {}
+export class Sprite {
+
+  constructor(data) {
+    this.hasHittableObjects = false
+    this.hittableObjects = {}
+    this.zIndexesOccupied = [ 0 ]
+    this.trackedSpriteToMoveToward
+    this.direction = undefined
+    this.mapPosition = [0, 0, 0]
+    this.id = GUID()
+    this.canvasX = 0
+    this.canvasY = 0
+    this.canvasZ = 0
+    this.height = 0
+    this.speed = 0
+    this.data = data || { parts: {} }
+    this.movingToward = [ 0, 0 ]
+    this.metresDownTheMountain = 0
+    this.movingWithConviction = false
+    this.deleted = false
+    this.isStatic = false
+    this.isMoving = true
+    this.part = null
+
+    if (!this.data.parts) {
+      this.data.parts = {}
     }
 
     if (data && data.id) {
-      that.id = data.id
+      this.id = data.id
     }
 
     if (data && data.zIndexesOccupied) {
-      zIndexesOccupied = data.zIndexesOccupied
+      this.zIndexesOccupied = data.zIndexesOccupied
+    }
+  }
+
+  getHitBox(forZIndex) {
+    if (this.data.hitBoxes) {
+      if (data.hitBoxes[forZIndex]) {
+        return data.hitBoxes[forZIndex]
+      }
+    }
+    if (this.data.parts[this.part] && this.data.parts[this.part].offsets) {
+      return this.data.parts[this.part].offsets
+    }
+  }
+
+  move(dt) {
+    if (!this.isMoving) {
+      return
     }
 
-    function incrementX (amount) {
-      that.canvasX += amount.toNumber()
-    }
+    let currentX = this.mapPosition[0]
+    let currentY = this.mapPosition[1]
 
-    function incrementY (amount) {
-      that.canvasY += amount.toNumber()
-    }
+    // Assume original magic numbers for speed were created for a typical 2013 resolution
+    const heightFactor = window.devicePixelRatio * window.innerHeight/800
+    // Adjust for FPS different than the 50 FPS assumed by original game
+    const lagFactor = (dt || skiCfg.originalFrameInterval)/skiCfg.originalFrameInterval
+    const factor = heightFactor * lagFactor
 
-    function getHitBox (forZIndex) {
-      if (that.data.hitBoxes) {
-        if (data.hitBoxes[forZIndex]) {
-          return data.hitBoxes[forZIndex]
+    if (typeof this.direction !== 'undefined') {
+      // For this we need to modify the this.direction so it relates to the horizontal
+      let d = this.direction - 90
+      if (d < 0) d = 360 + d
+      currentX += this.getSpeedX() * Math.cos(d * (Math.PI / 180)) * factor
+      currentY += this.getSpeedY() * Math.sin(d * Math.PI / 180) * factor
+    } else {
+      if (typeof this.movingToward[0] !== 'undefined') {
+        if (currentX > this.movingToward[0]) {
+          currentX -= Math.min(this.getSpeedX() * factor, Math.abs(currentX - this.movingToward[0]))
+        } else if (currentX < this.movingToward[0]) {
+          currentX += Math.min(this.getSpeedX() * factor, Math.abs(currentX - this.movingToward[0]))
         }
       }
-      if (that.data.parts[that.part] && that.data.parts[that.part].offsets) {
-        return that.data.parts[that.part].offsets
+
+      if (typeof this.movingToward[1] !== 'undefined') {
+        if (currentY > this.movingToward[1]) {
+          currentY -= Math.min(this.getSpeedY() * factor, Math.abs(currentY - this.movingToward[1]))
+        } else if (currentY < this.movingToward[1]) {
+          currentY += Math.min(this.getSpeedY() * factor, Math.abs(currentY - this.movingToward[1]))
+        }
       }
     }
 
-    function move (dt) {
-      if (!that.isMoving) {
-        return
-      }
+    this.setMapPosition(currentX, currentY)
+  }
 
-      let currentX = that.mapPosition[0]
-      let currentY = that.mapPosition[1]
+  determineNextFrame(dCtx, spriteFrame) {
+    this.part = spriteFrame
 
-      // Assume original magic numbers for speed were created for a typical 2013 resolution
-      const heightFactor = window.devicePixelRatio * window.innerHeight/800
-      // Adjust for FPS different than the 50 FPS assumed by original game
-      const lagFactor = (dt || skiCfg.originalFrameInterval)/skiCfg.originalFrameInterval
-      const factor = heightFactor * lagFactor
+    const part = this.data.parts[spriteFrame]
+    let overridePath = "sprites/" + this.data.name + "-" + spriteFrame + ".png"
 
-      if (typeof that.direction !== 'undefined') {
-        // For this we need to modify the that.direction so it relates to the horizontal
-        let d = that.direction - 90
-        if (d < 0) d = 360 + d
-        currentX += that.getSpeedX() * Math.cos(d * (Math.PI / 180)) * factor
-        currentY += that.getSpeedY() * Math.sin(d * Math.PI / 180) * factor
+    const frames = part.frames
+    const fps = part.fps
+
+    if (typeof frames === 'number' && typeof fps === 'number') {
+      const deltaT = Math.floor(1000 / fps)
+const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) : 1
+
+      const frame = Math.max(0, Math.floor(Date.now() / deltaT) % (frames + firstFrameRepetitions) - firstFrameRepetitions) + 1
+
+      overridePath = "sprites/" + this.data.name + "-" + spriteFrame + frame + ".png"
+    }
+
+    const img = dCtx.getLoadedImage(overridePath)
+
+    if (!img || !img.complete || img.naturalHeight === 0) {
+      this.width = 0
+      this.height = 0
+      return
+    }
+
+    let spriteZoom = 1
+    if (typeof this.data.sizeMultiple === 'number') {
+      spriteZoom = part.sizeMultiple || this.data.sizeMultiple
+    }
+
+    const targetWidth = Math.round(img.naturalWidth * spriteZoom * skiCfg.zoom)
+    const targetHeight = Math.round(img.naturalHeight * spriteZoom * skiCfg.zoom)
+
+    this.width = targetWidth
+    this.height = targetHeight
+
+    const newCanvasPosition = dCtx.mapPositionToCanvasPosition(this.mapPosition)
+    this.setCanvasPosition(newCanvasPosition[0], newCanvasPosition[1])
+
+    return img
+  }
+
+  draw(dCtx, spriteFrame) {
+    const img = this.determineNextFrame(dCtx, spriteFrame)
+    if (img == null) return
+
+    const fr = [0, 0, img.width, img.height]
+
+    dCtx.drawImage(img, fr[0], fr[1], fr[2], fr[3], this.canvasX, this.canvasY, this.width, this.height)
+
+    if (skiCfg.debug) {
+      const thbe = this.getTopHitBoxEdge(this.mapPosition[2])
+      const bhbe = this.getBottomHitBoxEdge(this.mapPosition[2])
+      const lhbe = this.getLeftHitBoxEdge(this.mapPosition[2])
+      const rhbe = this.getRightHitBoxEdge(this.mapPosition[2])
+      dCtx.moveTo(lhbe, thbe)
+      dCtx.lineTo(rhbe, thbe)
+      dCtx.lineTo(rhbe, bhbe)
+      dCtx.lineTo(lhbe, bhbe)
+      dCtx.lineTo(lhbe, thbe)
+      dCtx.strokeStyle = 'red'
+      dCtx.stroke()
+    }
+  }
+
+  setMapPosition(x, y, z) {
+    if (typeof x === 'undefined') {
+      x = this.mapPosition[0]
+    }
+    if (typeof y === 'undefined') {
+      y = this.mapPosition[1]
+    }
+    if (typeof z === 'undefined') {
+      z = this.mapPosition[2]
+    } else {
+      this.zIndexesOccupied = [ z ]
+    }
+    this.mapPosition = [x, y, z]
+  }
+
+  setCanvasPosition(cx, cy) {
+    this.canvasX = cx
+    this.canvasY = cy
+  }
+
+  getCanvasPositionX() {
+    return this.canvasX
+  }
+
+  getCanvasPositionY() {
+    return this.canvasY
+  }
+
+  getLeftHitBoxEdge(zIndex) {
+    zIndex = zIndex || 0
+    let lhbe = this.getCanvasPositionX()
+    if (this.getHitBox(zIndex)) {
+      lhbe += this.getHitBox(zIndex)[3] * this.width
+    }
+    return lhbe
+  }
+
+  getTopHitBoxEdge(zIndex) {
+    zIndex = zIndex || 0
+    let thbe = this.getCanvasPositionY()
+    if (this.getHitBox(zIndex)) {
+      thbe += this.getHitBox(zIndex)[0] * this.height
+    }
+    return thbe
+  }
+
+  getRightHitBoxEdge(zIndex) {
+    zIndex = zIndex || 0
+
+    if (this.getHitBox(zIndex)) {
+      return this.canvasX + (1 - this.getHitBox(zIndex)[1]) * this.width
+    }
+
+    return this.canvasX + this.width
+  }
+
+  getBottomHitBoxEdge(zIndex) {
+    zIndex = zIndex || 0
+
+    if (this.getHitBox(zIndex)) {
+      return this.canvasY + (1 - this.getHitBox(zIndex)[2]) * this.height
+    }
+
+    return this.canvasY + this.height
+  }
+
+  getPositionInFrontOf() {
+    return [this.canvasX, this.canvasY + this.height]
+  }
+
+  setSpeed(s) {
+    this.speed = s
+    this.speedX = s
+    this.speedY = s
+  }
+
+  incrementSpeedBy(s) {
+    this.speed += s
+  }
+
+  getSpeedgetSpeed () {
+    return this.speed
+  }
+
+  getSpeed() {
+    return this.speed
+  }
+
+  getSpeedX() {
+    return this.speed
+  }
+
+  getSpeedY() {
+    return this.speed
+  }
+
+  setHeight(h) {
+    this.height = h
+  }
+
+  setWidth(w) {
+    this.width = w
+  }
+
+  getMapPosition() {
+    return this.mapPosition
+  }
+
+  setMovingToward(movingToward) {
+    this.movingToward = movingToward
+  }
+
+  getMovingToward() {
+    return this.movingToward
+  }
+
+  getMovingTowardOpposite() {
+    if (!this.isMoving) {
+      return [0, 0]
+    }
+
+    const dx = (this.movingToward[0] - this.mapPosition[0])
+    const dy = (this.movingToward[1] - this.mapPosition[1])
+
+    const oppositeX = (Math.abs(dx) > 75 ? 0 - dx : 0)
+    const oppositeY = -dy
+
+    return [ oppositeX, oppositeY ]
+  }
+
+  checkHittableObjects() {
+    const that = this
+
+    Object.entries(that.hittableObjects).forEach(([ k, objectData ]) => {
+      if (objectData.object.deleted) {
+        delete that.hittableObjects[k]
       } else {
-        if (typeof that.movingToward[0] !== 'undefined') {
-          if (currentX > that.movingToward[0]) {
-            currentX -= Math.min(that.getSpeedX() * factor, Math.abs(currentX - that.movingToward[0]))
-          } else if (currentX < that.movingToward[0]) {
-            currentX += Math.min(that.getSpeedX() * factor, Math.abs(currentX - that.movingToward[0]))
-          }
-        }
-
-        if (typeof that.movingToward[1] !== 'undefined') {
-          if (currentY > that.movingToward[1]) {
-            currentY -= Math.min(that.getSpeedY() * factor, Math.abs(currentY - that.movingToward[1]))
-          } else if (currentY < that.movingToward[1]) {
-            currentY += Math.min(that.getSpeedY() * factor, Math.abs(currentY - that.movingToward[1]))
-          }
+        if (objectData.object.hits(that)) {
+          objectData.callbacks.forEach(function (callback) {
+            callback(that, objectData.object)
+          })
         }
       }
+    })
+  }
 
-      that.setMapPosition(currentX, currentY)
+  checkOffScreen() {
+    // Keep jumps a bit more to prevent creating objects in landing areas
+    const deletePoint = this.data.name === 'jump' ? -2000 : 0
+
+    if (this.isStatic && this.isAboveOnCanvas(deletePoint)) {
+      this.deleted = true
+    }
+  }
+
+  cycle(dt) {
+    this.checkOffScreen()
+    if (this.hasHittableObjects) {
+      this.checkHittableObjects()
     }
 
-    this.determineNextFrame = function (dCtx, spriteFrame) {
-      that.part = spriteFrame
-
-      const part = that.data.parts[spriteFrame]
-      let overridePath = "sprites/" + that.data.name + "-" + spriteFrame + ".png"
-
-      const frames = part.frames
-      const fps = part.fps
-
-      if (typeof frames === 'number' && typeof fps === 'number') {
-        const deltaT = Math.floor(1000 / fps)
-	const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) : 1
-
-        const frame = Math.max(0, Math.floor(Date.now() / deltaT) % (frames + firstFrameRepetitions) - firstFrameRepetitions) + 1
-
-        overridePath = "sprites/" + that.data.name + "-" + spriteFrame + frame + ".png"
-      }
-
-      const img = dCtx.getLoadedImage(overridePath)
-
-      if (!img || !img.complete || img.naturalHeight === 0) {
-        that.width = 0
-        that.height = 0
-        return
-      }
-
-      let spriteZoom = 1
-      if (typeof that.data.sizeMultiple === 'number') {
-        spriteZoom = part.sizeMultiple || that.data.sizeMultiple
-      }
-
-      const targetWidth = Math.round(img.naturalWidth * spriteZoom * skiCfg.zoom)
-      const targetHeight = Math.round(img.naturalHeight * spriteZoom * skiCfg.zoom)
-
-      that.width = targetWidth
-      that.height = targetHeight
-
-      const newCanvasPosition = dCtx.mapPositionToCanvasPosition(that.mapPosition)
-      that.setCanvasPosition(newCanvasPosition[0], newCanvasPosition[1])
-
-      return img
+    if (this.trackedSpriteToMoveToward) {
+      this.setMapPositionTarget(this.trackedSpriteToMoveToward.mapPosition[0], this.trackedSpriteToMoveToward.mapPosition[1], true)
     }
 
-    this.draw = function (dCtx, spriteFrame) {
-      const img = that.determineNextFrame(dCtx, spriteFrame)
-      if (img == null) return
+    this.move(dt)
+  }
 
-      const fr = [0, 0, img.width, img.height]
-
-      dCtx.drawImage(img, fr[0], fr[1], fr[2], fr[3], that.canvasX, that.canvasY, that.width, that.height)
-
-      if (skiCfg.debug) {
-        const thbe = this.getTopHitBoxEdge(that.mapPosition[2])
-        const bhbe = this.getBottomHitBoxEdge(that.mapPosition[2])
-        const lhbe = this.getLeftHitBoxEdge(that.mapPosition[2])
-        const rhbe = this.getRightHitBoxEdge(that.mapPosition[2])
-        dCtx.moveTo(lhbe, thbe)
-        dCtx.lineTo(rhbe, thbe)
-        dCtx.lineTo(rhbe, bhbe)
-        dCtx.lineTo(lhbe, bhbe)
-        dCtx.lineTo(lhbe, thbe)
-        dCtx.strokeStyle = 'red'
-        dCtx.stroke()
-      }
+  setMapPositionTarget(x, y, override) {
+    if (override) {
+      this.movingWithConviction = false
     }
 
-    this.setMapPosition = function (x, y, z) {
+    if (!this.movingWithConviction) {
       if (typeof x === 'undefined') {
-        x = that.mapPosition[0]
+        x = this.movingToward[0]
       }
+
       if (typeof y === 'undefined') {
-        y = that.mapPosition[1]
-      }
-      if (typeof z === 'undefined') {
-        z = that.mapPosition[2]
-      } else {
-        that.zIndexesOccupied = [ z ]
-      }
-      that.mapPosition = [x, y, z]
-    }
-
-    this.setCanvasPosition = function (cx, cy) {
-      if (cx) {
-        if (Object.isString(cx) && (cx.first() === '+' || cx.first() === '-')) incrementX(cx)
-        else that.canvasX = cx
+        y = this.movingToward[1]
       }
 
-      if (cy) {
-        if (Object.isString(cy) && (cy.first() === '+' || cy.first() === '-')) incrementY(cy)
-        else that.canvasY = cy
-      }
+      this.movingToward = [ x, y ]
+
+      this.movingWithConviction = false
     }
 
-    this.getCanvasPositionX = function () {
-      return that.canvasX
+    // this.resetDirection();
+  }
+
+  setDirection(angle) {
+    if (angle >= 360) {
+      angle = 360 - angle
+    }
+    this.direction = angle
+    this.movingToward = undefined
+  }
+
+  resetDirection() {
+    this.direction = undefined
+  }
+
+  setMapPositionTargetWithConviction(cx, cy) {
+    this.setMapPositionTarget(cx, cy)
+    this.movingWithConviction = true
+    // this.resetDirection();
+  }
+
+  follow(sprite) {
+    this.trackedSpriteToMoveToward = sprite
+    // this.resetDirection();
+  }
+
+  stopFollowing() {
+    this.trackedSpriteToMoveToward = false
+  }
+
+  onHitting(objectToHit, callback) {
+    if (this.hittableObjects[objectToHit.id]) {
+      return this.hittableObjects[objectToHit.id].callbacks.push(callback)
     }
 
-    this.getCanvasPositionY = function () {
-      return that.canvasY
+    this.hittableObjects[objectToHit.id] = {
+      object: objectToHit,
+      callbacks: [ callback ]
     }
 
-    this.getLeftHitBoxEdge = function (zIndex) {
-      zIndex = zIndex || 0
-      let lhbe = this.getCanvasPositionX()
-      if (getHitBox(zIndex)) {
-        lhbe += getHitBox(zIndex)[3] * that.width
-      }
-      return lhbe
-    }
+    this.hasHittableObjects = true    
+  }
 
-    this.getTopHitBoxEdge = function (zIndex) {
-      zIndex = zIndex || 0
-      let thbe = this.getCanvasPositionY()
-      if (getHitBox(zIndex)) {
-        thbe += getHitBox(zIndex)[0] * that.height
-      }
-      return thbe
-    }
+  deleteOnNextCycle() {
+    this.deleted = true
+  }
 
-    this.getRightHitBoxEdge = function (zIndex) {
-      zIndex = zIndex || 0
+  occupiesZIndex(z) {
+    return this.zIndexesOccupied.indexOf(z) >= 0
+  }
 
-      if (getHitBox(zIndex)) {
-        return that.canvasX + (1 - getHitBox(zIndex)[1]) * that.width
-      }
+  hits(other) {
+    const thisZ = this.mapPosition[2]
+    const otherZ = other.mapPosition[2]
 
-      return that.canvasX + that.width
-    }
+    return !(
+      this.getLeftHitBoxEdge(thisZ) > other.getRightHitBoxEdge(otherZ) ||
+      this.getRightHitBoxEdge(thisZ) < other.getLeftHitBoxEdge(otherZ) ||
+      this.getTopHitBoxEdge(thisZ) > other.getBottomHitBoxEdge(otherZ) ||
+      this.getBottomHitBoxEdge(thisZ) < other.getTopHitBoxEdge(otherZ)
+    )
+  }
 
-    this.getBottomHitBoxEdge = function (zIndex) {
-      zIndex = zIndex || 0
+  hitsLandingArea(other) {
+    if (this.data.name === 'jump' && other.data.name !== 'thickSnow' && other.data.name !== 'thickerSnow') {
+      // Obtained experimentally by increasing object drop rates
+      const sideWidth = 150
+      const jumpingH = 1200
+      const landingH = 500
 
-      if (getHitBox(zIndex)) {
-        return that.canvasY + (1 - getHitBox(zIndex)[2]) * that.height
-      }
-
-      return that.canvasY + that.height
-    }
-
-    this.getPositionInFrontOf = function () {
-      return [that.canvasX, that.canvasY + that.height]
-    }
-
-    this.setSpeed = function (s) {
-      that.speed = s
-      that.speedX = s
-      that.speedY = s
-    }
-
-    this.incrementSpeedBy = function (s) {
-      that.speed += s
-    }
-
-    that.getSpeed = function getSpeed () {
-      return that.speed
-    }
-
-    that.getSpeedX = function () {
-      return that.speed
-    }
-
-    that.getSpeedY = function () {
-      return that.speed
-    }
-
-    this.setHeight = function (h) {
-      that.height = h
-    }
-
-    this.setWidth = function (w) {
-      that.width = w
-    }
-
-    that.getMovingTowardOpposite = function () {
-      if (!that.isMoving) {
-        return [0, 0]
-      }
-
-      const dx = (that.movingToward[0] - that.mapPosition[0])
-      const dy = (that.movingToward[1] - that.mapPosition[1])
-
-      const oppositeX = (Math.abs(dx) > 75 ? 0 - dx : 0)
-      const oppositeY = -dy
-
-      return [ oppositeX, oppositeY ]
-    }
-
-    this.checkHittableObjects = function () {
-      Object.keys(hittableObjects, function (k, objectData) {
-        if (objectData.object.deleted) {
-          delete hittableObjects[k]
-        } else {
-          if (objectData.object.hits(that)) {
-            objectData.callbacks.each(function (callback) {
-              callback(that, objectData.object)
-            })
-          }
-        }
-      })
-    }
-
-    this.checkOffScreen = function () {
-      // Keep jumps a bit more to prevent creating objects in landing areas
-      const deletePoint = that.data.name === 'jump' ? -2000 : 0
-
-      if (that.isStatic && that.isAboveOnCanvas(deletePoint)) {
-        that.deleted = true
-      }
-    }
-
-    this.cycle = function (dt) {
-      that.checkOffScreen()
-      if (hasHittableObjects) that.checkHittableObjects()
-
-      if (trackedSpriteToMoveToward) {
-        that.setMapPositionTarget(trackedSpriteToMoveToward.mapPosition[0], trackedSpriteToMoveToward.mapPosition[1], true)
-      }
-
-      move(dt)
-    }
-
-    this.setMapPositionTarget = function (x, y, override) {
-      if (override) {
-        that.movingWithConviction = false
-      }
-
-      if (!that.movingWithConviction) {
-        if (typeof x === 'undefined') {
-          x = that.movingToward[0]
-        }
-
-        if (typeof y === 'undefined') {
-          y = that.movingToward[1]
-        }
-
-        that.movingToward = [ x, y ]
-
-        that.movingWithConviction = false
-      }
-
-      // that.resetDirection();
-    }
-
-    this.setDirection = function (angle) {
-      if (angle >= 360) {
-        angle = 360 - angle
-      }
-      that.direction = angle
-      that.movingToward = undefined
-    }
-
-    this.resetDirection = function () {
-      that.direction = undefined
-    }
-
-    this.setMapPositionTargetWithConviction = function (cx, cy) {
-      that.setMapPositionTarget(cx, cy)
-      that.movingWithConviction = true
-      // that.resetDirection();
-    }
-
-    this.follow = function (sprite) {
-      trackedSpriteToMoveToward = sprite
-      // that.resetDirection();
-    }
-
-    this.stopFollowing = function () {
-      trackedSpriteToMoveToward = false
-    }
-
-    this.onHitting = function (objectToHit, callback) {
-      if (hittableObjects[objectToHit.id]) {
-        return hittableObjects[objectToHit.id].callbacks.push(callback)
-      }
-
-      hittableObjects[objectToHit.id] = {
-        object: objectToHit,
-        callbacks: [ callback ]
-      }
-
-      hasHittableObjects = true    
-    }
-
-    this.deleteOnNextCycle = function () {
-      that.deleted = true
-    }
-
-    this.occupiesZIndex = function (z) {
-      return zIndexesOccupied.indexOf(z) >= 0
-    }
-
-    this.hits = function (other) {
-      const thatZ = that.mapPosition[2]
-      const otherZ = other.mapPosition[2]
+      const jumpZ = this.mapPosition[2]
+      const hittableZ = other.mapPosition[2]
 
       return !(
-        that.getLeftHitBoxEdge(thatZ) > other.getRightHitBoxEdge(otherZ) ||
-        that.getRightHitBoxEdge(thatZ) < other.getLeftHitBoxEdge(otherZ) ||
-        that.getTopHitBoxEdge(thatZ) > other.getBottomHitBoxEdge(otherZ) ||
-        that.getBottomHitBoxEdge(thatZ) < other.getTopHitBoxEdge(otherZ)
+        other.getLeftHitBoxEdge(hittableZ) > (this.getRightHitBoxEdge(jumpZ) + sideWidth) ||
+        other.getRightHitBoxEdge(hittableZ) < (this.getLeftHitBoxEdge(jumpZ) - sideWidth) ||
+        other.getTopHitBoxEdge(hittableZ) > (this.getBottomHitBoxEdge(jumpZ) + jumpingH + landingH) ||
+        other.getBottomHitBoxEdge(hittableZ) < (this.getTopHitBoxEdge(jumpZ) + jumpingH)
       )
+    } else {
+      return false
     }
-
-    this.hitsLandingArea = function (other) {
-      if (that.data.name === 'jump' && other.data.name !== 'thickSnow' && other.data.name !== 'thickerSnow') {
-        // Obtained experimentally by increasing object drop rates
-        const sideWidth = 150
-        const jumpingH = 1200
-        const landingH = 500
-
-        const jumpZ = that.mapPosition[2]
-        const hittableZ = other.mapPosition[2]
-
-        return !(
-          other.getLeftHitBoxEdge(hittableZ) > (that.getRightHitBoxEdge(jumpZ) + sideWidth) ||
-          other.getRightHitBoxEdge(hittableZ) < (that.getLeftHitBoxEdge(jumpZ) - sideWidth) ||
-          other.getTopHitBoxEdge(hittableZ) > (that.getBottomHitBoxEdge(jumpZ) + jumpingH + landingH) ||
-          other.getBottomHitBoxEdge(hittableZ) < (that.getTopHitBoxEdge(jumpZ) + jumpingH)
-        )
-      } else {
-        return false
-      }
-    }
-
-    this.isAboveOnCanvas = function (cy) {
-      return (that.canvasY + that.height) < cy
-    }
-
-    this.isBelowOnCanvas = function (cy) {
-      return (that.canvasY) > cy
-    }
-
-    this.isPassable = function () {
-      return Boolean(that.data.isPassable)
-    }
-
-    return that
   }
 
-  Sprite.createObjects = function createObjects (spriteInfoArray, opts) {
-    if (!Array.isArray(spriteInfoArray)) spriteInfoArray = [ spriteInfoArray ]
-    opts = Object.merge(opts, {
-      rateModifier: 0,
-      dropRate: 1,
-      position: [0, 0],
-      isStatic: false
-    }, false, false)
-
-    function createOne (spriteInfo) {
-      let position = opts.position
-
-      // Using 1 - Math.random() to exclude 0: 1 - [0, 1[ -> ]0, 1]
-      const random = 100 * (1 - Math.random()) + opts.rateModifier
-
-      if (random <= spriteInfo.dropRate * opts.player.getSpeedRatio()) {
-        const sprite = new Sprite(spriteInfo.sprite)
-        sprite.setSpeed(0)
-
-        if (Object.isFunction(position)) {
-          position = position()
-        }
-
-        sprite.setMapPosition(position[0], position[1])
-
-        sprite.isStatic = opts.isStatic
-
-        if (spriteInfo.sprite.hitBehaviour && spriteInfo.sprite.hitBehaviour.skier && opts.player) {
-          sprite.onHitting(opts.player, spriteInfo.sprite.hitBehaviour.skier)
-        }
-
-        return sprite
-      }
-    }
-
-    const objects = spriteInfoArray.map(createOne).remove(undefined)
-
-    return objects
+  isAboveOnCanvas(cy) {
+    return (this.canvasY + this.height) < cy
   }
 
-  global.sprite = Sprite
-})(this)
+  isBelowOnCanvas(cy) {
+    return (this.canvasY) > cy
+  }
 
-if (typeof module !== 'undefined') {
-  module.exports = this.sprite
+  isPassable() {
+    return Boolean(this.data.isPassable)
+  }
+}
+
+export function createObjects (spriteInfoArray, opts) {
+  if (!Array.isArray(spriteInfoArray)) spriteInfoArray = [ spriteInfoArray ]
+
+  opts = { 
+    rateModifier: 0,
+    dropRate: 1,
+    position: [0, 0],
+    isStatic: false,
+    ...opts
+  }
+
+  const objects = spriteInfoArray
+    .map(spriteInfo => createObject(spriteInfo, opts))
+    .filter(s => s !== undefined)
+
+  return objects
+}
+
+function createObject (spriteInfo, opts) {
+  let position = opts.position
+
+  const random = Random.between(1, 100) + opts.rateModifier
+
+  if (random <= spriteInfo.dropRate * opts.player.getSpeedRatio()) {
+    const sprite = new Sprite(spriteInfo.sprite)
+    sprite.setSpeed(0)
+
+    if (typeof position === 'function') {
+      position = position()
+    }
+
+    sprite.setMapPosition(position[0], position[1])
+
+    sprite.isStatic = opts.isStatic
+
+    if (spriteInfo.sprite.hitBehaviour && spriteInfo.sprite.hitBehaviour.skier && opts.player) {
+      sprite.onHitting(opts.player, spriteInfo.sprite.hitBehaviour.skier)
+    }
+
+    return sprite
+  }
 }

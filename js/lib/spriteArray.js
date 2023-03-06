@@ -1,38 +1,28 @@
-(function (global) {
-  function SpriteArray () {
-    this.pushHandlers = []
+export class SpriteArray extends Array {
 
-    return this
+  constructor() {
+    super()
+    this.pushHandlers = []
   }
 
-  SpriteArray.prototype = Object.create(Array.prototype)
-
-  SpriteArray.prototype.onPush = function (f, retroactive) {
+  onPush(f, retroactive) {
     this.pushHandlers.push(f)
 
     if (retroactive) {
-      this.each(f)
+      this.forEach(f)
     }
   }
 
-  SpriteArray.prototype.push = function (obj) {
-    Array.prototype.push.call(this, obj)
-    this.pushHandlers.each(function (handler) {
-      handler(obj)
-    })
+  push(obj) {
+    super.push(obj)
+    this.pushHandlers.forEach(handler => handler(obj))
   }
 
-  SpriteArray.prototype.cull = function () {
-    this.each(function (obj, i) {
+  cull() {
+    this.forEach((obj, i) => {
       if (obj.deleted) {
         return (delete this[i])
       }
     })
   }
-
-  global.spriteArray = SpriteArray
-})(this)
-
-if (typeof module !== 'undefined') {
-  module.exports = this.spriteArray
 }

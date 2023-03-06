@@ -1,3 +1,5 @@
+import * as Random from './random'
+
 CanvasRenderingContext2D.prototype.storeLoadedImage = function (key, image) {
   if (!this.images) {
     this.images = {}
@@ -42,16 +44,16 @@ CanvasRenderingContext2D.prototype.canvasPositionToMapPosition = function (posit
 }
 
 CanvasRenderingContext2D.prototype.getCentreOfViewport = function () {
-  return (this.canvas.width / 2).floor()
+  return Math.floor(this.canvas.width / 2)
 }
 
 // Y-pos canvas functions
 CanvasRenderingContext2D.prototype.getMiddleOfViewport = function () {
-  return (this.canvas.height / 2).floor()
+  return Math.floor(this.canvas.height / 2)
 }
 
 CanvasRenderingContext2D.prototype.getBelowViewport = function () {
-  return this.canvas.height.floor()
+  return Math.floor(this.canvas.height)
 }
 
 CanvasRenderingContext2D.prototype.getMapBelowViewport = function () {
@@ -68,7 +70,7 @@ CanvasRenderingContext2D.prototype.getRandomlyInTheCentreOfCanvas = function (bu
     max += buffer
   }
 
-  return Number.random(min, max)
+  return Random.between(min, max)
 }
 
 CanvasRenderingContext2D.prototype.getRandomlyInTheCentreOfMap = function (buffer) {
@@ -93,5 +95,5 @@ CanvasRenderingContext2D.prototype.getTopOfViewport = function () {
 }
 
 CanvasRenderingContext2D.prototype.getAboveViewport = function () {
-  return 0 - (this.canvas.height / 4).floor()
+  return 0 - Math.floor(this.canvas.height / 4)
 }

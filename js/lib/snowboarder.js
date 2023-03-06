@@ -1,56 +1,42 @@
-const Sprite = require('./sprite');
+import * as Random from './random'
+import { Sprite } from './sprite'
 
-(function (global) {
-  function Snowboarder (data) {
-    const that = new Sprite(data)
-    const sup = {
-      draw: that.superior('draw'),
-      cycle: that.superior('cycle')
-    }
-    const directions = {
-      sEast: function (xDiff) { return xDiff > 0 },
-      sWest: function (xDiff) { return xDiff <= 0 }
-    }
-    const standardSpeed = 3
+const standardSpeed = 3
 
-    that.setSpeed(standardSpeed)
+const directions = {
+  sEast: function (xDiff) { return xDiff > 0 },
+  sWest: function (xDiff) { return xDiff <= 0 }
+}
 
-    function getDirection () {
-      const xDiff = that.movingToward[0] - that.mapPosition[0]
-      const yDiff = that.movingToward[1] - that.mapPosition[1]
+export class Snowboarder extends Sprite {
 
-      if (directions.sEast(xDiff)) {
-        return 'sEast'
-      } else {
-        return 'sWest'
-      }
-    }
-
-    that.cycle = function (dt, dContext) {
-      if (Number.random(10) === 1) {
-        that.setMapPositionTarget(dContext.getRandomlyInTheCentreOfMap())
-        that.setSpeed(standardSpeed + Number.random(-1, 1))
-      }
-
-      that.setMapPositionTarget(undefined, dContext.getMapBelowViewport() + 600)
-
-      sup.cycle(dt)
-    }
-
-    that.draw = function (dContext) {
-      const spritePartToUse = function () {
-        return getDirection()
-      }
-
-      return sup.draw(dContext, spritePartToUse())
-    }
-
-    return that
+  constructor(data) {
+    super(data)
+    super.setSpeed(standardSpeed)
   }
 
-  global.snowboarder = Snowboarder
-})(this)
+  getDirection() {
+    const movingToward = super.getMovingToward()
+    const mapPosition = super.getMapPosition()
+    const xDiff = movingToward[0] - mapPosition[0]
+    const yDiff = movingToward[1] - mapPosition[1]
 
-if (typeof module !== 'undefined') {
-  module.exports = this.snowboarder
+    return directions.sEast(xDiff)
+      ? 'sEast'
+      : 'sWest'
+  }
+
+  cycle(dt, dContext) {
+    if (Random.between(0, 10) === 1) {
+      super.setMapPositionTarget(dContext.getRandomlyInTheCentreOfMap())
+      super.setSpeed(standardSpeed + Random.between(-1, 1))
+    }
+
+    super.setMapPositionTarget(undefined, dContext.getMapBelowViewport() + 600)
+    super.cycle(dt)
+  }
+
+  draw(dContext) {
+    return super.draw(dContext, this.getDirection())
+  }
 }

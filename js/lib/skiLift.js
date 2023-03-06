@@ -1,4 +1,4 @@
-const Sprite = require('./sprite')
+import { Sprite } from './sprite'
 
 function SkiLift (data) {
   const that = new Sprite(data)

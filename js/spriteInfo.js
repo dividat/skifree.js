@@ -1,145 +1,125 @@
-(function (global) {
-  const sprites = {
-    'skier': {
-      parts: {
-        east: { offsets: [ 0.1, 0.125, 0.15, 0.45 ] },
-        esEast: { frames: 3, fps: 4, offsets: [ 0.5, 0.2, 0.15, 0.5 ] },
-        sEast: { frames: 3, fps: 7, sizeMultiple: 0.182, offsets: [ 0.4, 0.2, 0.15, 0.45] },
-        south: { frames: 3, fps: 9, offsets: [ 0.15, 0.3, 0.15, 0.2 ] },
-        sWest: { frames: 3, fps: 7, sizeMultiple: 0.182, offsets: [ 0.4, 0.45, 0.15, 0.2 ] },
-        wsWest: { frames: 3, fps: 4, offsets: [ 0.5, 0.5, 0.15, 0.2 ] },
-        west: { offsets: [ 0.1, 0.45, 0.15, 0.125 ] },
-        hit: { frames: 2, fps: 0.8, sizeMultiple: 0.182 },
-        jumping: { frames: 3, fps: 7, sizeMultiple: 0.25, offsets: [ 0.25, 0.4, 0.3, 0.4 ] },
-      },
-      sizeMultiple: 0.2,
-      hitBehaviour: {},
-      name: 'skier'
+export const sprites = {
+  'skier': {
+    parts: {
+      east: { offsets: [ 0.1, 0.125, 0.15, 0.45 ] },
+      esEast: { frames: 3, fps: 4, offsets: [ 0.5, 0.2, 0.15, 0.5 ] },
+      sEast: { frames: 3, fps: 7, sizeMultiple: 0.182, offsets: [ 0.4, 0.2, 0.15, 0.45] },
+      south: { frames: 3, fps: 9, offsets: [ 0.15, 0.3, 0.15, 0.2 ] },
+      sWest: { frames: 3, fps: 7, sizeMultiple: 0.182, offsets: [ 0.4, 0.45, 0.15, 0.2 ] },
+      wsWest: { frames: 3, fps: 4, offsets: [ 0.5, 0.5, 0.15, 0.2 ] },
+      west: { offsets: [ 0.1, 0.45, 0.15, 0.125 ] },
+      hit: { frames: 2, fps: 0.8, sizeMultiple: 0.182 },
+      jumping: { frames: 3, fps: 7, sizeMultiple: 0.25, offsets: [ 0.25, 0.4, 0.3, 0.4 ] },
     },
-    'smallTree': {
-      parts: {
-        main: { offsets: [ 0.2, 0.3, 0.1, 0.35 ] }
-      },
-      sizeMultiple: 0.2,
-      hitBehaviour: {},
-      name: 'smallTree'
+    sizeMultiple: 0.2,
+    hitBehaviour: {},
+    name: 'skier'
+  },
+  'smallTree': {
+    parts: {
+      main: { offsets: [ 0.2, 0.3, 0.1, 0.35 ] }
     },
-    'tallTree': {
-      parts: {
-        main: { offsets: [ 0.25, 0.2, 0.1, 0.2 ] }
-      },
-      sizeMultiple: 0.2,
-      hitBehaviour: {},
-      name: 'tallTree'
+    sizeMultiple: 0.2,
+    hitBehaviour: {
+      skier: (tree, skier) => skier.hasHitObstacle(tree)
     },
-    'thickSnow': {
-      parts: {
-        main: {}
-      },
-      sizeMultiple: 0.2,
-      hitBehaviour: {},
-      isPassable: true,
-      name: 'thickSnow'
+    name: 'smallTree'
+  },
+  'tallTree': {
+    parts: {
+      main: { offsets: [ 0.25, 0.2, 0.1, 0.2 ] }
     },
-    'thickerSnow': {
-      parts: {
-        main: {}
-      },
-      sizeMultiple: 0.2,
-      hitBehaviour: {},
-      isPassable: true,
-      name: 'thickerSnow'
+    sizeMultiple: 0.2,
+    hitBehaviour: {
+      skier: (tree, skier) => skier.hasHitObstacle(tree)
     },
-    'rock': {
-      parts: {
-        main: { offsets: [ 0.05, 0.05, 0.1, 0.3 ] }
-      },
-      sizeMultiple: 0.2,
-      hitBehaviour: {},
-      name: 'rock'
+    name: 'tallTree'
+  },
+  'thickSnow': {
+    parts: {
+      main: {}
     },
-    'monster': {
-      parts: {
-        sEast: { frames: 11, fps: 7, offsets: [ 0.2, 0.2, 0.35, 0.2 ] },
-        sWest: { frames: 11, fps: 7, offsets: [ 0.2, 0.2, 0.35, 0.2 ]},
-        eating1: {},
-        eating2: {},
-        eating3: {},
-        eating4: {},
-        eating5: {},
-        eating6: {}
-      },
-      sizeMultiple: 0.2,
-      hitBehaviour: {},
-      name: 'monster'
+    sizeMultiple: 0.2,
+    hitBehaviour: {
+      skier: (snow, skier) => skier.hasHitSnow(snow)
     },
-    'jump': {
-      parts: {
-        main: { offsets: [ 0, 0.25, 0.6, 0.2 ] }
-      },
-      sizeMultiple: 0.2,
-      hitBehaviour: {},
-      isPassable: true,
-      name: 'jump'
+    isPassable: true,
+    name: 'thickSnow'
+  },
+  'thickerSnow': {
+    parts: {
+      main: {}
     },
-    'signStart': {
-      parts: {
-        main: {}
-      },
-      sizeMultiple: 0.15,
-      hitBehaviour: {},
-      isPassable: true,
-      name: 'signStart'
+    sizeMultiple: 0.2,
+    hitBehaviour: {
+      skier: (snow, skier) => skier.hasHitSnow(snow)
     },
-    'cottage': {
-      parts: {
-        main: { frames: 12, fps: 4, delay: 3000 }
-      },
-      sizeMultiple: 0.2,
-      hitBehaviour: {},
-      isPassable: true,
-      name: 'cottage'
+    isPassable: true,
+    name: 'thickerSnow'
+  },
+  'rock': {
+    parts: {
+      main: { offsets: [ 0.05, 0.05, 0.1, 0.3 ] }
     },
-    'snowboarder': {
-      parts: {
-        sEast: { frames: 3, fps: 7, offsets: [ 0.3, 0.3, 0.2, 0.2 ] },
-        sWest: { frames: 3, fps: 7, offsets: [ 0.3, 0.3, 0.2, 0.2 ] }
-      },
-      sizeMultiple: 0.28,
-      hitBehaviour: {},
-      name: 'snowboarder'
-    }
+    sizeMultiple: 0.2,
+    hitBehaviour: {
+      skier: (rock, skier) => skier.hasHitObstacle(rock)
+    },
+    name: 'rock'
+  },
+  'monster': {
+    parts: {
+      sEast: { frames: 11, fps: 7, offsets: [ 0.2, 0.2, 0.35, 0.2 ] },
+      sWest: { frames: 11, fps: 7, offsets: [ 0.2, 0.2, 0.35, 0.2 ]},
+      eating1: {},
+      eating2: {},
+      eating3: {},
+      eating4: {},
+      eating5: {},
+      eating6: {}
+    },
+    sizeMultiple: 0.2,
+    hitBehaviour: {},
+    name: 'monster'
+  },
+  'jump': {
+    parts: {
+      main: { offsets: [ 0, 0.25, 0.6, 0.2 ] }
+    },
+    sizeMultiple: 0.2,
+    hitBehaviour: {
+      skier: (jump, skier) => skier.hasHitJump(jump)
+    },
+    isPassable: true,
+    name: 'jump'
+  },
+  'signStart': {
+    parts: {
+      main: {}
+    },
+    sizeMultiple: 0.15,
+    hitBehaviour: {},
+    isPassable: true,
+    name: 'signStart'
+  },
+  'cottage': {
+    parts: {
+      main: { frames: 12, fps: 4, delay: 3000 }
+    },
+    sizeMultiple: 0.2,
+    hitBehaviour: {},
+    isPassable: true,
+    name: 'cottage'
+  },
+  'snowboarder': {
+    parts: {
+      sEast: { frames: 3, fps: 7, offsets: [ 0.3, 0.3, 0.2, 0.2 ] },
+      sWest: { frames: 3, fps: 7, offsets: [ 0.3, 0.3, 0.2, 0.2 ] }
+    },
+    sizeMultiple: 0.28,
+    hitBehaviour: {
+      skier: (snowboarder, skier) => skier.hasHitObstacle(snowboarder)
+    },
+    name: 'snowboarder'
   }
-
-  function hitTree (tree, skier) {
-    skier.hasHitObstacle(tree)
-  }
-
-  sprites.smallTree.hitBehaviour.skier = hitTree
-  sprites.tallTree.hitBehaviour.skier = hitTree
-
-  sprites.rock.hitBehaviour.skier = function (rock, skier) {
-    skier.hasHitObstacle(rock)
-  }
-
-  sprites.jump.hitBehaviour.skier = function(jump, skier) {
-    skier.hasHitJump(jump)
-  }
-
-  function hitSnow (snow, skier) {
-    skier.hasHitSnow(snow)
-  }
-
-  sprites.thickSnow.hitBehaviour.skier = hitSnow
-  sprites.thickerSnow.hitBehaviour.skier = hitSnow
-
-  sprites.snowboarder.hitBehaviour.skier = function (snowboarder, skier) {
-    skier.hasHitObstacle(snowboarder)
-  }
-
-  global.spriteInfo = sprites
-})(this)
-
-if (typeof module !== 'undefined') {
-  module.exports = this.spriteInfo
 }

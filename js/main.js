@@ -1,22 +1,22 @@
-// Global dependencies which return no modules
-require('./lib/canvasRenderingContext2DExtensions')
-require('./lib/extenders')
-require('./lib/plugins')
+import './lib/canvasRenderingContext2DExtensions'
+import './lib/extenders'
+import './lib/plugins'
+import * as Random from './lib/random'
 
 // Game Objects
-const SpriteArray = require('./lib/spriteArray')
-const Monster = require('./lib/monster')
-const Sprite = require('./lib/sprite')
-const Snowboarder = require('./lib/snowboarder')
-const Skier = require('./lib/skier')
-const Game = require('./lib/game')
+import { SpriteArray } from './lib/spriteArray'
+import { Monster } from './lib/monster'
+import { Sprite, createObjects } from './lib/sprite'
+import { Snowboarder } from './lib/snowboarder'
+import { Skier } from './lib/skier'
+import { Game } from './lib/game'
+import { sprites } from './spriteInfo'
 
 // Local variables for starting the game
 const mainCanvas = document.getElementById('skifree-canvas')
 const dContext = mainCanvas.getContext('2d')
 const global = this
 const infoBoxControls = 'Use the mouse or WASD to control the player'
-const sprites = require('./spriteInfo')
 const imageSources = []
 ;(function () {
   for (const key in sprites) {
@@ -80,7 +80,7 @@ function loadImages (sources, next) {
     }
   }
 
-  sources.each(function (src) {
+  sources.forEach(function (src) {
     const im = new Image()
     im.onload = finish
     im.onerror = finish
@@ -123,7 +123,7 @@ function startNeverEndingGame (images) {
 
   function randomlySpawnNPC (spawnFunction, dropRate) {
     const rateModifier = Math.max(800 - mainCanvas.width, 0)
-    if (Number.random(1000 + rateModifier) <= dropRate * player.getSpeedRatio()) {
+    if (Random.between(0, 1000 + rateModifier) <= dropRate * player.getSpeedRatio()) {
       spawnFunction()
     }
   }
@@ -172,7 +172,7 @@ function startNeverEndingGame (images) {
   game.beforeCycle(function () {
     let newObjects = []
     if (player.isMoving) {
-      newObjects = Sprite.createObjects([
+      newObjects = createObjects([
         { sprite: sprites.smallTree, dropRate: dropRates.smallTree },
         { sprite: sprites.tallTree, dropRate: dropRates.tallTree },
         { sprite: sprites.jump, dropRate: dropRates.jump },
