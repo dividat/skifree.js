@@ -1,5 +1,5 @@
-import * as Random from './random'
-import GUID from './guid'
+import * as Random from 'lib/random'
+import GUID from 'lib/guid'
 
 export class Sprite {
 

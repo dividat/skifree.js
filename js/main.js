@@ -1,16 +1,15 @@
-import './lib/canvasRenderingContext2DExtensions'
-import './lib/extenders'
-import './lib/plugins'
-import * as Random from './lib/random'
+import 'lib/canvasRenderingContext2DExtensions'
+import 'lib/extenders'
+import 'lib/plugins'
+import * as Random from 'lib/random'
 
 // Game Objects
-import { SpriteArray } from './lib/spriteArray'
-import { Monster } from './lib/monster'
-import { Sprite, createObjects } from './lib/sprite'
-import { Snowboarder } from './lib/snowboarder'
-import { Skier } from './lib/skier'
-import { Game } from './lib/game'
-import { sprites } from './spriteInfo'
+import { Monster } from 'lib/monster'
+import { Sprite, createObjects } from 'lib/sprite'
+import { Snowboarder } from 'lib/snowboarder'
+import { Skier } from 'lib/skier'
+import { Game } from 'lib/game'
+import { sprites } from 'spriteInfo'
 
 // Local variables for starting the game
 const mainCanvas = document.getElementById('skifree-canvas')

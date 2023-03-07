@@ -1,4 +1,4 @@
-import { Sprite } from './sprite'
+import { Sprite } from 'lib/sprite'
 
 function SkiLift (data) {
   const that = new Sprite(data)

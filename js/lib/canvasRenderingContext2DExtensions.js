@@ -1,4 +1,4 @@
-import * as Random from './random'
+import * as Random from 'lib/random'
 
 CanvasRenderingContext2D.prototype.storeLoadedImage = function (key, image) {
   if (!this.images) {

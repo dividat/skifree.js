@@ -13,10 +13,6 @@ deps:
 test:
 	npm test
 
-compile:
-	mkdir -p dist
-	esbuild --bundle js/main.js --target=es2017 --outfile=dist/skifree.js
-
 sprites: materials/sprites-full-size
 	cp -r materials/sprites-full-size sprites
 	cd sprites && mogrify -resize 33% *.png

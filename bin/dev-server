@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Run server
+mkdir -p dist
 
-python -m http.server 8000 &
-trap "fuser -k 8000/tcp" EXIT
-
-# Watch TypeScript
-
-watchexec --clear --watch js -- make compile
+esbuild \
+  js/main.js \
+  --bundle \
+  --watch \
+  --servedir=./ \
+  --outfile=dist/skifree.js

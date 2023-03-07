@@ -10,10 +10,7 @@
         let pkgs = nixpkgs.legacyPackages.${system};
         in { devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
-            python3
-            psmisc # fuser
             esbuild
-            watchexec
           ];
         }; }
       );

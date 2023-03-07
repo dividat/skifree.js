@@ -1,5 +1,5 @@
-import * as Random from './random'
-import { Sprite } from './sprite'
+import * as Random from 'lib/random'
+import { Sprite } from 'lib/sprite'
 
 const standardSpeed = 3
 

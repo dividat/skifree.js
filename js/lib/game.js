@@ -1,4 +1,4 @@
-import { SpriteArray } from './spriteArray'
+import { SpriteArray } from 'lib/spriteArray'
 
 export function Game (mainCanvas, player) {
   let objects = new SpriteArray()

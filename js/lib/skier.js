@@ -1,4 +1,4 @@
-import { Sprite } from './sprite'
+import { Sprite } from 'lib/sprite'
 
 const discreteDirections = {
   'west': 270,
