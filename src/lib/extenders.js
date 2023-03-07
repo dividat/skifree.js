@@ -6,9 +6,6 @@ Function.prototype.method = function (name, func) {
 
 // Will return the original method of an object when inheriting from another
 Object.method('superior', function (name) {
-  const that = this
-  const method = that[name]
-  return function () {
-    return method.apply(that, arguments)
-  }
+  const method = this[name]
+  return () => method.apply(this, arguments)
 })

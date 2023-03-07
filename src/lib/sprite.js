@@ -287,16 +287,14 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
   }
 
   checkHittableObjects() {
-    const that = this
-
-    Object.entries(that.hittableObjects).forEach(([ k, objectData ]) => {
+    Object.entries(this.hittableObjects).forEach(([ k, objectData ]) => {
       if (objectData.object.deleted) {
-        delete that.hittableObjects[k]
+        delete this.hittableObjects[k]
       } else {
-        if (objectData.object.hits(that)) {
-          objectData.callbacks.forEach(function (callback) {
-            callback(that, objectData.object)
-          })
+        if (objectData.object.hits(this)) {
+          objectData.callbacks.forEach(callback =>
+            callback(this, objectData.object)
+          )
         }
       }
     })

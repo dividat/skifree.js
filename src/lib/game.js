@@ -4,7 +4,6 @@ export function Game (mainCanvas, player) {
   let objects = new SpriteArray()
   const dContext = mainCanvas.getContext('2d')
   let paused = false
-  const that = this
   const beforeCycleCallbacks = []
   const afterCycleCallbacks = []
   let runningTime = 0
@@ -24,7 +23,7 @@ export function Game (mainCanvas, player) {
       }, true)
     }
 
-    if (!shouldAvoidCollisions || that.canAddObject(sprite)) {
+    if (!shouldAvoidCollisions || this.canAddObject(sprite)) {
       objects.push(sprite)
     }
   }
@@ -37,12 +36,9 @@ export function Game (mainCanvas, player) {
   }
 
   this.addObjects = function (sprites, shouldAvoidCollisions) {
-    sprites.forEach(function (sprite) {
-      that.addObject({
-        sprite: sprite,
-        shouldAvoidCollisions: shouldAvoidCollisions
-      })
-    })
+    sprites.forEach(sprite =>
+      this.addObject({ sprite, shouldAvoidCollisions })
+    )
   }
 
   this.beforeCycle = function (callback) {
@@ -74,7 +70,7 @@ export function Game (mainCanvas, player) {
     })
   }
 
-  that.draw = function () {
+  this.draw = function () {
     dContext.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 
     const allObjects = objects.slice() // Clone
