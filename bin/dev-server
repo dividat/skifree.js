@@ -4,7 +4,7 @@ set -euo pipefail
 mkdir -p dist
 
 esbuild \
-  js/main.js \
+  src/main.js \
   --bundle \
   --watch \
   --servedir=./ \
