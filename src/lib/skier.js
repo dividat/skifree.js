@@ -17,7 +17,7 @@ const directions = {
   sWest: function (xDiff) { return xDiff < -75 }
 }
 
-const standardSpeed = 15
+const maxSpeed = 15
 const crashDuration = 800 // ms
 const invincibleAfterCrashDuration = 2000 // ms
 
@@ -35,11 +35,10 @@ export class Skier extends Sprite {
     this.speedX = 0
     this.speedY = 0
 
-    this.isMoving = true
     this.hasBeenHit = false
     this.isJumping = false
     this.onHitObstacleCb = function () {}
-    this.setSpeed(standardSpeed)
+    this.setSpeed(maxSpeed)
 
     this.jumps = 0
     this.collisions = 0
@@ -48,7 +47,6 @@ export class Skier extends Sprite {
   }
 
   setNormal() {
-    this.isMoving = true
     this.hasBeenHit = false
     this.isJumping = false
     if (this.cancelableStateInterval) {
@@ -57,8 +55,8 @@ export class Skier extends Sprite {
   }
 
   setCrashed() {
-    this.isMoving = false
     this.hasBeenHit = true
+    this.speedX = 0
     this.speedY = 0
     if (this.cancelableStateInterval) {
       clearInterval(this.cancelableStateInterval)
@@ -68,7 +66,6 @@ export class Skier extends Sprite {
 
   setJumping() {
     const currentSpeed = this.getSpeed()
-    this.isMoving = true
     this.isJumping = true
     this.lastJump = Date.now()
     super.setDirection(180)
@@ -122,12 +119,6 @@ export class Skier extends Sprite {
   setDiscreteDirection (d) {
     if (discreteDirections[d]) {
       this.setDirection(discreteDirections[d])
-    }
-
-    if (d === 'west' || d === 'east') {
-      this.isMoving = false
-    } else {
-      this.isMoving = true
     }
   }
 
@@ -209,28 +200,15 @@ export class Skier extends Sprite {
     this.setMovingToward = [ x, y ]
   }
 
-  startMovingIfPossible() {
-    if (!this.hasBeenHit && !this.isBeingEaten) {
-      this.isMoving = true
-    }
-  }
-
   getPixelsTravelledDownMountain() {
     return this.pixelsTravelled
-  }
-
-  resetSpeed() {
-    this.setSpeed(standardSpeed)
   }
 
   cycle(dt) {
     this.cycleSpeedX()
     this.cycleSpeedY(dt)
 
-    if (this.speedX <= 0 && this.speedY <= 0) {
-      this.isMoving = false
-    }
-    if (this.isMoving) {
+    if (this.isMoving()) {
       this.pixelsTravelled += this.speed * (dt || skiCfg.originalFrameInterval)/skiCfg.originalFrameInterval
     }
 
@@ -239,6 +217,12 @@ export class Skier extends Sprite {
     }
 
     super.cycle(dt)
+  }
+
+  move(dt) {
+    if (!this.hasBeenHit) {
+      super.move(dt)
+    }
   }
 
   draw(dContext) {
@@ -280,23 +264,20 @@ export class Skier extends Sprite {
     return false
   }
 
-  getStandardSpeed() {
-    return standardSpeed
-  }
-
   getSpeedRatio() {
-    return this.speedY / standardSpeed
+    return this.speedY / maxSpeed
   }
 
   cycleSpeedX() {
     const dir = this.getDiscreteDirection()
 
-    if (dir === 'esEast' || dir === 'wsWest') {
+    if (dir === 'west' || dir === 'east') {
+      this.speedX = 0
+    } else if (dir === 'esEast' || dir === 'wsWest') {
       this.speedX = this.getSpeed() * 0.5
     } else if (dir === 'sEast' || dir === 'sWest') {
       this.speedX = this.getSpeed() * 1
-    } else {
-      // South
+    } else if (dir === 'south') {
       this.speedX = this.getSpeed() * 0.2
     }
   }
@@ -315,10 +296,8 @@ export class Skier extends Sprite {
       if (dir === 'esEast' || dir === 'wsWest') {
         targetSpeedY = 0.3 * this.getSpeed()
       } else if (dir === 'sEast' || dir === 'sWest') {
-        this.speedX = this.getSpeed() * 0.33
-        targetSpeedY = 0.7 * this.getSpeed()
-      } else {
-        // South
+        targetSpeedY = 0.4 * this.getSpeed()
+      } else if (dir === 'south') {
         targetSpeedY = this.getSpeed()
       }
 
@@ -339,13 +318,14 @@ export class Skier extends Sprite {
 
       this.obstaclesHit.push(obs.id)
 
-      this.resetSpeed()
       this.onHitObstacleCb(obs)
 
       if (this.cancelableStateTimeout) {
         clearTimeout(this.cancelableStateTimeout)
       }
-      this.cancelableStateTimeout = setTimeout(() => this.setNormal(), crashDuration)
+      this.cancelableStateTimeout = setTimeout(() => {
+        this.setNormal()
+      }, crashDuration)
     }
   }
 
@@ -382,12 +362,7 @@ export class Skier extends Sprite {
     this.hasHitObstacle(monster)
     monster.startEating(whenEaten)
     this.obstaclesHit.push(monster.id)
-    this.isMoving = false
     this.isBeingEaten = true
-  }
-
-  setHitObstacleCb(fn) {
-    this.onHitObstacleCb = fn || function () {}
   }
 
   setDirection(angle) {

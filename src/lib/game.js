@@ -1,6 +1,6 @@
 import { SpriteArray } from 'lib/spriteArray'
 
-export function Game (mainCanvas, player) {
+export function Game (mainCanvas, skier) {
   let objects = new SpriteArray()
   const dContext = mainCanvas.getContext('2d')
   let paused = false
@@ -49,14 +49,14 @@ export function Game (mainCanvas, player) {
     afterCycleCallbacks.push(callback)
   }
 
-  dContext.followSprite(player)
+  dContext.followSprite(skier)
 
   this.cycle = function (dt) {
     beforeCycleCallbacks.forEach(function (c) {
       c()
     })
 
-    player.cycle(dt)
+    skier.cycle(dt)
 
     objects.cull()
     objects.forEach(function (object) {
@@ -74,7 +74,7 @@ export function Game (mainCanvas, player) {
     dContext.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 
     const allObjects = objects.slice() // Clone
-    allObjects.push(player)
+    allObjects.push(skier)
     allObjects.sort(function (a, b) {
       if (isJumpingSkier(a)) {
         return 1
@@ -123,7 +123,7 @@ export function Game (mainCanvas, player) {
   this.reset = function () {
     paused = false
     objects = new SpriteArray()
-    player.reset()
+    skier.reset()
     this.start()
     runningTime = 0
   }.bind(this)

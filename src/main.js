@@ -15,7 +15,7 @@ import { sprites } from 'spriteInfo'
 const mainCanvas = document.getElementById('skifree-canvas')
 const dContext = mainCanvas.getContext('2d')
 const global = this
-const infoBoxControls = 'Use the mouse or WASD to control the player'
+const infoBoxControls = 'Use the mouse or WASD to control the skier'
 const imageSources = []
 ;(function () {
   for (const key in sprites) {
@@ -102,7 +102,7 @@ function monsterHitsSkierBehaviour (monster, skier) {
 }
 
 function startNeverEndingGame (images) {
-  let player
+  let skier
   let startSign
   let cottage
   let game
@@ -114,25 +114,25 @@ function startNeverEndingGame (images) {
       window.PlayEGI.finish({
         duration: { type: 'Duration', value: settings.duration },
         distance: { type: 'RawInt', value: parseInt(distanceTravelledInMetres) },
-        jumps: { type: 'RawInt', value: player.jumps },
-        collisions: { type: 'RawInt', value: player.collisions },
+        jumps: { type: 'RawInt', value: skier.jumps },
+        collisions: { type: 'RawInt', value: skier.collisions },
       })
     }
   }
 
   function randomlySpawnNPC (spawnFunction, dropRate) {
     const rateModifier = Math.max(800 - mainCanvas.width, 0)
-    if (Random.between(0, 1000 + rateModifier) <= dropRate * player.getSpeedRatio()) {
+    if (Random.between(0, 1000 + rateModifier) <= dropRate * skier.getSpeedRatio()) {
       spawnFunction()
     }
   }
 
   function spawnMonster () {
-    const newMonster = new Monster(sprites.monster, player.getStandardSpeed() * 0.4)
+    const newMonster = new Monster(sprites.monster, skier.getStandardSpeed() * 0.4)
     const randomPosition = dContext.getRandomMapPositionAboveViewport()
     newMonster.setMapPosition(randomPosition[0], randomPosition[1])
-    newMonster.follow(player)
-    newMonster.onHitting(player, monsterHitsSkierBehaviour)
+    newMonster.follow(skier)
+    newMonster.onHitting(skier, monsterHitsSkierBehaviour)
 
     game.addObject({
       sprite: newMonster,
@@ -146,52 +146,49 @@ function startNeverEndingGame (images) {
     const randomPositionBelow = dContext.getRandomMapPositionBelowViewport()
     newBoarder.setMapPosition(randomPositionAbove[0], randomPositionAbove[1])
     newBoarder.setMapPositionTarget(randomPositionBelow[0], randomPositionBelow[1])
-    newBoarder.onHitting(player, sprites.snowboarder.hitBehaviour.skier)
+    newBoarder.onHitting(skier, sprites.snowboarder.hitBehaviour.skier)
 
     game.addObject({ sprite: newBoarder })
   }
 
-  player = new Skier(mainCanvas, sprites.skier)
-  player.setMapPosition(0, 0)
-  player.setMapPositionTarget(0, -10)
+  skier = new Skier(mainCanvas, sprites.skier)
+  skier.setMapPosition(0, 0)
+  skier.setMapPositionTarget(0, -10)
 
-  game = new Game(mainCanvas, player)
+  game = new Game(mainCanvas, skier)
 
-  player.determineNextFrame(dContext, 'east')
+  skier.determineNextFrame(dContext, 'east')
   startSign = new Sprite(sprites.signStart)
   game.addObject({ sprite: startSign })
-  startSign.setMapPosition(-0.4 * player.width, -0.1 * player.height)
+  startSign.setMapPosition(-0.4 * skier.width, -0.1 * skier.height)
 
   cottage = new Sprite(sprites.cottage)
   game.addObject({ sprite: cottage })
-  cottage.setMapPosition(0.7 * player.width, -1.2 * player.height)
+  cottage.setMapPosition(0.7 * skier.width, -1.2 * skier.height)
 
-  dContext.followSprite(player)
+  dContext.followSprite(skier)
 
   game.beforeCycle(function () {
-    let newObjects = []
-    if (player.isMoving) {
-      newObjects = createObjects([
-        { sprite: sprites.smallTree, dropRate: dropRates.smallTree },
-        { sprite: sprites.tallTree, dropRate: dropRates.tallTree },
-        { sprite: sprites.jump, dropRate: dropRates.jump },
-        { sprite: sprites.thickSnow, dropRate: dropRates.thickSnow },
-        { sprite: sprites.thickerSnow, dropRate: dropRates.thickerSnow },
-        { sprite: sprites.rock, dropRate: dropRates.rock }
-      ], {
-        rateModifier: Math.max(800 - mainCanvas.width, 0),
-        position: function () {
-          return dContext.getRandomMapPositionBelowViewport()
-        },
-        isStatic: true,
-        player: player
-      })
-    }
+    const newObjects = createObjects([
+      { sprite: sprites.smallTree, dropRate: dropRates.smallTree },
+      { sprite: sprites.tallTree, dropRate: dropRates.tallTree },
+      { sprite: sprites.jump, dropRate: dropRates.jump },
+      { sprite: sprites.thickSnow, dropRate: dropRates.thickSnow },
+      { sprite: sprites.thickerSnow, dropRate: dropRates.thickerSnow },
+      { sprite: sprites.rock, dropRate: dropRates.rock }
+    ], {
+      rateModifier: Math.max(800 - mainCanvas.width, 0),
+      position: function () {
+        return dContext.getRandomMapPositionBelowViewport()
+      },
+      isStatic: true,
+      skier
+    })
     if (!game.isPaused()) {
       game.addObjects(newObjects, true)
 
       randomlySpawnNPC(spawnBoarder, 0.1)
-      distanceTravelledInMetres = parseFloat(player.getPixelsTravelledDownMountain() / pixelsPerMetre).toFixed(1)
+      distanceTravelledInMetres = parseFloat(skier.getPixelsTravelledDownMountain() / pixelsPerMetre).toFixed(1)
 
       if (distanceTravelledInMetres > monsterDistanceThreshold && !game.hasObject('monster')) {
         randomlySpawnNPC(spawnMonster, 0.001)
@@ -246,20 +243,19 @@ function startNeverEndingGame (images) {
         if (haveSeenSensoState) return
         switch (signal.direction) {
           case 'Up':
-            player.stop()
+            skier.stop()
             break
 
           case 'Left':
-            player.turnWest()
+            skier.turnWest()
             break
 
           case 'Right':
-            player.turnEast()
+            skier.turnEast()
             break
 
           case 'Down':
-            player.setDirection(180)
-            player.startMovingIfPossible()
+            skier.setDirection(180)
             break
         }
         break
@@ -269,8 +265,7 @@ function startNeverEndingGame (images) {
         const x = linearInterpolX(signal.state) * (settings.wheelchair ? 3 : 1)
         const amplitude = 100
         const direction = (1 - x) * amplitude + 90 + (180 - amplitude) / 2
-        player.setDirection(direction)
-        player.startMovingIfPossible()
+        skier.setDirection(direction)
         break
 
       default:
@@ -278,8 +273,7 @@ function startNeverEndingGame (images) {
     }
   })
 
-  player.isMoving = false
-  player.setDirection(270)
+  skier.setDirection(270)
 }
 
 // Linear interpolation of x on f, as relative coordinates [0; 1]

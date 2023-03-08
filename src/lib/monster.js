@@ -23,13 +23,11 @@ export class Monster extends Sprite {
   startEating(whenDone) {
     this.eatingStage += 1
     this.isEating = true
-    this.isMoving = false
     if (this.eatingStage <= 6) {
       setTimeout(() => this.startEating(whenDone), 300)
     } else {
       this.eatingStage = 0
       this.isEating = false
-      this.isMoving = true
       whenDone()
     }
   }

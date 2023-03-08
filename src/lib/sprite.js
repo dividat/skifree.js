@@ -22,7 +22,6 @@ export class Sprite {
     this.movingWithConviction = false
     this.deleted = false
     this.isStatic = false
-    this.isMoving = true
     this.part = null
 
     if (!this.data.parts) {
@@ -50,10 +49,6 @@ export class Sprite {
   }
 
   move(dt) {
-    if (!this.isMoving) {
-      return
-    }
-
     let currentX = this.mapPosition[0]
     let currentY = this.mapPosition[1]
 
@@ -272,8 +267,12 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     return this.movingToward
   }
 
+  isMoving() {
+    return this.getSpeedX() === 0 && this.getSpeedY() === 0
+  }
+
   getMovingTowardOpposite() {
-    if (!this.isMoving) {
+    if (!this.isMoving()) {
       return [0, 0]
     }
 
@@ -461,7 +460,7 @@ function createObject (spriteInfo, opts) {
 
   const random = Random.between(1, 100) + opts.rateModifier
 
-  if (random <= spriteInfo.dropRate * opts.player.getSpeedRatio()) {
+  if (random <= spriteInfo.dropRate * opts.skier.getSpeedRatio()) {
     const sprite = new Sprite(spriteInfo.sprite)
     sprite.setSpeed(0)
 
@@ -473,8 +472,8 @@ function createObject (spriteInfo, opts) {
 
     sprite.isStatic = opts.isStatic
 
-    if (spriteInfo.sprite.hitBehaviour && spriteInfo.sprite.hitBehaviour.skier && opts.player) {
-      sprite.onHitting(opts.player, spriteInfo.sprite.hitBehaviour.skier)
+    if (spriteInfo.sprite.hitBehaviour && spriteInfo.sprite.hitBehaviour.skier && opts.skier) {
+      sprite.onHitting(opts.skier, spriteInfo.sprite.hitBehaviour.skier)
     }
 
     return sprite
