@@ -1,4 +1,5 @@
 import { Sprite } from 'lib/sprite'
+import * as Vec2 from 'lib/vec2'
 
 const discreteDirections = {
   'west': 270,
@@ -17,9 +18,15 @@ const directions = {
   sWest: function (xDiff) { return xDiff < -75 }
 }
 
-const maxSpeed = 15
+const maxSpeed = 1
 const crashDuration = 800 // ms
 const invincibleAfterCrashDuration = 2000 // ms
+
+// Facing: Left - South - East
+export const downDirection = Math.PI / 2
+const leftMostDirection = Math.PI
+const rightMostDirection = 0
+const directionAmplitude = Math.PI
 
 export class Skier extends Sprite {
 
@@ -30,20 +37,15 @@ export class Skier extends Sprite {
     this.cancelableStateInterval = undefined
 
     this.obstaclesHit = []
-
     this.pixelsTravelled = 0
-    this.speedX = 0
-    this.speedY = 0
-
     this.hasBeenHit = false
     this.isJumping = false
     this.onHitObstacleCb = function () {}
-    this.setSpeed(maxSpeed)
-
     this.jumps = 0
     this.collisions = 0
     this.lastCollision = undefined
     this.lastJump = undefined
+    this.direction = downDirection
   }
 
   setNormal() {
@@ -56,8 +58,6 @@ export class Skier extends Sprite {
 
   setCrashed() {
     this.hasBeenHit = true
-    this.speedX = 0
-    this.speedY = 0
     if (this.cancelableStateInterval) {
       clearInterval(this.cancelableStateInterval)
     }
@@ -68,124 +68,34 @@ export class Skier extends Sprite {
     const currentSpeed = this.getSpeed()
     this.isJumping = true
     this.lastJump = Date.now()
-    super.setDirection(180)
+    super.setAcceleration({x: 0, y: -1})
     window.PlayEGI.motor('positive')
   }
 
   getDiscreteDirection() {
-    if (this.direction !== undefined) {
-      if (this.direction <= 90) {
-        return 'east'
-      } else if (this.direction > 90 && this.direction < 150) {
-        return 'esEast'
-      } else if (this.direction >= 150 && this.direction < 170) {
-        return 'sEast'
-      } else if (this.direction >= 170 && this.direction < 190) {
-        return 'south'
-      } else if (this.direction > 190 && this.direction <= 210) {
-        return 'sWest'
-      } else if (this.direction > 210 && this.direction < 270) {
-        return 'wsWest'
-      } else {
-        return 'west'
-      }
+    if (this.direction < downDirection - directionAmplitude * 0.40) {
+      return 'east'
+    } else if (this.direction < downDirection - directionAmplitude * 0.30) {
+      return 'esEast'
+    } else if (this.direction < downDirection - directionAmplitude * 0.15) {
+      return 'sEast'
+    } else if (this.direction <= downDirection + directionAmplitude * 0.15) {
+      return 'south'
+    } else if (this.direction <= downDirection + directionAmplitude * 0.30) {
+      return 'sWest'
+    } else if (this.direction <= downDirection + directionAmplitude * 0.40) {
+      return 'wsWest'
     } else {
-      const mapPosition = super.getMapPosition()
-      const movingToward = super.getMovingToward()
-      const xDiff = movingToward[0] - mapPosition[0]
-      const yDiff = movingToward[1] - mapPosition[1]
-      if (yDiff <= 0) {
-        if (xDiff > 0) {
-          return 'east'
-        } else {
-          return 'west'
-        }
-      }
-
-      if (directions.esEast(xDiff)) {
-        return 'esEast'
-      } else if (directions.sEast(xDiff)) {
-        return 'sEast'
-      } else if (directions.wsWest(xDiff)) {
-        return 'wsWest'
-      } else if (directions.sWest(xDiff)) {
-        return 'sWest'
-      } else {
-        return 'south'
-      }
+      return 'west'
     }
   }
 
-  setDiscreteDirection (d) {
-    if (discreteDirections[d]) {
-      this.setDirection(discreteDirections[d])
-    }
+  turnLeft() {
+    this.direction = Math.min(this.direction - directionAmplitude / 6, leftMostDirection)
   }
 
-  stop() {
-    if (this.direction > 180) {
-      this.setDiscreteDirection('west')
-    } else {
-      this.setDiscreteDirection('east')
-    }
-  }
-
-  turnEast() {
-    const discreteDirection = this.getDiscreteDirection()
-
-    switch (discreteDirection) {
-      case 'west':
-        this.setDiscreteDirection('wsWest')
-        break
-      case 'wsWest':
-        this.setDiscreteDirection('sWest')
-        break
-      case 'sWest':
-        this.setDiscreteDirection('south')
-        break
-      case 'south':
-        this.setDiscreteDirection('sEast')
-        break
-      case 'sEast':
-        this.setDiscreteDirection('esEast')
-        break
-      case 'esEast':
-        this.setDiscreteDirection('east')
-        break
-    }
-  }
-
-  turnWest() {
-    const discreteDirection = this.getDiscreteDirection()
-
-    switch (discreteDirection) {
-      case 'east':
-        this.setDiscreteDirection('esEast')
-        break
-      case 'esEast':
-        this.setDiscreteDirection('sEast')
-        break
-      case 'sEast':
-        this.setDiscreteDirection('south')
-        break
-      case 'south':
-        this.setDiscreteDirection('sWest')
-        break
-      case 'sWest':
-        this.setDiscreteDirection('wsWest')
-        break
-      case 'wsWest':
-        this.setDiscreteDirection('west')
-        break
-    }
-  }
-
-  stepWest() {
-    super.getMapPosition()[0] -= this.speed * 2
-  }
-
-  stepEast() {
-    super.getMapPosition()[0] += this.speed * 2
+  turnRight() {
+    this.direction = Math.max(this.direction + directionAmplitude / 6, rightMostDirection)
   }
 
   setMapPositionTarget(x, y) {
@@ -204,10 +114,11 @@ export class Skier extends Sprite {
     return this.pixelsTravelled
   }
 
-  cycle(dt) {
-    this.cycleSpeedX()
-    this.cycleSpeedY(dt)
+  setDirection(direction) {
+    this.direction = direction
+  }
 
+  cycle(dt) {
     if (this.isMoving()) {
       this.pixelsTravelled += this.speed * (dt || skiCfg.originalFrameInterval)/skiCfg.originalFrameInterval
     }
@@ -220,6 +131,12 @@ export class Skier extends Sprite {
   }
 
   move(dt) {
+    const r = 0.0001
+    this.setAcceleration({
+      x: r * Math.cos(this.direction),
+      y: r * Math.sin(this.direction)
+    })
+
     if (!this.hasBeenHit) {
       super.move(dt)
     }
@@ -265,49 +182,7 @@ export class Skier extends Sprite {
   }
 
   getSpeedRatio() {
-    return this.speedY / maxSpeed
-  }
-
-  cycleSpeedX() {
-    const dir = this.getDiscreteDirection()
-
-    if (dir === 'west' || dir === 'east') {
-      this.speedX = 0
-    } else if (dir === 'esEast' || dir === 'wsWest') {
-      this.speedX = this.getSpeed() * 0.5
-    } else if (dir === 'sEast' || dir === 'sWest') {
-      this.speedX = this.getSpeed() * 1
-    } else if (dir === 'south') {
-      this.speedX = this.getSpeed() * 0.2
-    }
-  }
-
-  getSpeedX() {
-    return this.speedX
-  }
-
-  cycleSpeedY(dt) {
-    if (this.isJumping) {
-      this.speedY = this.getSpeed() + 2
-    } else if (!this.hasBeenHit) {
-      const dir = this.getDiscreteDirection()
-
-      let targetSpeedY = 0
-      if (dir === 'esEast' || dir === 'wsWest') {
-        targetSpeedY = 0.3 * this.getSpeed()
-      } else if (dir === 'sEast' || dir === 'sWest') {
-        targetSpeedY = 0.4 * this.getSpeed()
-      } else if (dir === 'south') {
-        targetSpeedY = this.getSpeed()
-      }
-
-      const convergenceTime = this.speedY < targetSpeedY ? 2000 : 100
-      this.speedY = this.speedY + ((targetSpeedY - this.speedY) / convergenceTime) * dt
-    }
-  }
-
-  getSpeedY() {
-    return this.speedY
+    return this.getSpeed().y / maxSpeed
   }
 
   hasHitObstacle(obs) {
@@ -315,6 +190,7 @@ export class Skier extends Sprite {
       this.collisions++
       this.lastCollision = Date.now()
       this.setCrashed()
+      this.setSpeed(Vec2.zero)
 
       this.obstaclesHit.push(obs.id)
 
@@ -365,9 +241,9 @@ export class Skier extends Sprite {
     this.isBeingEaten = true
   }
 
-  setDirection(angle) {
+  setAcceleration(v) {
     if (!this.isJumping) {
-      super.setDirection(angle)
+      super.setAcceleration(v)
     }
   }
 }

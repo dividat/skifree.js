@@ -8,7 +8,7 @@ export class Monster extends Sprite {
 
     this.isEating = false
     this.isFull = false
-    this.setSpeed(speed)
+    this.setMovingTowardSpeed(speed)
   }
 
   draw(dContext) {

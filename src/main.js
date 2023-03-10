@@ -7,7 +7,7 @@ import * as Random from 'lib/random'
 import { Monster } from 'lib/monster'
 import { Sprite, createObjects } from 'lib/sprite'
 import { Snowboarder } from 'lib/snowboarder'
-import { Skier } from 'lib/skier'
+import { Skier, downDirection } from 'lib/skier'
 import { Game } from 'lib/game'
 import { sprites } from 'spriteInfo'
 
@@ -242,64 +242,50 @@ function startNeverEndingGame (images) {
         // Ignore steps when controlled by continuous signal
         if (haveSeenSensoState) return
         switch (signal.direction) {
-          case 'Up':
-            skier.stop()
-            break
-
           case 'Left':
-            skier.turnWest()
+            skier.turnRight()
             break
 
           case 'Right':
-            skier.turnEast()
+            skier.turnLeft()
             break
 
           case 'Down':
-            skier.setDirection(180)
+            skier.setDirection(downDirection)
             break
         }
         break
 
       case 'SensoState':
         haveSeenSensoState = true
-        const x = linearInterpolX(signal.state) * (settings.wheelchair ? 3 : 1)
-        const amplitude = 100
-        const direction = (1 - x) * amplitude + 90 + (180 - amplitude) / 2
-        skier.setDirection(direction)
+        skier.setDirection(linearInterpolX(signal.state) * (settings.wheelchair ? 3 : 1))
         break
 
       default:
         break
     }
   })
-
-  skier.setDirection(270)
 }
 
-// Linear interpolation of x on f, as relative coordinates [0; 1]
+// Linear interpolation of x on f, as relative coordinates [-1; 1]
 const directions = ['center', 'up', 'right', 'down', 'left']
 function linearInterpolX (state) {
-  const totalForce = directions.reduce(
-    function (sum, d) {
-      return state[d].f + sum
-    },
-    0)
+  const totalForce = directions.reduce((sum, d) => state[d].f + sum, 0)
 
   // Avoid brownian skiing when plate empty
-  if (totalForce < 0.01) return 0.5
-
-  const fusedX = directions.reduce(
-    function (sum, d) {
-      return state[d].f / totalForce * state[d].x + sum
-    },
-    0)
-
-  return centerWithAmplitude(3, 1, fusedX)
+  if (totalForce < 0.01) {
+    return 0
+  } else {
+    const fusedX = directions.reduce((sum, d) => state[d].f / totalForce * state[d].x + sum, 0)
+    return 2 * centerWithAmplitude({ consideredRatio: 1 / 3, x: fusedX }) - 1
+  }
 }
 
 // Return [0; 1] centered with the given amplitude
-function centerWithAmplitude (width, amplitude, x) {
-  const centered = x - width / 2
+function centerWithAmplitude ({ consideredRatio, x }) {
+  const sensoWidth = 3
+  const centered = x - sensoWidth / 2
+  const amplitude = sensoWidth * consideredRatio
   const halfAmplitude = amplitude / 2
   return (clamp(-halfAmplitude, centered, halfAmplitude) + halfAmplitude) / amplitude
 }

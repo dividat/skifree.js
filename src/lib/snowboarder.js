@@ -12,7 +12,7 @@ export class Snowboarder extends Sprite {
 
   constructor(data) {
     super(data)
-    super.setSpeed(standardSpeed)
+    super.setMovingTowardSpeed(standardSpeed)
   }
 
   getDirection() {
@@ -29,7 +29,7 @@ export class Snowboarder extends Sprite {
   cycle(dt, dContext) {
     if (Random.between(0, 10) === 1) {
       super.setMapPositionTarget(dContext.getRandomlyInTheCentreOfMap())
-      super.setSpeed(standardSpeed + Random.between(-1, 1))
+      super.setMovingTowardSpeed(standardSpeed + Random.between(-1, 1))
     }
 
     super.setMapPositionTarget(undefined, dContext.getMapBelowViewport() + 600)
