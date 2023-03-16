@@ -48,15 +48,14 @@ let distanceTravelledInMetres = 0
 const monsterDistanceThreshold = 2000
 const loseLifeOnObstacleHit = false
 const dropRates = {
-  smallTree: 7,
-  tallTree: 8,
-  jump: 1,
-  thickSnow: 1.5,
-  thickerSnow: 1,
-  rock: 3
+  smallTree: 6,
+  tallTree: 7,
+  jump: 0.5,
+  thickSnow: 0.5,
+  thickerSnow: 0.5,
+  rock: 2
 }
 
-const balanceFactor = 0.33
 let settings = {
   duration: 60000,
   wheelchair: false
@@ -277,15 +276,15 @@ function linearInterpolX (state) {
     return 0
   } else {
     const fusedX = directions.reduce((sum, d) => state[d].f / totalForce * state[d].x + sum, 0)
-    return 2 * centerWithAmplitude({ consideredRatio: 1 / 3, x: fusedX }) - 1
+    return (1 - centerWithAmplitude({ activeRatio: 1 / 3, x: fusedX })) * Math.PI
   }
 }
 
 // Return [0; 1] centered with the given amplitude
-function centerWithAmplitude ({ consideredRatio, x }) {
+function centerWithAmplitude ({ activeRatio, x }) {
   const sensoWidth = 3
   const centered = x - sensoWidth / 2
-  const amplitude = sensoWidth * consideredRatio
+  const amplitude = sensoWidth * activeRatio
   const halfAmplitude = amplitude / 2
   return (clamp(-halfAmplitude, centered, halfAmplitude) + halfAmplitude) / amplitude
 }

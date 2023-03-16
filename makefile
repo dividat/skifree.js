@@ -23,6 +23,6 @@ sprites: materials/sprites-full-size
 bundle:
 	rm -rf $@
 	mkdir $@
-	esbuild --bundle js/main.js --target=es2017 --minify --outfile=dist/skifree.min.js
+	esbuild --bundle src/main.js --target=es2017 --minify --outfile=dist/skifree.min.js
 	cp index.html PlayEGI* $@
 	cp -R css dist vendor sprites $@

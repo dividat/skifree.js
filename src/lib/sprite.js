@@ -1,5 +1,4 @@
 import * as Random from 'lib/random'
-import * as Vec2 from 'lib/vec2'
 import * as Physics from 'lib/physics'
 import GUID from 'lib/guid'
 
@@ -16,16 +15,13 @@ export class Sprite {
     this.canvasY = 0
     this.height = 0
     this.data = data || { parts: {} }
-    this.movingToward = [ 0, 0 ]
+    this.movingToward = undefined
     this.metresDownTheMountain = 0
     this.movingWithConviction = false
     this.deleted = false
     this.isStatic = false
     this.part = null
     this.movingTowardSpeed = 0
-
-    this.acceleration = undefined
-    this.speed = Vec2.zero
 
     if (!this.data.parts) {
       this.data.parts = {}
@@ -51,7 +47,7 @@ export class Sprite {
     }
   }
 
-  move(dt) {
+  move(dt, acceleration, speed) {
     let pos = {
       x: this.mapPosition[0],
       y: this.mapPosition[1]
@@ -63,20 +59,15 @@ export class Sprite {
     const lagFactor = (dt || skiCfg.originalFrameInterval)/skiCfg.originalFrameInterval
     const factor = heightFactor * lagFactor
 
-    if (typeof this.acceleration !== 'undefined') {
-      this.speed = Physics.newSpeed({
-        dt,
-        acc: this.acceleration,
-        speed: this.speed
-      })
+    if (acceleration !== undefined && speed !== undefined) {
       pos = Physics.newPos({
         dt,
-        acc: this.acceleration,
-        speed: this.speed,
+        acceleration,
+        speed,
         pos
       })
-    } else {
-      if (typeof this.movingToward[0] !== 'undefined') {
+    } else if (this.movingToward !== undefined) {
+      if (this.movingToward[0] !== 'undefined') {
         if (pos.x > this.movingToward[0]) {
           pos.x -= Math.min(this.movingTowardSpeed * factor, Math.abs(pos.x - this.movingToward[0]))
         } else if (pos.x < this.movingToward[0]) {
@@ -84,7 +75,7 @@ export class Sprite {
         }
       }
 
-      if (typeof this.movingToward[1] !== 'undefined') {
+      if (this.movingToward[1] !== undefined) {
         if (pos.y > this.movingToward[1]) {
           pos.y -= Math.min(this.movingTowardSpeed * factor, Math.abs(pos.y - this.movingToward[1]))
         } else if (pos.y < this.movingToward[1]) {
@@ -177,14 +168,6 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     this.mapPosition = [x, y, z]
   }
 
-  getSpeed() {
-    return this.speed
-  }
-
-  setSpeed(speed) {
-    this.speed = speed
-  }
-
   setCanvasPosition(cx, cy) {
     this.canvasX = cx
     this.canvasY = cy
@@ -244,10 +227,6 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     this.movingTowardSpeed = s
   }
 
-  setAcceleration(v) {
-    this.acceleration = v
-  }
-
   setHeight(h) {
     this.height = h
   }
@@ -270,24 +249,6 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
 
   getMovingToward() {
     return this.movingToward
-  }
-
-  isMoving() {
-    return this.acceleration !== undefined || this.movingToward[0] !== undefined
-  }
-
-  getMovingTowardOpposite() {
-    if (!this.isMoving()) {
-      return [0, 0]
-    }
-
-    const dx = (this.movingToward[0] - this.mapPosition[0])
-    const dy = (this.movingToward[1] - this.mapPosition[1])
-
-    const oppositeX = (Math.abs(dx) > 75 ? 0 - dx : 0)
-    const oppositeY = -dy
-
-    return [ oppositeX, oppositeY ]
   }
 
   checkHittableObjects() {
@@ -344,11 +305,6 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
 
       this.movingWithConviction = false
     }
-  }
-
-  setAcceleration(v) {
-    this.acceleration = v
-    this.movingToward = undefined
   }
 
   setMapPositionTargetWithConviction(cx, cy) {
@@ -452,7 +408,7 @@ export function createObjects (spriteInfoArray, opts) {
 function createObject (spriteInfo, opts) {
   let position = opts.position
 
-  const random = Random.between(1, 100) + opts.rateModifier
+  const random = Random.between(0, 100) + opts.rateModifier
 
   if (random <= spriteInfo.dropRate * opts.skier.getSpeedRatio()) {
     const sprite = new Sprite(spriteInfo.sprite)

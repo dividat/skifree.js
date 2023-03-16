@@ -1,4 +1,5 @@
 import { Sprite } from 'lib/sprite'
+import * as Physics from 'lib/physics'
 import * as Vec2 from 'lib/vec2'
 
 const discreteDirections = {
@@ -21,6 +22,7 @@ const directions = {
 const maxSpeed = 1
 const crashDuration = 800 // ms
 const invincibleAfterCrashDuration = 2000 // ms
+const jumpDuration = 1200 // ms
 
 // Facing: Left - South - East
 export const downDirection = Math.PI / 2
@@ -38,7 +40,7 @@ export class Skier extends Sprite {
 
     this.obstaclesHit = []
     this.pixelsTravelled = 0
-    this.hasBeenHit = false
+    this.isLying = false
     this.isJumping = false
     this.onHitObstacleCb = function () {}
     this.jumps = 0
@@ -46,10 +48,11 @@ export class Skier extends Sprite {
     this.lastCollision = undefined
     this.lastJump = undefined
     this.direction = downDirection
+    this.speed = Vec2.zero
   }
 
   setNormal() {
-    this.hasBeenHit = false
+    this.isLying = false
     this.isJumping = false
     if (this.cancelableStateInterval) {
       clearInterval(this.cancelableStateInterval)
@@ -57,7 +60,7 @@ export class Skier extends Sprite {
   }
 
   setCrashed() {
-    this.hasBeenHit = true
+    this.isLying = true
     if (this.cancelableStateInterval) {
       clearInterval(this.cancelableStateInterval)
     }
@@ -65,10 +68,8 @@ export class Skier extends Sprite {
   }
 
   setJumping() {
-    const currentSpeed = this.getSpeed()
     this.isJumping = true
     this.lastJump = Date.now()
-    super.setAcceleration({x: 0, y: -1})
     window.PlayEGI.motor('positive')
   }
 
@@ -77,9 +78,9 @@ export class Skier extends Sprite {
       return 'east'
     } else if (this.direction < downDirection - directionAmplitude * 0.30) {
       return 'esEast'
-    } else if (this.direction < downDirection - directionAmplitude * 0.15) {
+    } else if (this.direction < downDirection - directionAmplitude * 0.10) {
       return 'sEast'
-    } else if (this.direction <= downDirection + directionAmplitude * 0.15) {
+    } else if (this.direction <= downDirection + directionAmplitude * 0.10) {
       return 'south'
     } else if (this.direction <= downDirection + directionAmplitude * 0.30) {
       return 'sWest'
@@ -99,15 +100,15 @@ export class Skier extends Sprite {
   }
 
   setMapPositionTarget(x, y) {
-    if (this.hasBeenHit) return
+    if (!this.isLying) {
+      const mapPosition = super.getMapPosition()
 
-    const mapPosition = super.getMapPosition()
+      if (Math.abs(mapPosition[0] - x) <= 75) {
+        x = mapPosition[0]
+      }
 
-    if (Math.abs(mapPosition[0] - x) <= 75) {
-      x = mapPosition[0]
+      this.setMovingToward = [ x, y ]
     }
-
-    this.setMovingToward = [ x, y ]
   }
 
   getPixelsTravelledDownMountain() {
@@ -119,27 +120,71 @@ export class Skier extends Sprite {
   }
 
   cycle(dt) {
-    if (this.isMoving()) {
+    if (this.speed !== Vec2.zero) {
       this.pixelsTravelled += this.speed * (dt || skiCfg.originalFrameInterval)/skiCfg.originalFrameInterval
-    }
-
-    if (this.isJumping) {
-      this.setMapPositionTarget(undefined, super.getMapPosition()[1] + this.getSpeed())
     }
 
     super.cycle(dt)
   }
 
   move(dt) {
-    const r = 0.0001
-    this.setAcceleration({
-      x: r * Math.cos(this.direction),
-      y: r * Math.sin(this.direction)
+    const { acceleration, speed } = this.getAccelerationAndSpeed(dt)
+    this.speed = speed
+    super.move(dt, acceleration, speed)
+  }
+
+  getAccelerationAndSpeed(dt) {
+    let acceleration
+
+    const dirVect = {
+      x: Math.cos(this.direction),
+      y: Math.sin(this.direction)
+    }
+    const downVect = { x: 0, y: 1 }
+
+    if (this.isLying) {
+      acceleration = Vec2.zero
+    } else if (this.isJumping) {
+
+      const directionAcc = Vec2.scale(15 * Vec2.dot(dirVect, downVect), dirVect)
+      const frictionAcc = Vec2.scale(-10, this.speed)
+
+      acceleration = Vec2.scale(
+        0.00001 * dt,
+        Vec2.add(frictionAcc, directionAcc))
+    } else {
+      const perdendicularSpeed = Vec2.rotate(Math.PI / 2, this.speed)
+
+      const stopAcc = Vec2.scale(
+        -50 * Math.abs(Vec2.dot(perdendicularSpeed, dirVect)),
+        this.speed)
+
+      const frictionAcc = Vec2.scale(-10, this.speed)
+      const directionAcc = Vec2.scale(10 * Vec2.dot(dirVect, downVect), dirVect)
+
+      acceleration = Vec2.scale(
+        0.00001 * dt,
+        Vec2.add(stopAcc, frictionAcc, directionAcc))
+    }
+
+    const speed = Physics.newSpeed({
+      dt,
+      acceleration,
+      speed: this.speed
     })
 
-    if (!this.hasBeenHit) {
-      super.move(dt)
+    if (speed.y <= 0) {
+      speed.y = 0
+      acceleration.y = 0
+      speed.x = 0
     }
+
+    if (this.isJumping) {
+      speed.x = 0
+      speed.y = Math.max(0.5, speed.y)
+    }
+
+    return { acceleration, speed }
   }
 
   draw(dContext) {
@@ -148,7 +193,7 @@ export class Skier extends Sprite {
       const spritePartToUse =
         this.isJumping
           ? 'jumping'
-          : (this.hasBeenHit ? 'hit' : this.getDiscreteDirection())
+          : (this.isLying ? 'hit' : this.getDiscreteDirection())
 
       super.draw(dContext, spritePartToUse)
     }
@@ -182,7 +227,7 @@ export class Skier extends Sprite {
   }
 
   getSpeedRatio() {
-    return this.getSpeed().y / maxSpeed
+    return this.speed.y / maxSpeed
   }
 
   hasHitObstacle(obs) {
@@ -190,7 +235,7 @@ export class Skier extends Sprite {
       this.collisions++
       this.lastCollision = Date.now()
       this.setCrashed()
-      this.setSpeed(Vec2.zero)
+      this.speed = Vec2.zero
 
       this.obstaclesHit.push(obs.id)
 
@@ -230,7 +275,7 @@ export class Skier extends Sprite {
       if (this.cancelableStateTimeout) {
         clearTimeout(this.cancelableStateTimeout)
       }
-      this.cancelableStateTimeout = setTimeout(() => this.setNormal(), 1000)
+      this.cancelableStateTimeout = setTimeout(() => this.setNormal(), jumpDuration)
     }
   }
 
@@ -239,11 +284,5 @@ export class Skier extends Sprite {
     monster.startEating(whenEaten)
     this.obstaclesHit.push(monster.id)
     this.isBeingEaten = true
-  }
-
-  setAcceleration(v) {
-    if (!this.isJumping) {
-      super.setAcceleration(v)
-    }
   }
 }
