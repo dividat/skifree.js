@@ -56,11 +56,6 @@ Some features which weren't in the original which I'd like to give a go:
 * Open up index.html in Chrome, or maybe even Firefox - I haven't tested it in anything but Chrome and Mobile Safari yet, and I probably won't I'm afraid
 * Go.
 
-## I like to run Unit tests before I do ANYTHING.
-
-* Right, well first you need to do an `npm install`
-* Run `mocha` and you should see some beautiful passing tests
-
 ## This is pretty frickin' sweet but it's clearly not finished. I can totally improve it. Let me improve it, dammit.
 
 * We are #seekingcontributors
