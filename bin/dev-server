@@ -3,9 +3,16 @@ set -euo pipefail
 
 mkdir -p dist
 
-esbuild \
-  src/main.js \
-  --bundle \
-  --watch \
-  --servedir=./ \
-  --outfile=dist/skifree.js
+# Run server
+
+python -m http.server 8000 &
+trap "fuser -k 8000/tcp" EXIT
+
+# Watch TypeScript
+
+CHECK="echo Checking TypeScript… && tsc --allowJs --noEmit"
+BUILD="esbuild --bundle src/main.js --outfile=dist/skifree.js"
+watchexec \
+  --clear \
+  --watch src \
+  -- "$CHECK && $BUILD"

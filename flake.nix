@@ -10,7 +10,11 @@
         let pkgs = nixpkgs.legacyPackages.${system};
         in { devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
+            nodePackages.typescript
+            python3
+            psmisc # fuser
             esbuild
+            watchexec
           ];
         }; }
       );
