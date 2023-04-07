@@ -90,10 +90,6 @@ CanvasRenderingContext2D.prototype.getRandomMapPositionAboveViewport = function 
   return this.canvasPositionToMapPosition([ xCanvas, yCanvas ])
 }
 
-CanvasRenderingContext2D.prototype.getTopOfViewport = function () {
-  return this.canvasPositionToMapPosition([ 0, 0 ])[1]
-}
-
 CanvasRenderingContext2D.prototype.getAboveViewport = function () {
   return 0 - Math.floor(this.canvas.height / 4)
 }

@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "module": "amd",
+    "target": "es2017",
     "baseUrl": "src",
     "outFile": "public/main.js",
     "noImplicitAny": true,

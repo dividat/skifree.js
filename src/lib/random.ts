@@ -1,3 +1,3 @@
-export function between(min, max) {
+export function between(min: number, max: number): number {
   return min + Math.floor(Math.random() * (max - min + 1))
 }

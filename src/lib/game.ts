@@ -1,22 +1,25 @@
+import { Skier } from 'lib/skier'
+import { Sprite } from 'lib/sprite'
 import { SpriteArray } from 'lib/spriteArray'
 
-export function Game (mainCanvas, skier) {
-  let objects = new SpriteArray()
-  const dContext = mainCanvas.getContext('2d')
-  let paused = false
-  const beforeCycleCallbacks = []
-  const afterCycleCallbacks = []
-  let runningTime = 0
-  let lastStepAt = null
+export function Game (mainCanvas: any, skier: Skier) {
+  const dContext: any = mainCanvas.getContext('2d')
+  const beforeCycleCallbacks: Array<any> = []
+  const afterCycleCallbacks: Array<any> = []
 
-  this.addObject = function({ sprite, shouldAvoidCollisions, type }) {
+  let objects: SpriteArray = new SpriteArray()
+  let paused: boolean = false
+  let runningTime: number = 0
+  let lastStepAt: number | undefined = undefined
+
+  this.addObject = ({ sprite, shouldAvoidCollisions, type }: any) => {
     // Determine graphical properties to enable hit check
     if (sprite.data.parts.main !== undefined) {
       sprite.determineNextFrame(dContext, 'main')
     }
 
     if (type !== undefined) {
-      objects.onPush(function (obj) {
+      objects.onPush(obj => {
         if (obj.data && obj.data.hitBehaviour[type]) {
           obj.onHitting(sprite, obj.data.hitBehaviour[type])
         }
@@ -28,54 +31,50 @@ export function Game (mainCanvas, skier) {
     }
   }
 
-  this.canAddObject = function (sprite) {
-    return !objects.some(function (other) {
+  this.canAddObject = (sprite: Sprite) => {
+    return !objects.some((other: any) => {
       const b = other.hitsLandingArea(sprite)
       return other.hits(sprite) || other.hitsLandingArea(sprite)
     })
   }
 
-  this.addObjects = function (sprites, shouldAvoidCollisions) {
-    sprites.forEach(sprite =>
+  this.addObjects = (sprites: any, shouldAvoidCollisions: boolean) => {
+    sprites.forEach((sprite: Sprite) =>
       this.addObject({ sprite, shouldAvoidCollisions })
     )
   }
 
-  this.beforeCycle = function (callback) {
+  this.beforeCycle = (callback: any) => {
     beforeCycleCallbacks.push(callback)
   }
 
-  this.afterCycle = function (callback) {
+  this.afterCycle = (callback: any) => {
     afterCycleCallbacks.push(callback)
   }
 
   dContext.followSprite(skier)
 
-  this.cycle = function (dt) {
-    beforeCycleCallbacks.forEach(function (c) {
-      c()
-    })
+  this.cycle = (dt: number) => {
+    beforeCycleCallbacks.forEach((c: any) => c())
 
     skier.cycle(dt)
 
     objects.cull()
-    objects.forEach(function (object) {
+    objects.forEach((object: any) => {
       if (object.cycle) {
-        object.cycle(dt, dContext)
+        object.cycle(dt)
       }
     })
 
-    afterCycleCallbacks.forEach(function (c) {
-      c()
-    })
+    afterCycleCallbacks.forEach((c: any) => c())
   }
 
-  this.draw = function () {
+  this.draw = () => {
     dContext.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 
     const allObjects = objects.slice() // Clone
     allObjects.push(skier)
-    allObjects.sort(function (a, b) {
+    allObjects.sort((a: any, b: any) => {
       if (isJumpingSkier(a)) {
         return 1
       } else if (isJumpingSkier(b)) {
@@ -91,48 +90,48 @@ export function Game (mainCanvas, skier) {
       }
     })
 
-    allObjects.forEach(function (object) {
+    allObjects.forEach((object: any) => {
       if (object.draw) {
         object.draw(dContext, 'main')
       }
     })
   }
 
-  this.start = function () {
+  this.start = () => {
     this.step()
   }
 
-  this.pause = function () {
+  this.pause = () => {
     paused = true
-    lastStepAt = null
+    lastStepAt = undefined
   }
 
-  this.resume = function () {
+  this.resume = () => {
     paused = false
     this.step()
   }
 
-  this.isPaused = function () {
+  this.isPaused = () => {
     return paused
   }
 
-  this.getRunningTime = function () {
+  this.getRunningTime = () => {
     return runningTime
   }
 
-  this.reset = function () {
+  this.reset = () => {
     paused = false
     objects = new SpriteArray()
-    skier.reset()
+    // skier.reset()
     this.start()
     runningTime = 0
-  }.bind(this)
+  }
 
-  this.step = function (now) {
+  this.step = (now: number) => {
     if (paused) return
 
     let dt = 0
-    if (lastStepAt != null) {
+    if (lastStepAt !== undefined) {
       dt = now - lastStepAt
     }
     lastStepAt = now
@@ -144,17 +143,17 @@ export function Game (mainCanvas, skier) {
     requestAnimationFrame(this.step.bind(this))
   }
 
-  this.hasObject = function (name) {
-    return objects.some(function(obj) {
+  this.hasObject = (name: any) => {
+    return objects.some((obj: any) => {
       return obj.data.name === name
     })
   }
 }
 
-function isJumpingSkier (sprite) {
+function isJumpingSkier(sprite: any) {
   return sprite.data.name === 'skier' && sprite.isJumping
 }
 
-function isSnow (sprite) {
+function isSnow(sprite: Sprite) {
   return sprite.data.name === 'thickSnow' || sprite.data.name === 'thickerSnow'
 }

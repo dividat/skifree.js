@@ -8,6 +8,10 @@ export const zero: Vec2 = {
   y: 0
 }
 
+export function length({ x, y }: Vec2): number {
+  return Math.sqrt(x * x + y * y)
+}
+
 export function scale(k: number, { x, y }: Vec2): Vec2 {
   return {
     x: k * x,

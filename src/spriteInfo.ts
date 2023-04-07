@@ -1,4 +1,7 @@
-export const sprites = {
+import { Sprite } from 'lib/sprite'
+import { Skier } from 'lib/skier'
+
+export const sprites: any = {
   'skier': {
     parts: {
       east: { offsets: [ 0.1, 0.125, 0.15, 0.45 ] },
@@ -21,7 +24,7 @@ export const sprites = {
     },
     sizeMultiple: 0.2,
     hitBehaviour: {
-      skier: (tree, skier) => skier.hasHitObstacle(tree)
+      skier: (tree: Sprite, skier: Skier) => skier.hasHitObstacle(tree)
     },
     name: 'smallTree'
   },
@@ -31,7 +34,7 @@ export const sprites = {
     },
     sizeMultiple: 0.2,
     hitBehaviour: {
-      skier: (tree, skier) => skier.hasHitObstacle(tree)
+      skier: (tree: Sprite, skier: Skier) => skier.hasHitObstacle(tree)
     },
     name: 'tallTree'
   },
@@ -41,7 +44,7 @@ export const sprites = {
     },
     sizeMultiple: 0.2,
     hitBehaviour: {
-      skier: (snow, skier) => skier.hasHitSnow(snow)
+      skier: (snow: Sprite, skier: Skier) => skier.hasHitSnow(snow)
     },
     isPassable: true,
     name: 'thickSnow'
@@ -52,7 +55,7 @@ export const sprites = {
     },
     sizeMultiple: 0.2,
     hitBehaviour: {
-      skier: (snow, skier) => skier.hasHitSnow(snow)
+      skier: (snow: Sprite, skier: Skier) => skier.hasHitSnow(snow)
     },
     isPassable: true,
     name: 'thickerSnow'
@@ -63,7 +66,7 @@ export const sprites = {
     },
     sizeMultiple: 0.2,
     hitBehaviour: {
-      skier: (rock, skier) => skier.hasHitObstacle(rock)
+      skier: (rock: Sprite, skier: Skier) => skier.hasHitObstacle(rock)
     },
     name: 'rock'
   },
@@ -88,7 +91,7 @@ export const sprites = {
     },
     sizeMultiple: 0.2,
     hitBehaviour: {
-      skier: (jump, skier) => skier.hasHitJump(jump)
+      skier: (jump: Sprite, skier: Skier) => skier.hasHitJump()
     },
     isPassable: true,
     name: 'jump'
@@ -118,7 +121,7 @@ export const sprites = {
     },
     sizeMultiple: 0.28,
     hitBehaviour: {
-      skier: (snowboarder, skier) => skier.hasHitObstacle(snowboarder)
+      skier: (snowboarder: Sprite, skier: Skier) => skier.hasHitObstacle(snowboarder)
     },
     name: 'snowboarder'
   }

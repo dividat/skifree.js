@@ -1,18 +1,38 @@
 import * as Random from 'lib/random'
 import * as Physics from 'lib/physics'
+import * as Vec2 from 'lib/vec2'
+import { config } from 'config'
 import GUID from 'lib/guid'
 
 export class Sprite {
+  hasHittableObjects: boolean
+  hittableObjects: any
+  zIndexesOccupied: Array<number>
+  trackedSpriteToMoveToward: Sprite | undefined
+  mapPosition: Array<number>
+  id: string
+  canvasX: number
+  canvasY: number
+  width: number
+  height: number
+  data: any
+  movingToward: Array<number | undefined> | undefined
+  metresDownTheMountain: number
+  movingWithConviction: boolean
+  deleted: boolean
+  isStatic: boolean
+  part: any
+  movingTowardSpeed: number
 
-  constructor(data) {
+  constructor(data: any) {
     this.hasHittableObjects = false
     this.hittableObjects = {}
     this.zIndexesOccupied = [ 0 ]
-    this.trackedSpriteToMoveToward
     this.mapPosition = [0, 0, 0]
     this.id = GUID()
     this.canvasX = 0
     this.canvasY = 0
+    this.width = 0
     this.height = 0
     this.data = data || { parts: {} }
     this.movingToward = undefined
@@ -36,10 +56,10 @@ export class Sprite {
     }
   }
 
-  getHitBox(forZIndex) {
+  getHitBox(forZIndex: number) {
     if (this.data.hitBoxes) {
-      if (data.hitBoxes[forZIndex]) {
-        return data.hitBoxes[forZIndex]
+      if (this.data.hitBoxes[forZIndex]) {
+        return this.data.hitBoxes[forZIndex]
       }
     }
     if (this.data.parts[this.part] && this.data.parts[this.part].offsets) {
@@ -47,7 +67,7 @@ export class Sprite {
     }
   }
 
-  move(dt, acceleration, speed) {
+  move(dt: number, acceleration?: Vec2.Vec2, speed?: Vec2.Vec2) {
     let pos = {
       x: this.mapPosition[0],
       y: this.mapPosition[1]
@@ -56,7 +76,7 @@ export class Sprite {
     // Assume original magic numbers for speed were created for a typical 2013 resolution
     const heightFactor = window.devicePixelRatio * window.innerHeight/800
     // Adjust for FPS different than the 50 FPS assumed by original game
-    const lagFactor = (dt || skiCfg.originalFrameInterval)/skiCfg.originalFrameInterval
+    const lagFactor = (dt || config.originalFrameInterval) / config.originalFrameInterval
     const factor = heightFactor * lagFactor
 
     if (acceleration !== undefined && speed !== undefined) {
@@ -67,7 +87,7 @@ export class Sprite {
         pos
       })
     } else if (this.movingToward !== undefined) {
-      if (this.movingToward[0] !== 'undefined') {
+      if (this.movingToward[0] !== undefined) {
         if (pos.x > this.movingToward[0]) {
           pos.x -= Math.min(this.movingTowardSpeed * factor, Math.abs(pos.x - this.movingToward[0]))
         } else if (pos.x < this.movingToward[0]) {
@@ -87,7 +107,7 @@ export class Sprite {
     this.setMapPosition(pos.x, pos.y)
   }
 
-  determineNextFrame(dCtx, spriteFrame) {
+  determineNextFrame(dCtx: any, spriteFrame: any) {
     this.part = spriteFrame
 
     const part = this.data.parts[spriteFrame]
@@ -118,8 +138,8 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
       spriteZoom = part.sizeMultiple || this.data.sizeMultiple
     }
 
-    const targetWidth = Math.round(img.naturalWidth * spriteZoom * skiCfg.zoom)
-    const targetHeight = Math.round(img.naturalHeight * spriteZoom * skiCfg.zoom)
+    const targetWidth = Math.round(img.naturalWidth * spriteZoom * config.zoom)
+    const targetHeight = Math.round(img.naturalHeight * spriteZoom * config.zoom)
 
     this.width = targetWidth
     this.height = targetHeight
@@ -130,7 +150,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     return img
   }
 
-  draw(dCtx, spriteFrame) {
+  draw(dCtx: any, spriteFrame: any) {
     const img = this.determineNextFrame(dCtx, spriteFrame)
     if (img == null) return
 
@@ -138,7 +158,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
 
     dCtx.drawImage(img, fr[0], fr[1], fr[2], fr[3], this.canvasX, this.canvasY, this.width, this.height)
 
-    if (skiCfg.debug) {
+    if (config.debug) {
       const thbe = this.getTopHitBoxEdge(this.mapPosition[2])
       const bhbe = this.getBottomHitBoxEdge(this.mapPosition[2])
       const lhbe = this.getLeftHitBoxEdge(this.mapPosition[2])
@@ -153,7 +173,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     }
   }
 
-  setMapPosition(x, y, z) {
+  setMapPosition(x: number, y: number, z?: number) {
     if (typeof x === 'undefined') {
       x = this.mapPosition[0]
     }
@@ -168,7 +188,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     this.mapPosition = [x, y, z]
   }
 
-  setCanvasPosition(cx, cy) {
+  setCanvasPosition(cx: number, cy: number) {
     this.canvasX = cx
     this.canvasY = cy
   }
@@ -181,7 +201,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     return this.canvasY
   }
 
-  getLeftHitBoxEdge(zIndex) {
+  getLeftHitBoxEdge(zIndex: number) {
     zIndex = zIndex || 0
     let lhbe = this.getCanvasPositionX()
     if (this.getHitBox(zIndex)) {
@@ -190,7 +210,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     return lhbe
   }
 
-  getTopHitBoxEdge(zIndex) {
+  getTopHitBoxEdge(zIndex: number) {
     zIndex = zIndex || 0
     let thbe = this.getCanvasPositionY()
     if (this.getHitBox(zIndex)) {
@@ -199,7 +219,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     return thbe
   }
 
-  getRightHitBoxEdge(zIndex) {
+  getRightHitBoxEdge(zIndex: number) {
     zIndex = zIndex || 0
 
     if (this.getHitBox(zIndex)) {
@@ -209,7 +229,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     return this.canvasX + this.width
   }
 
-  getBottomHitBoxEdge(zIndex) {
+  getBottomHitBoxEdge(zIndex: number) {
     zIndex = zIndex || 0
 
     if (this.getHitBox(zIndex)) {
@@ -223,15 +243,15 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     return [this.canvasX, this.canvasY + this.height]
   }
 
-  setScalarSpeed(s) {
+  setScalarSpeed(s: number) {
     this.movingTowardSpeed = s
   }
 
-  setHeight(h) {
+  setHeight(h: number) {
     this.height = h
   }
 
-  setWidth(w) {
+  setWidth(w: number) {
     this.width = w
   }
 
@@ -239,11 +259,11 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     return this.mapPosition
   }
 
-  setMovingToward(movingToward) {
+  setMovingToward(movingToward: Array<number>) {
     this.movingToward = movingToward
   }
 
-  setMovingTowardSpeed(movingTowardSpeed) {
+  setMovingTowardSpeed(movingTowardSpeed: number) {
     this.movingTowardSpeed = movingTowardSpeed
   }
 
@@ -252,12 +272,12 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
   }
 
   checkHittableObjects() {
-    Object.entries(this.hittableObjects).forEach(([ k, objectData ]) => {
+    Object.entries(this.hittableObjects).forEach(([ k, objectData ]: any) => {
       if (objectData.object.deleted) {
         delete this.hittableObjects[k]
       } else {
         if (objectData.object.hits(this)) {
-          objectData.callbacks.forEach(callback =>
+          objectData.callbacks.forEach((callback: any) =>
             callback(this, objectData.object)
           )
         }
@@ -274,7 +294,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     }
   }
 
-  cycle(dt) {
+  cycle(dt: number) {
     this.checkOffScreen()
     if (this.hasHittableObjects) {
       this.checkHittableObjects()
@@ -287,17 +307,17 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     this.move(dt)
   }
 
-  setMapPositionTarget(x, y, override) {
+  setMapPositionTarget(x?: number, y?: number, override?: boolean) {
     if (override) {
       this.movingWithConviction = false
     }
 
     if (!this.movingWithConviction) {
-      if (typeof x === 'undefined') {
+      if (x === undefined && this.movingToward !== undefined) {
         x = this.movingToward[0]
       }
 
-      if (typeof y === 'undefined') {
+      if (y === undefined && this.movingToward !== undefined) {
         y = this.movingToward[1]
       }
 
@@ -307,20 +327,20 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     }
   }
 
-  setMapPositionTargetWithConviction(cx, cy) {
+  setMapPositionTargetWithConviction(cx: number, cy: number) {
     this.setMapPositionTarget(cx, cy)
     this.movingWithConviction = true
   }
 
-  follow(sprite) {
+  follow(sprite: Sprite) {
     this.trackedSpriteToMoveToward = sprite
   }
 
   stopFollowing() {
-    this.trackedSpriteToMoveToward = false
+    this.trackedSpriteToMoveToward = undefined
   }
 
-  onHitting(objectToHit, callback) {
+  onHitting(objectToHit: any, callback: any) {
     if (this.hittableObjects[objectToHit.id]) {
       return this.hittableObjects[objectToHit.id].callbacks.push(callback)
     }
@@ -337,11 +357,11 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     this.deleted = true
   }
 
-  occupiesZIndex(z) {
+  occupiesZIndex(z: number) {
     return this.zIndexesOccupied.indexOf(z) >= 0
   }
 
-  hits(other) {
+  hits(other: Sprite) {
     const thisZ = this.mapPosition[2]
     const otherZ = other.mapPosition[2]
 
@@ -353,7 +373,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     )
   }
 
-  hitsLandingArea(other) {
+  hitsLandingArea(other: Sprite) {
     if (this.data.name === 'jump' && other.data.name !== 'thickSnow' && other.data.name !== 'thickerSnow') {
       // Obtained experimentally by increasing object drop rates
       const sideWidth = 150
@@ -374,11 +394,11 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     }
   }
 
-  isAboveOnCanvas(cy) {
+  isAboveOnCanvas(cy: number) {
     return (this.canvasY + this.height) < cy
   }
 
-  isBelowOnCanvas(cy) {
+  isBelowOnCanvas(cy: number) {
     return (this.canvasY) > cy
   }
 
@@ -387,7 +407,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
   }
 }
 
-export function createObjects (spriteInfoArray, opts) {
+export function createObjects (spriteInfoArray: any, opts: any) {
   if (!Array.isArray(spriteInfoArray)) spriteInfoArray = [ spriteInfoArray ]
 
   opts = {
@@ -399,13 +419,13 @@ export function createObjects (spriteInfoArray, opts) {
   }
 
   const objects = spriteInfoArray
-    .map(spriteInfo => createObject(spriteInfo, opts))
-    .filter(s => s !== undefined)
+    .map((spriteInfo: any) => createObject(spriteInfo, opts))
+    .filter((s: any) => s !== undefined)
 
   return objects
 }
 
-function createObject (spriteInfo, opts) {
+function createObject (spriteInfo: any, opts: any) {
   let position = opts.position
 
   const random = Random.between(0, 100) + opts.rateModifier

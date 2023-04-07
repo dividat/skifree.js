@@ -1,6 +1,4 @@
 import 'lib/canvasRenderingContext2DExtensions'
-import 'lib/extenders'
-import 'lib/plugins'
 import * as Random from 'lib/random'
 
 // Game Objects
@@ -12,11 +10,10 @@ import { Game } from 'lib/game'
 import { sprites } from 'spriteInfo'
 
 // Local variables for starting the game
-const mainCanvas = document.getElementById('skifree-canvas')
-const dContext = mainCanvas.getContext('2d')
-const global = this
-const infoBoxControls = 'Use the mouse or WASD to control the skier'
-const imageSources = []
+const mainCanvas: any = document.getElementById('skifree-canvas')
+const dContext: any = mainCanvas.getContext('2d')
+const infoBoxControls: string = 'Use the mouse or WASD to control the skier'
+const imageSources: Array<string> = []
 ;(function () {
   for (const key in sprites) {
       for (const partKey in sprites[key].parts) {
@@ -36,17 +33,9 @@ const imageSources = []
   }
 })()
 
-// Set global configuration
-window.skiCfg = {
-  zoom: (parseFloat(new URLSearchParams(document.location.search).get("zoom")) || window.devicePixelRatio || 1) * 3,
-  originalFrameInterval: 20,
-  debug: new URLSearchParams(document.location.search).has("debug")
-}
-
-const pixelsPerMetre = 18
-let distanceTravelledInMetres = 0
-const monsterDistanceThreshold = 2000
-const loseLifeOnObstacleHit = false
+const pixelsPerMetre: number = 18
+let distanceTravelledInMetres: number = 0
+const monsterDistanceThreshold: number = 2000
 const dropRates = {
   smallTree: 6,
   tallTree: 7,
@@ -61,24 +50,31 @@ let settings = {
   wheelchair: false
 }
 
-function loadImages (sources, next) {
+function loadImages(sources: Array<string>, next: any) {
   let loaded = 0
   const images = {}
 
-  const indicator = document.getElementById('loading-indicator')
-  indicator.max = sources.length
+  const indicator: any = document.getElementById('loading-indicator')
+  if (indicator !== null) {
+    indicator.max = sources.length
+  }
 
-  function finish () {
+  const finish = () => {
     loaded += 1
-    indicator.value = loaded
+    if (indicator !== null) {
+      indicator.value = loaded
+    }
 
     if (loaded === sources.length) {
-      document.getElementById('loader').classList.add('done')
+      const loader = document.getElementById('loader')
+      if (loader !== null) {
+        loader.classList.add('done')
+      }
       next(images)
     }
   }
 
-  sources.forEach(function (src) {
+  sources.forEach((src: string) => {
     const im = new Image()
     im.onload = finish
     im.onerror = finish
@@ -87,39 +83,38 @@ function loadImages (sources, next) {
   })
 }
 
-function monsterHitsSkierBehaviour (monster, skier) {
-  skier.isEatenBy(monster, function () {
-    monster.isFull = true
-    monster.isEating = false
-    skier.isBeingEaten = false
+function monsterEatsSkier(monster: Monster, skier: Skier) {
+  skier.isEatenBy(monster, () => {
     monster.stopFollowing()
     const randomPositionAbove = dContext.getRandomMapPositionAboveViewport()
     monster.setMapPositionTarget(randomPositionAbove[0], randomPositionAbove[1])
     // Delete some time after it moved off screen
-    setTimeout(function () { monster.deleteOnNextCycle() }, 5000)
+    setTimeout(() => monster.deleteOnNextCycle(), 5000)
   })
 }
 
-function startNeverEndingGame (images) {
-  let skier
-  let startSign
-  let cottage
-  let game
+function startNeverEndingGame(images: Array<any>) {
+  let skier: Skier
+  let startSign: Sprite
+  let cottage: Sprite
+  let game: any
 
-  function detectEnd () {
+  const detectEnd = () => {
     if (!game.isPaused()) {
       game.pause()
       game.cycle()
+
+      // @ts-ignore
       window.PlayEGI.finish({
         duration: { type: 'Duration', value: settings.duration },
-        distance: { type: 'RawInt', value: parseInt(distanceTravelledInMetres) },
+        distance: { type: 'RawInt', value: Math.round(distanceTravelledInMetres) },
         jumps: { type: 'RawInt', value: skier.jumps },
         collisions: { type: 'RawInt', value: skier.collisions },
       })
     }
   }
 
-  function randomlySpawnNPC (spawnFunction, dropRate) {
+  function randomlySpawnNPC (spawnFunction: () => void, dropRate: number) {
     const rateModifier = Math.max(800 - mainCanvas.width, 0)
     if (Random.between(0, 1000 + rateModifier) <= dropRate * skier.getSpeedRatio()) {
       spawnFunction()
@@ -127,11 +122,12 @@ function startNeverEndingGame (images) {
   }
 
   function spawnMonster () {
-    const newMonster = new Monster(sprites.monster, skier.getStandardSpeed() * 0.4)
+    const monsterSpeed = 5
+    const newMonster = new Monster(sprites.monster, monsterSpeed)
     const randomPosition = dContext.getRandomMapPositionAboveViewport()
     newMonster.setMapPosition(randomPosition[0], randomPosition[1])
     newMonster.follow(skier)
-    newMonster.onHitting(skier, monsterHitsSkierBehaviour)
+    newMonster.onHitting(skier, monsterEatsSkier)
 
     game.addObject({
       sprite: newMonster,
@@ -140,7 +136,7 @@ function startNeverEndingGame (images) {
   }
 
   function spawnBoarder () {
-    const newBoarder = new Snowboarder(sprites.snowboarder)
+    const newBoarder = new Snowboarder(sprites.snowboarder, dContext)
     const randomPositionAbove = dContext.getRandomMapPositionAboveViewport()
     const randomPositionBelow = dContext.getRandomMapPositionBelowViewport()
     newBoarder.setMapPosition(randomPositionAbove[0], randomPositionAbove[1])
@@ -154,6 +150,7 @@ function startNeverEndingGame (images) {
   skier.setMapPosition(0, 0)
   skier.setMapPositionTarget(0, -10)
 
+  // @ts-ignore
   game = new Game(mainCanvas, skier)
 
   skier.determineNextFrame(dContext, 'east')
@@ -167,7 +164,7 @@ function startNeverEndingGame (images) {
 
   dContext.followSprite(skier)
 
-  game.beforeCycle(function () {
+  game.beforeCycle(() => {
     const newObjects = createObjects([
       { sprite: sprites.smallTree, dropRate: dropRates.smallTree },
       { sprite: sprites.tallTree, dropRate: dropRates.tallTree },
@@ -177,9 +174,7 @@ function startNeverEndingGame (images) {
       { sprite: sprites.rock, dropRate: dropRates.rock }
     ], {
       rateModifier: Math.max(800 - mainCanvas.width, 0),
-      position: function () {
-        return dContext.getRandomMapPositionBelowViewport()
-      },
+      position: () => dContext.getRandomMapPositionBelowViewport(),
       isStatic: true,
       skier
     })
@@ -187,7 +182,7 @@ function startNeverEndingGame (images) {
       game.addObjects(newObjects, true)
 
       randomlySpawnNPC(spawnBoarder, 0.1)
-      distanceTravelledInMetres = parseFloat(skier.getPixelsTravelledDownMountain() / pixelsPerMetre).toFixed(1)
+      let distanceTravelledInMetres: number = parseFloat((skier.getPixelsTravelledDownMountain() / pixelsPerMetre).toFixed(1))
 
       if (distanceTravelledInMetres > monsterDistanceThreshold && !game.hasObject('monster')) {
         randomlySpawnNPC(spawnMonster, 0.001)
@@ -196,9 +191,12 @@ function startNeverEndingGame (images) {
   })
 
   let haveSeenSensoState = false
-  window.PlayEGI.onSignal(function (signal) {
+
+  // @ts-ignore
+  window.PlayEGI.onSignal((signal: any) => {
     switch (signal.type) {
       case 'Hello':
+        // @ts-ignore
         window.PlayEGI.ready()
 
         if (signal.settings) {
@@ -208,8 +206,9 @@ function startNeverEndingGame (images) {
           }
         }
 
+        // @ts-ignore
         const timer = window.PlayEGIHelpers.timer(document.body)
-        game.afterCycle(function () {
+        game.afterCycle(() => {
           const elapsed = game.getRunningTime()
           if (elapsed >= settings.duration) {
             detectEnd()
@@ -224,6 +223,8 @@ function startNeverEndingGame (images) {
 
       case 'Resume':
         game.resume()
+
+        // @ts-ignore
         window.PlayEGI.led({
           channel: 2, // center
           symbol: 2, // plus
@@ -234,6 +235,7 @@ function startNeverEndingGame (images) {
         break
 
       case 'Ping':
+      // @ts-ignore
         window.PlayEGI.pong()
         break
 
@@ -268,7 +270,7 @@ function startNeverEndingGame (images) {
 
 // Linear interpolation of x on f, as relative coordinates [-1; 1]
 const directions = ['center', 'up', 'right', 'down', 'left']
-function linearInterpolX (state) {
+function linearInterpolX(state: any) {
   const totalForce = directions.reduce((sum, d) => state[d].f + sum, 0)
 
   // Avoid brownian skiing when plate empty
@@ -281,7 +283,7 @@ function linearInterpolX (state) {
 }
 
 // Return [0; 1] centered with the given amplitude
-function centerWithAmplitude ({ activeRatio, x }) {
+function centerWithAmplitude({ activeRatio, x }: any) {
   const sensoWidth = 3
   const centered = x - sensoWidth / 2
   const amplitude = sensoWidth * activeRatio
@@ -289,11 +291,11 @@ function centerWithAmplitude ({ activeRatio, x }) {
   return (clamp(-halfAmplitude, centered, halfAmplitude) + halfAmplitude) / amplitude
 }
 
-function clamp (min, x, max) {
+function clamp(min: number, x: number, max: number) {
   return Math.max(min, Math.min(max, x))
 }
 
-function setupCanvas () {
+function setupCanvas() {
   const dpr = window.devicePixelRatio || 1
 
   mainCanvas.width = window.innerWidth * dpr
@@ -308,5 +310,3 @@ window.addEventListener('resize', setupCanvas, false)
 setupCanvas()
 
 loadImages(imageSources, startNeverEndingGame)
-
-this.exports = window
