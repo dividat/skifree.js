@@ -11,8 +11,8 @@ const jumpDuration: number = 1200 // ms
 
 // Facing: Left - South - East
 export const downDirection: number = Math.PI / 2
-const leftMostDirection: number = Math.PI
-const rightMostDirection: number = 0
+const rightMostDirection: number = Math.PI
+const leftMostDirection: number = 0
 const directionAmplitude: number = Math.PI
 
 export class Skier extends Sprite {
@@ -63,11 +63,11 @@ export class Skier extends Sprite {
   }
 
   turnLeft() {
-    this.direction = Math.min(this.direction - directionAmplitude / 6, leftMostDirection)
+    this.direction = Math.max(this.direction - directionAmplitude / 6, leftMostDirection)
   }
 
   turnRight() {
-    this.direction = Math.max(this.direction + directionAmplitude / 6, rightMostDirection)
+    this.direction = Math.min(this.direction + directionAmplitude / 6, rightMostDirection)
   }
 
   getPixelsTravelledDownMountain(): number {
