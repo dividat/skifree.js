@@ -17,13 +17,12 @@ const directionAmplitude: number = Math.PI
 
 export class Skier extends Sprite {
 
-  cancelableStateTimeout: any
   obstaclesHit: Array<any>
   pixelsTravelled: number
   isJumping: boolean
   jumps: number
   collisions: number
-  lastCollision: number | undefined
+  lastCollisionTime: number | undefined
   lastEatenTime: number | undefined
   lastJump: number | undefined
   direction: number
@@ -32,15 +31,14 @@ export class Skier extends Sprite {
   constructor(mainCanvas: any, data: any) {
     super(data)
 
-    this.cancelableStateTimeout = undefined
     this.obstaclesHit = []
     this.pixelsTravelled = 0
     this.isJumping = false
     this.jumps = 0
     this.collisions = 0
-    this.lastCollision = undefined
+    this.lastCollisionTime = undefined
     this.lastJump = undefined
-    this.direction = downDirection
+    this.direction = leftMostDirection
     this.speed = Vec2.zero
   }
 
@@ -70,20 +68,15 @@ export class Skier extends Sprite {
     this.direction = Math.min(this.direction + directionAmplitude / 6, rightMostDirection)
   }
 
-  getPixelsTravelledDownMountain(): number {
-    return this.pixelsTravelled
-  }
-
   setDirection(direction: number) {
     this.direction = direction
   }
 
   cycle(dt: number) {
-    if (this.speed !== Vec2.zero) {
-      this.pixelsTravelled += Vec2.length(this.speed) * (dt || config.originalFrameInterval) / config.originalFrameInterval
-    }
-
+    const [x1, y1] = [this.mapPosition[0], this.mapPosition[1]]
     super.cycle(dt)
+    const [x2, y2] = [this.mapPosition[0], this.mapPosition[1]]
+    this.pixelsTravelled += Vec2.length({ x: Math.abs(x2 - x1), y: Math.abs(y2 - y1) })
   }
 
   move(dt: number) {
@@ -159,7 +152,7 @@ export class Skier extends Sprite {
   }
 
   isLying() {
-    return this.lastCollision !== undefined && Date.now() - this.lastCollision < crashDuration
+    return this.lastCollisionTime !== undefined && Date.now() - this.lastCollisionTime < crashDuration
   }
 
   isBeingEaten() {
@@ -200,13 +193,9 @@ export class Skier extends Sprite {
   hasHitObstacle(obs: Sprite) {
     if (!this.isJumping && this.invincibleProgress() === undefined) {
       this.collisions++
-      this.lastCollision = Date.now()
+      this.lastCollisionTime = Date.now()
       this.speed = Vec2.zero
       this.obstaclesHit.push(obs.id)
-
-      if (this.cancelableStateTimeout) {
-        clearTimeout(this.cancelableStateTimeout)
-      }
 
       // @ts-ignore
       window.PlayEGI.motor('negative')
@@ -235,7 +224,7 @@ export class Skier extends Sprite {
       }
     }
 
-    return getProgress(this.lastCollision, crashDuration) || getProgress(this.lastEatenTime, eatingDuration)
+    return getProgress(this.lastCollisionTime, crashDuration) || getProgress(this.lastEatenTime, eatingDuration)
   }
 
   hasHitJump() {
@@ -244,13 +233,10 @@ export class Skier extends Sprite {
       this.isJumping = true
       this.lastJump = Date.now()
 
+      setTimeout(() => this.isJumping = false, jumpDuration)
+
       // @ts-ignore
       window.PlayEGI.motor('positive')
-
-      if (this.cancelableStateTimeout) {
-        clearTimeout(this.cancelableStateTimeout)
-      }
-      this.cancelableStateTimeout = setTimeout(() => this.isJumping = false, jumpDuration)
     }
   }
 

@@ -11,4 +11,3 @@ export const config = {
   originalFrameInterval: 20,
   debug: new URLSearchParams(document.location.search).has('debug')
 }
-

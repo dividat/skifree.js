@@ -33,9 +33,8 @@ const imageSources: Array<string> = []
   }
 })()
 
-const pixelsPerMetre: number = 18
-let distanceTravelledInMetres: number = 0
-const monsterDistanceThreshold: number = 2000
+const pixelsPerMeter: number = 18
+const monsterDistanceThreshold: number = 2000 // meters
 const dropRates = {
   smallTree: 6,
   tallTree: 7,
@@ -101,13 +100,10 @@ function startNeverEndingGame(images: Array<any>) {
 
   const detectEnd = () => {
     if (!game.isPaused()) {
-      game.pause()
-      game.cycle()
-
       // @ts-ignore
       window.PlayEGI.finish({
         duration: { type: 'Duration', value: settings.duration },
-        distance: { type: 'RawInt', value: Math.round(distanceTravelledInMetres) },
+        distance: { type: 'RawInt', value: Math.round(skier.pixelsTravelled / pixelsPerMeter) },
         jumps: { type: 'RawInt', value: skier.jumps },
         collisions: { type: 'RawInt', value: skier.collisions },
       })
@@ -178,13 +174,13 @@ function startNeverEndingGame(images: Array<any>) {
       isStatic: true,
       skier
     })
+    console.log(skier.pixelsTravelled)
     if (!game.isPaused()) {
       game.addObjects(newObjects, true)
 
       randomlySpawnNPC(spawnBoarder, 0.1)
-      let distanceTravelledInMetres: number = parseFloat((skier.getPixelsTravelledDownMountain() / pixelsPerMetre).toFixed(1))
 
-      if (distanceTravelledInMetres > monsterDistanceThreshold && !game.hasObject('monster')) {
+      if (skier.pixelsTravelled / pixelsPerMeter > monsterDistanceThreshold && !game.hasObject('monster')) {
         randomlySpawnNPC(spawnMonster, 0.001)
       }
     }
