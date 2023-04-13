@@ -74,27 +74,8 @@ export function Game (mainCanvas: any, skier: Skier) {
 
     const allObjects = objects.slice() // Clone
     allObjects.push(skier)
-    allObjects.sort((a: any, b: any) => {
-      if (isJumpingSkier(a)) {
-        return 1
-      } else if (isJumpingSkier(b)) {
-        return -1
-      } else if (isSnow(a)) {
-        return -1
-      } else if (isSnow(b)) {
-        return 1
-      } else {
-        const aBottom = a.getBottomHitBoxEdge(a.mapPosition[2])
-        const bBottom = b.getBottomHitBoxEdge(b.mapPosition[2])
-        return aBottom - bBottom
-      }
-    })
-
-    allObjects.forEach((object: any) => {
-      if (object.draw) {
-        object.draw(dContext, 'main')
-      }
-    })
+    allObjects.sort(sortFromBackToFront)
+    allObjects.forEach((object: Sprite) => object.draw(dContext, 'main'))
   }
 
   this.start = () => {
@@ -147,6 +128,22 @@ export function Game (mainCanvas: any, skier: Skier) {
     return objects.some((obj: any) => {
       return obj.data.name === name
     })
+  }
+}
+
+function sortFromBackToFront(a: Sprite, b: Sprite): number {
+  if (isJumpingSkier(a)) {
+    return 1
+  } else if (isJumpingSkier(b)) {
+    return -1
+  } else if (isSnow(a)) {
+    return -1
+  } else if (isSnow(b)) {
+    return 1
+  } else {
+    const aBottom = a.getBottomHitBoxEdge(a.mapPosition[2])
+    const bBottom = b.getBottomHitBoxEdge(b.mapPosition[2])
+    return aBottom - bBottom
   }
 }
 
