@@ -12,7 +12,7 @@ export function Game (mainCanvas: any, skier: Skier) {
   let runningTime: number = 0
   let lastStepAt: number | undefined = undefined
 
-  this.addObject = ({ sprite, shouldAvoidCollisions, type }: any) => {
+  this.addObject = ({ sprite, type, allowCollisions }: any) => {
     // Determine graphical properties to enable hit check
     if (sprite.data.parts.main !== undefined) {
       sprite.determineNextFrame(dContext, 'main')
@@ -26,7 +26,7 @@ export function Game (mainCanvas: any, skier: Skier) {
       }, true)
     }
 
-    if (!shouldAvoidCollisions || this.canAddObject(sprite)) {
+    if (!allowCollisions || this.canAddObject(sprite)) {
       objects.push(sprite)
     }
   }
@@ -38,9 +38,9 @@ export function Game (mainCanvas: any, skier: Skier) {
     })
   }
 
-  this.addObjects = (sprites: any, shouldAvoidCollisions: boolean) => {
+  this.addObjects = (sprites: any, allowCollisions?: boolean) => {
     sprites.forEach((sprite: Sprite) =>
-      this.addObject({ sprite, shouldAvoidCollisions })
+      this.addObject({ sprite, allowCollisions })
     )
   }
 

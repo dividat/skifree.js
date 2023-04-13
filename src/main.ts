@@ -1,15 +1,35 @@
 import 'lib/canvasRenderingContext2DExtensions'
 import * as Random from 'lib/random'
-
-// Game Objects
-import { Monster } from 'lib/monster'
-import { Sprite, createObjects } from 'lib/sprite'
-import { Snowboarder } from 'lib/snowboarder'
-import { Skier, downDirection } from 'lib/skier'
 import { Game } from 'lib/game'
+import { Monster } from 'lib/monster'
+import { Skier, downDirection } from 'lib/skier'
+import { Snowboarder } from 'lib/snowboarder'
+import { Sprite } from 'lib/sprite'
 import { sprites } from 'spriteInfo'
 
+// Settings
+
+const pixelsPerMeter: number = 18
+const monsterDistanceThreshold: number = 2000 // meters
+const snowboarderDropRate = 0.1
+const monsterDropRate = 0.001
+
+const spawnableSprites = [
+  { sprite: sprites.smallTree, dropRate: 8 },
+  { sprite: sprites.tallTree, dropRate: 10 },
+  { sprite: sprites.jump, dropRate: 0.8 },
+  { sprite: sprites.thickSnow, dropRate: 0.5 },
+  { sprite: sprites.thickerSnow, dropRate: 0.5 },
+  { sprite: sprites.rock, dropRate: 5 }
+]
+
+let settings = {
+  duration: 60000,
+  wheelchair: false
+}
+
 // Local variables for starting the game
+
 const mainCanvas: any = document.getElementById('skifree-canvas')
 const dContext: any = mainCanvas.getContext('2d')
 const infoBoxControls: string = 'Use the mouse or WASD to control the skier'
@@ -32,22 +52,6 @@ const imageSources: Array<string> = []
       }
   }
 })()
-
-const pixelsPerMeter: number = 18
-const monsterDistanceThreshold: number = 2000 // meters
-const dropRates = {
-  smallTree: 6,
-  tallTree: 7,
-  jump: 0.5,
-  thickSnow: 0.5,
-  thickerSnow: 0.5,
-  rock: 2
-}
-
-let settings = {
-  duration: 60000,
-  wheelchair: false
-}
 
 function loadImages(sources: Array<string>, next: any) {
   let loaded = 0
@@ -110,8 +114,8 @@ function startNeverEndingGame(images: Array<any>) {
     }
   }
 
-  function randomlySpawnNPC (spawnFunction: () => void, dropRate: number) {
-    const rateModifier = Math.max(800 - mainCanvas.width, 0)
+  function randomlySpawnNPC(spawnFunction: () => void, dropRate: number) {
+    const rateModifier = Math.max(800 - mainCanvas.width / window.devicePixelRatio, 0)
     if (Random.between(0, 1000 + rateModifier) <= dropRate * skier.getSpeedRatio()) {
       spawnFunction()
     }
@@ -151,37 +155,21 @@ function startNeverEndingGame(images: Array<any>) {
 
   skier.determineNextFrame(dContext, 'east')
   startSign = new Sprite(sprites.signStart)
-  game.addObject({ sprite: startSign })
+  game.addObject({ sprite: startSign }, true)
   startSign.setMapPosition(-0.4 * skier.width, -0.1 * skier.height)
 
   cottage = new Sprite(sprites.cottage)
-  game.addObject({ sprite: cottage })
+  game.addObject({ sprite: cottage }, true)
   cottage.setMapPosition(0.7 * skier.width, -1.2 * skier.height)
 
   dContext.followSprite(skier)
 
   game.beforeCycle(() => {
-    const newObjects = createObjects([
-      { sprite: sprites.smallTree, dropRate: dropRates.smallTree },
-      { sprite: sprites.tallTree, dropRate: dropRates.tallTree },
-      { sprite: sprites.jump, dropRate: dropRates.jump },
-      { sprite: sprites.thickSnow, dropRate: dropRates.thickSnow },
-      { sprite: sprites.thickerSnow, dropRate: dropRates.thickerSnow },
-      { sprite: sprites.rock, dropRate: dropRates.rock }
-    ], {
-      rateModifier: Math.max(800 - mainCanvas.width, 0),
-      position: () => dContext.getRandomMapPositionBelowViewport(),
-      isStatic: true,
-      skier
-    })
-    console.log(skier.pixelsTravelled)
     if (!game.isPaused()) {
-      game.addObjects(newObjects, true)
-
-      randomlySpawnNPC(spawnBoarder, 0.1)
-
+      game.addObjects(createObjects(skier))
+      randomlySpawnNPC(spawnBoarder, snowboarderDropRate)
       if (skier.pixelsTravelled / pixelsPerMeter > monsterDistanceThreshold && !game.hasObject('monster')) {
-        randomlySpawnNPC(spawnMonster, 0.001)
+        randomlySpawnNPC(spawnMonster, monsterDropRate)
       }
     }
   })
@@ -306,3 +294,28 @@ window.addEventListener('resize', setupCanvas, false)
 setupCanvas()
 
 loadImages(imageSources, startNeverEndingGame)
+
+function createObjects(skier: Skier) {
+  const rateModifier = Math.max(800 - mainCanvas.width / window.devicePixelRatio, 0)
+  const speedRatio = skier.getSpeedRatio()
+
+  return spawnableSprites
+    .filter((spriteInfo: any) => {
+      const random = Random.between(1, 100) + rateModifier
+      return random < spriteInfo.dropRate * speedRatio
+    })
+    .map((spriteInfo: any) => {
+      const sprite = new Sprite(spriteInfo.sprite)
+
+      const position = dContext.getRandomMapPositionBelowViewport()
+      sprite.setMapPosition(position[0], position[1])
+
+      sprite.isStatic = true
+
+      if (spriteInfo.sprite.hitBehaviour && spriteInfo.sprite.hitBehaviour.skier) {
+        sprite.onHitting(skier, spriteInfo.sprite.hitBehaviour.skier)
+      }
+
+      return sprite
+    })
+}
