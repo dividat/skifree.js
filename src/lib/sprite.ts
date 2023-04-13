@@ -107,7 +107,7 @@ export class Sprite {
     this.setMapPosition(pos.x, pos.y)
   }
 
-  determineNextFrame(dCtx: any, spriteFrame: any) {
+  determineNextFrame(dContext: any, spriteFrame: string) {
     this.part = spriteFrame
 
     const part = this.data.parts[spriteFrame]
@@ -125,7 +125,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
       overridePath = "sprites/" + this.data.name + "-" + spriteFrame + frame + ".png"
     }
 
-    const img = dCtx.getLoadedImage(overridePath)
+    const img = dContext.getLoadedImage(overridePath)
 
     if (!img || !img.complete || img.naturalHeight === 0) {
       this.width = 0
@@ -144,32 +144,27 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     this.width = targetWidth
     this.height = targetHeight
 
-    const newCanvasPosition = dCtx.mapPositionToCanvasPosition(this.mapPosition)
+    const newCanvasPosition = dContext.mapPositionToCanvasPosition(this.mapPosition)
     this.setCanvasPosition(newCanvasPosition[0], newCanvasPosition[1])
 
     return img
   }
 
-  draw(dCtx: any, spriteFrame: any) {
-    const img = this.determineNextFrame(dCtx, spriteFrame)
+  draw(dContext: any, spriteFrame: string) {
+    const img = this.determineNextFrame(dContext, spriteFrame)
     if (img == null) return
 
-    const fr = [0, 0, img.width, img.height]
-
-    dCtx.drawImage(img, fr[0], fr[1], fr[2], fr[3], this.canvasX, this.canvasY, this.width, this.height)
+    dContext.drawImage(img, 0, 0, img.width, img.height, this.canvasX, this.canvasY, this.width, this.height)
 
     if (config.debug) {
-      const thbe = this.getTopHitBoxEdge(this.mapPosition[2])
-      const bhbe = this.getBottomHitBoxEdge(this.mapPosition[2])
-      const lhbe = this.getLeftHitBoxEdge(this.mapPosition[2])
-      const rhbe = this.getRightHitBoxEdge(this.mapPosition[2])
-      dCtx.moveTo(lhbe, thbe)
-      dCtx.lineTo(rhbe, thbe)
-      dCtx.lineTo(rhbe, bhbe)
-      dCtx.lineTo(lhbe, bhbe)
-      dCtx.lineTo(lhbe, thbe)
-      dCtx.strokeStyle = 'red'
-      dCtx.stroke()
+      const top = this.getTopHitBoxEdge()
+      const bottom = this.getBottomHitBoxEdge()
+      const left = this.getLeftHitBoxEdge()
+      const right = this.getRightHitBoxEdge()
+      dContext.beginPath()
+      dContext.strokeStyle = 'red'
+      dContext.rect(left, bottom, right - left, top - bottom)
+      dContext.stroke()
     }
   }
 
@@ -201,8 +196,8 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     return this.canvasY
   }
 
-  getLeftHitBoxEdge(zIndex: number) {
-    zIndex = zIndex || 0
+  getLeftHitBoxEdge() {
+    const zIndex = this.mapPosition[2]
     let lhbe = this.getCanvasPositionX()
     if (this.getHitBox(zIndex)) {
       lhbe += this.getHitBox(zIndex)[3] * this.width
@@ -210,8 +205,8 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     return lhbe
   }
 
-  getTopHitBoxEdge(zIndex: number) {
-    zIndex = zIndex || 0
+  getTopHitBoxEdge() {
+    const zIndex = this.mapPosition[2]
     let thbe = this.getCanvasPositionY()
     if (this.getHitBox(zIndex)) {
       thbe += this.getHitBox(zIndex)[0] * this.height
@@ -219,23 +214,19 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     return thbe
   }
 
-  getRightHitBoxEdge(zIndex: number) {
-    zIndex = zIndex || 0
-
+  getRightHitBoxEdge() {
+    const zIndex = this.mapPosition[2]
     if (this.getHitBox(zIndex)) {
       return this.canvasX + (1 - this.getHitBox(zIndex)[1]) * this.width
     }
-
     return this.canvasX + this.width
   }
 
-  getBottomHitBoxEdge(zIndex: number) {
-    zIndex = zIndex || 0
-
+  getBottomHitBoxEdge() {
+    const zIndex = this.mapPosition[2]
     if (this.getHitBox(zIndex)) {
       return this.canvasY + (1 - this.getHitBox(zIndex)[2]) * this.height
     }
-
     return this.canvasY + this.height
   }
 
@@ -362,14 +353,11 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
   }
 
   hits(other: Sprite) {
-    const thisZ = this.mapPosition[2]
-    const otherZ = other.mapPosition[2]
-
     return !(
-      this.getLeftHitBoxEdge(thisZ) > other.getRightHitBoxEdge(otherZ) ||
-      this.getRightHitBoxEdge(thisZ) < other.getLeftHitBoxEdge(otherZ) ||
-      this.getTopHitBoxEdge(thisZ) > other.getBottomHitBoxEdge(otherZ) ||
-      this.getBottomHitBoxEdge(thisZ) < other.getTopHitBoxEdge(otherZ)
+      this.getLeftHitBoxEdge() > other.getRightHitBoxEdge() ||
+      this.getRightHitBoxEdge() < other.getLeftHitBoxEdge() ||
+      this.getTopHitBoxEdge() > other.getBottomHitBoxEdge() ||
+      this.getBottomHitBoxEdge() < other.getTopHitBoxEdge()
     )
   }
 
@@ -380,14 +368,11 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
       const jumpingH = 1200
       const landingH = 500
 
-      const jumpZ = this.mapPosition[2]
-      const hittableZ = other.mapPosition[2]
-
       return !(
-        other.getLeftHitBoxEdge(hittableZ) > (this.getRightHitBoxEdge(jumpZ) + sideWidth) ||
-        other.getRightHitBoxEdge(hittableZ) < (this.getLeftHitBoxEdge(jumpZ) - sideWidth) ||
-        other.getTopHitBoxEdge(hittableZ) > (this.getBottomHitBoxEdge(jumpZ) + jumpingH + landingH) ||
-        other.getBottomHitBoxEdge(hittableZ) < (this.getTopHitBoxEdge(jumpZ) + jumpingH)
+        other.getLeftHitBoxEdge() > (this.getRightHitBoxEdge() + sideWidth) ||
+        other.getRightHitBoxEdge() < (this.getLeftHitBoxEdge() - sideWidth) ||
+        other.getTopHitBoxEdge() > (this.getBottomHitBoxEdge() + jumpingH + landingH) ||
+        other.getBottomHitBoxEdge() < (this.getTopHitBoxEdge() + jumpingH)
       )
     } else {
       return false
