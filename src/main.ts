@@ -17,9 +17,9 @@ const monsterDropRate = 0.001
 const spawnableSprites = [
   { sprite: sprites.smallTree, dropRate: 8 },
   { sprite: sprites.tallTree, dropRate: 10 },
-  { sprite: sprites.jump, dropRate: 0.8 },
-  { sprite: sprites.thickSnow, dropRate: 0.5 },
-  { sprite: sprites.thickerSnow, dropRate: 0.5 },
+  { sprite: sprites.jump, dropRate: 1 },
+  { sprite: sprites.thickSnow, dropRate: 1 },
+  { sprite: sprites.thickerSnow, dropRate: 1 },
   { sprite: sprites.rock, dropRate: 5 }
 ]
 
@@ -301,7 +301,7 @@ function createObjects(skier: Skier) {
 
   return spawnableSprites
     .filter((spriteInfo: any) => {
-      const random = Random.between(1, 100) + rateModifier
+      const random = Random.between(0, 100) + rateModifier + 0.001
       return random < spriteInfo.dropRate * speedRatio
     })
     .map((spriteInfo: any) => {
