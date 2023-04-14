@@ -7,7 +7,6 @@ import GUID from 'lib/guid'
 export class Sprite {
   hasHittableObjects: boolean
   hittableObjects: any
-  zIndexesOccupied: Array<number>
   trackedSpriteToMoveToward: Sprite | undefined
   mapPosition: Array<number>
   id: string
@@ -27,8 +26,7 @@ export class Sprite {
   constructor(data: any) {
     this.hasHittableObjects = false
     this.hittableObjects = {}
-    this.zIndexesOccupied = [ 0 ]
-    this.mapPosition = [0, 0, 0]
+    this.mapPosition = [0, 0]
     this.id = GUID()
     this.canvasX = 0
     this.canvasY = 0
@@ -50,18 +48,9 @@ export class Sprite {
     if (data && data.id) {
       this.id = data.id
     }
-
-    if (data && data.zIndexesOccupied) {
-      this.zIndexesOccupied = data.zIndexesOccupied
-    }
   }
 
-  getHitBox(forZIndex: number) {
-    if (this.data.hitBoxes) {
-      if (this.data.hitBoxes[forZIndex]) {
-        return this.data.hitBoxes[forZIndex]
-      }
-    }
+  getHitBox() {
     if (this.data.parts[this.part] && this.data.parts[this.part].offsets) {
       return this.data.parts[this.part].offsets
     }
@@ -168,19 +157,8 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     }
   }
 
-  setMapPosition(x: number, y: number, z?: number) {
-    if (typeof x === 'undefined') {
-      x = this.mapPosition[0]
-    }
-    if (typeof y === 'undefined') {
-      y = this.mapPosition[1]
-    }
-    if (typeof z === 'undefined') {
-      z = this.mapPosition[2]
-    } else {
-      this.zIndexesOccupied = [ z ]
-    }
-    this.mapPosition = [x, y, z]
+  setMapPosition(x: number, y: number) {
+    this.mapPosition = [x, y]
   }
 
   setCanvasPosition(cx: number, cy: number) {
@@ -197,35 +175,35 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
   }
 
   getLeftHitBoxEdge() {
-    const zIndex = this.mapPosition[2]
     let lhbe = this.getCanvasPositionX()
-    if (this.getHitBox(zIndex)) {
-      lhbe += this.getHitBox(zIndex)[3] * this.width
+    const hitbox = this.getHitBox()
+    if (hitbox) {
+      lhbe += hitbox[3] * this.width
     }
     return lhbe
   }
 
   getTopHitBoxEdge() {
-    const zIndex = this.mapPosition[2]
     let thbe = this.getCanvasPositionY()
-    if (this.getHitBox(zIndex)) {
-      thbe += this.getHitBox(zIndex)[0] * this.height
+    const hitbox = this.getHitBox()
+    if (hitbox) {
+      thbe += hitbox[0] * this.height
     }
     return thbe
   }
 
   getRightHitBoxEdge() {
-    const zIndex = this.mapPosition[2]
-    if (this.getHitBox(zIndex)) {
-      return this.canvasX + (1 - this.getHitBox(zIndex)[1]) * this.width
+    const hitbox = this.getHitBox()
+    if (hitbox) {
+      return this.canvasX + (1 - hitbox[1]) * this.width
     }
     return this.canvasX + this.width
   }
 
   getBottomHitBoxEdge() {
-    const zIndex = this.mapPosition[2]
-    if (this.getHitBox(zIndex)) {
-      return this.canvasY + (1 - this.getHitBox(zIndex)[2]) * this.height
+    const hitbox = this.getHitBox()
+    if (hitbox) {
+      return this.canvasY + (1 - hitbox[2]) * this.height
     }
     return this.canvasY + this.height
   }
@@ -346,10 +324,6 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
 
   deleteOnNextCycle() {
     this.deleted = true
-  }
-
-  occupiesZIndex(z: number) {
-    return this.zIndexesOccupied.indexOf(z) >= 0
   }
 
   hits(other: Sprite) {

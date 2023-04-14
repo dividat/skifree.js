@@ -175,10 +175,6 @@ export class Skier extends Sprite {
       return false
     }
 
-    if (!obs.occupiesZIndex(super.getMapPosition()[2])) {
-      return false
-    }
-
     if (super.hits(obs)) {
       return true
     }
