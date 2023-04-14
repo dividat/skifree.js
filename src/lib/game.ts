@@ -141,8 +141,8 @@ function sortFromBackToFront(a: Sprite, b: Sprite): number {
   } else if (isSnow(b)) {
     return 1
   } else {
-    const aBottom = a.getBottomHitBoxEdge()
-    const bBottom = b.getBottomHitBoxEdge()
+    const aBottom = a.canvasY + a.height
+    const bBottom = b.canvasY + b.height
     return aBottom - bBottom
   }
 }

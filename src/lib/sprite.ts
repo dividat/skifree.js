@@ -51,8 +51,15 @@ export class Sprite {
   }
 
   getHitBox() {
+    let offsets = undefined
     if (this.data.parts[this.part] && this.data.parts[this.part].offsets) {
-      return this.data.parts[this.part].offsets
+      offsets = this.data.parts[this.part].offsets
+    }
+    return {
+      top: this.canvasY + (offsets ? offsets[0] * this.height : 0),
+      right: this.canvasX + (1 - (offsets ? offsets[1] : 0)) * this.width,
+      bottom: this.canvasY + (1 - (offsets ? offsets[2] : 0)) * this.height,
+      left: this.canvasX + (offsets ? offsets[3] * this.width : 0)
     }
   }
 
@@ -146,13 +153,10 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     dContext.drawImage(img, 0, 0, img.width, img.height, this.canvasX, this.canvasY, this.width, this.height)
 
     if (config.debug) {
-      const top = this.getTopHitBoxEdge()
-      const bottom = this.getBottomHitBoxEdge()
-      const left = this.getLeftHitBoxEdge()
-      const right = this.getRightHitBoxEdge()
+      const hitbox = this.getHitBox()
       dContext.beginPath()
       dContext.strokeStyle = 'red'
-      dContext.rect(left, bottom, right - left, top - bottom)
+      dContext.rect(hitbox.left, hitbox.bottom, hitbox.right - hitbox.left, hitbox.top - hitbox.bottom)
       dContext.stroke()
     }
   }
@@ -172,40 +176,6 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
 
   getCanvasPositionY() {
     return this.canvasY
-  }
-
-  getLeftHitBoxEdge() {
-    let lhbe = this.getCanvasPositionX()
-    const hitbox = this.getHitBox()
-    if (hitbox) {
-      lhbe += hitbox[3] * this.width
-    }
-    return lhbe
-  }
-
-  getTopHitBoxEdge() {
-    let thbe = this.getCanvasPositionY()
-    const hitbox = this.getHitBox()
-    if (hitbox) {
-      thbe += hitbox[0] * this.height
-    }
-    return thbe
-  }
-
-  getRightHitBoxEdge() {
-    const hitbox = this.getHitBox()
-    if (hitbox) {
-      return this.canvasX + (1 - hitbox[1]) * this.width
-    }
-    return this.canvasX + this.width
-  }
-
-  getBottomHitBoxEdge() {
-    const hitbox = this.getHitBox()
-    if (hitbox) {
-      return this.canvasY + (1 - hitbox[2]) * this.height
-    }
-    return this.canvasY + this.height
   }
 
   getPositionInFrontOf() {
@@ -327,11 +297,14 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
   }
 
   hits(other: Sprite) {
+    const h1 = this.getHitBox()
+    const h2 = other.getHitBox()
+
     return !(
-      this.getLeftHitBoxEdge() > other.getRightHitBoxEdge() ||
-      this.getRightHitBoxEdge() < other.getLeftHitBoxEdge() ||
-      this.getTopHitBoxEdge() > other.getBottomHitBoxEdge() ||
-      this.getBottomHitBoxEdge() < other.getTopHitBoxEdge()
+      h1.left > h2.right ||
+      h1.right < h2.left ||
+      h1.top > h2.bottom ||
+      h1.bottom < h2.top
     )
   }
 
@@ -342,11 +315,14 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
       const jumpingH = 1200
       const landingH = 500
 
+      const h1 = this.getHitBox()
+      const h2 = other.getHitBox()
+
       return !(
-        other.getLeftHitBoxEdge() > (this.getRightHitBoxEdge() + sideWidth) ||
-        other.getRightHitBoxEdge() < (this.getLeftHitBoxEdge() - sideWidth) ||
-        other.getTopHitBoxEdge() > (this.getBottomHitBoxEdge() + jumpingH + landingH) ||
-        other.getBottomHitBoxEdge() < (this.getTopHitBoxEdge() + jumpingH)
+        h2.left > (h1.right + sideWidth) ||
+        h2.right < (h1.left - sideWidth) ||
+        h2.top > (h1.bottom + jumpingH + landingH) ||
+        h2.bottom < (h1.top + jumpingH)
       )
     } else {
       return false
