@@ -4,15 +4,84 @@ import { Skier } from 'lib/skier'
 export const sprites: any = {
   'skier': {
     parts: {
-      east: { offsets: [ 0.1, 0.125, 0.15, 0.45 ] },
-      esEast: { frames: 3, fps: 4, offsets: [ 0.5, 0.2, 0.15, 0.5 ] },
-      sEast: { frames: 3, fps: 7, sizeMultiple: 0.182, offsets: [ 0.4, 0.2, 0.15, 0.45] },
-      south: { frames: 3, fps: 9, offsets: [ 0.15, 0.3, 0.15, 0.2 ] },
-      sWest: { frames: 3, fps: 7, sizeMultiple: 0.182, offsets: [ 0.4, 0.45, 0.15, 0.2 ] },
-      wsWest: { frames: 3, fps: 4, offsets: [ 0.5, 0.5, 0.15, 0.2 ] },
-      west: { offsets: [ 0.1, 0.45, 0.15, 0.125 ] },
-      hit: { frames: 2, fps: 0.8, sizeMultiple: 0.182 },
-      jumping: { frames: 3, fps: 7, sizeMultiple: 0.25, offsets: [ 0.25, 0.4, 0.3, 0.4 ] },
+      east: {
+        hitBox: {
+          x: 198,
+          y: 366,
+          width: 402,
+          height: 57
+        }
+      },
+      esEast: {
+        frames: 3,
+        fps: 4,
+        hitBox: {
+          x: 240,
+          y: 348,
+          width: 338,
+          height: 80
+        }
+      },
+      sEast: {
+        frames: 3,
+        fps: 7,
+        sizeMultiple: 0.182,
+        hitBox: {
+          x: 209,
+          y: 322,
+          width: 219,
+          height: 221
+        }
+      },
+      south: {
+        frames: 3,
+        fps: 9,
+        hitBox: {
+          x: 115,
+          y: 88,
+          width: 148,
+          height: 484
+        }
+      },
+      sWest: {
+        frames: 3,
+        fps: 7,
+        sizeMultiple: 0.182,
+        hitBox: {
+          x: 117,
+          y: 313,
+          width: 242,
+          height: 246
+        }
+      },
+      wsWest: {
+        frames: 3,
+        fps: 4,
+        hitBox: {
+          x: 55,
+          y: 345,
+          width: 343,
+          height: 103
+        }
+      },
+      west: {
+        hitBox: {
+          x: 40,
+          y: 365,
+          width: 409,
+          height: 61
+        }
+      },
+      hit: {
+        frames: 2,
+        fps: 0.8,
+        sizeMultiple: 0.182
+      },
+      jumping: {
+        frames: 3,
+        fps: 7,
+        sizeMultiple: 0.25
+      },
     },
     sizeMultiple: 0.2,
     hitBehaviour: {},
@@ -20,7 +89,14 @@ export const sprites: any = {
   },
   'smallTree': {
     parts: {
-      main: { offsets: [ 0.2, 0.3, 0.1, 0.35 ] }
+      main: {
+        hitBox: {
+          x: 168,
+          y: 170,
+          width: 25,
+          height: 89
+        }
+      }
     },
     sizeMultiple: 0.2,
     hitBehaviour: {
@@ -30,7 +106,14 @@ export const sprites: any = {
   },
   'tallTree': {
     parts: {
-      main: { offsets: [ 0.25, 0.2, 0.1, 0.2 ] }
+      main: {
+        hitBox: {
+          x: 230,
+          y: 611,
+          width: 117,
+          height: 201,
+        }
+      }
     },
     sizeMultiple: 0.2,
     hitBehaviour: {
@@ -40,7 +123,14 @@ export const sprites: any = {
   },
   'thickSnow': {
     parts: {
-      main: {}
+      main: {
+        hitBox: {
+          x: 24,
+          y: 56,
+          width: 382,
+          height: 44
+        }
+      }
     },
     sizeMultiple: 0.2,
     hitBehaviour: {
@@ -51,7 +141,14 @@ export const sprites: any = {
   },
   'thickerSnow': {
     parts: {
-      main: {}
+      main: {
+        hitBox: {
+          x: 42,
+          y: 77,
+          width: 630,
+          height: 48
+        }
+      }
     },
     sizeMultiple: 0.2,
     hitBehaviour: {
@@ -62,7 +159,14 @@ export const sprites: any = {
   },
   'rock': {
     parts: {
-      main: { offsets: [ 0.05, 0.05, 0.1, 0.3 ] }
+      main: {
+        hitBox: {
+          x: 134,
+          y: 32,
+          width: 319,
+          height: 50
+        }
+      }
     },
     sizeMultiple: 0.2,
     hitBehaviour: {
@@ -72,8 +176,26 @@ export const sprites: any = {
   },
   'monster': {
     parts: {
-      sEast: { frames: 11, fps: 7, offsets: [ 0.2, 0.2, 0.35, 0.2 ] },
-      sWest: { frames: 11, fps: 7, offsets: [ 0.2, 0.2, 0.35, 0.2 ]},
+      sEast: {
+        frames: 11,
+        fps: 7,
+        hitBox: {
+          x: 167,
+          y: 48,
+          width: 300,
+          height: 486
+        }
+      },
+      sWest: {
+        frames: 11,
+        fps: 7,
+        hitBox: {
+          x: 83,
+          y: 40,
+          width: 305,
+          height: 465
+        }
+      },
       eating1: {},
       eating2: {},
       eating3: {},
@@ -87,7 +209,14 @@ export const sprites: any = {
   },
   'jump': {
     parts: {
-      main: { offsets: [ 0, 0.25, 0.6, 0.2 ] }
+      main: {
+        hitBox: {
+          x: 166,
+          y: 4,
+          width: 430,
+          height: 205
+        }
+      }
     },
     sizeMultiple: 0.2,
     hitBehaviour: {
@@ -107,7 +236,11 @@ export const sprites: any = {
   },
   'cottage': {
     parts: {
-      main: { frames: 12, fps: 4, delay: 3000 }
+      main: {
+        frames: 12,
+        fps: 4,
+        delay: 3000
+      }
     },
     sizeMultiple: 0.2,
     hitBehaviour: {},
@@ -116,8 +249,26 @@ export const sprites: any = {
   },
   'snowboarder': {
     parts: {
-      sEast: { frames: 3, fps: 7, offsets: [ 0.3, 0.3, 0.2, 0.2 ] },
-      sWest: { frames: 3, fps: 7, offsets: [ 0.3, 0.3, 0.2, 0.2 ] }
+      sEast: {
+        frames: 3,
+        fps: 7,
+        hitBox: {
+          x: 142,
+          y: 296,
+          width: 81,
+          height: 84
+        }
+      },
+      sWest: {
+        frames: 3,
+        fps: 7,
+        hitBox: {
+          x: 101,
+          y: 298,
+          width: 76,
+          height: 85
+        }
+      }
     },
     sizeMultiple: 0.28,
     hitBehaviour: {

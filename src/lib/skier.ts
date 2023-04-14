@@ -170,16 +170,14 @@ export class Skier extends Sprite {
     }
   }
 
-  hits(obs: Sprite) {
-    if (this.obstaclesHit.indexOf(obs.id) !== -1) {
+  hits({ sprite, useHitBox }: { sprite: Sprite, useHitBox: boolean }): boolean {
+    if (this.obstaclesHit.indexOf(sprite.id) !== -1) {
+      return false
+    } else if (super.hits({ sprite, useHitBox })) {
+      return true
+    } else {
       return false
     }
-
-    if (super.hits(obs)) {
-      return true
-    }
-
-    return false
   }
 
   getSpeedRatio() {

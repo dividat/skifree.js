@@ -143,7 +143,7 @@ function startNeverEndingGame(images: Array<any>) {
     newBoarder.setMapPositionTarget(randomPositionBelow[0], randomPositionBelow[1])
     newBoarder.onHitting(skier, sprites.snowboarder.hitBehaviour.skier)
 
-    game.addObject({ sprite: newBoarder })
+    game.addObject({ sprite: newBoarder, allowCollisions: true })
   }
 
   skier = new Skier(mainCanvas, sprites.skier)
@@ -155,18 +155,18 @@ function startNeverEndingGame(images: Array<any>) {
 
   skier.determineNextFrame(dContext, 'east')
   startSign = new Sprite(sprites.signStart)
-  game.addObject({ sprite: startSign }, true)
+  game.addObject({ sprite: startSign, allowCollisions: true })
   startSign.setMapPosition(-0.4 * skier.width, -0.1 * skier.height)
 
   cottage = new Sprite(sprites.cottage)
-  game.addObject({ sprite: cottage }, true)
+  game.addObject({ sprite: cottage, allowCollisions: true })
   cottage.setMapPosition(0.7 * skier.width, -1.2 * skier.height)
 
   dContext.followSprite(skier)
 
   game.beforeCycle(() => {
     if (!game.isPaused()) {
-      game.addObjects(createObjects(skier))
+      game.addObjects({ sprites: createObjects(skier), allowCollisions: false })
       randomlySpawnNPC(spawnBoarder, snowboarderDropRate)
       if (skier.pixelsTravelled / pixelsPerMeter > monsterDistanceThreshold && !game.hasObject('monster')) {
         randomlySpawnNPC(spawnMonster, monsterDropRate)

@@ -50,11 +50,33 @@ export class Sprite {
     }
   }
 
+  getImageBox() {
+    return {
+      top: this.canvasY - 100,
+      right: this.canvasX + this.width + 100,
+      bottom: this.canvasY + this.height + 100,
+      left: this.canvasX - 100,
+    }
+  }
+
   getHitBox() {
     let offsets = undefined
-    if (this.data.parts[this.part] && this.data.parts[this.part].offsets) {
-      offsets = this.data.parts[this.part].offsets
+    let part = this.data.parts[this.part]
+
+    if (part && part.hitBox) {
+      const hitBox = part.hitBox
+      const m = this.getSizeMultiple(part)
+
+      return {
+        top: this.canvasY + (hitBox ? m * hitBox.y : 0),
+        right: this.canvasX + (hitBox ? m * (hitBox.x + hitBox.width) : this.width),
+        bottom: this.canvasY + (hitBox ? m * (hitBox.y + hitBox.height) : this.height),
+        left: this.canvasX + (hitBox ? m * hitBox.x : 0)
+      }
+    } else if (part && part.offsets) {
+      offsets = part.offsets
     }
+
     return {
       top: this.canvasY + (offsets ? offsets[0] * this.height : 0),
       right: this.canvasX + (1 - (offsets ? offsets[1] : 0)) * this.width,
@@ -129,13 +151,9 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
       return
     }
 
-    let spriteZoom = 1
-    if (typeof this.data.sizeMultiple === 'number') {
-      spriteZoom = part.sizeMultiple || this.data.sizeMultiple
-    }
-
-    const targetWidth = Math.round(img.naturalWidth * spriteZoom * config.zoom)
-    const targetHeight = Math.round(img.naturalHeight * spriteZoom * config.zoom)
+    const sizeMultiple = this.getSizeMultiple(part)
+    const targetWidth = Math.round(img.naturalWidth * sizeMultiple * config.zoom)
+    const targetHeight = Math.round(img.naturalHeight * sizeMultiple * config.zoom)
 
     this.width = targetWidth
     this.height = targetHeight
@@ -146,6 +164,16 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     return img
   }
 
+  getSizeMultiple(part: any): number {
+    if (typeof part.sizeMultiple === 'number') {
+      return part.sizeMultiple
+    } else if (typeof this.data.sizeMultiple === 'number') {
+      return this.data.sizeMultiple
+    } else {
+      return 1
+    }
+  }
+
   draw(dContext: any, spriteFrame: string) {
     const img = this.determineNextFrame(dContext, spriteFrame)
     if (img == null) return
@@ -153,10 +181,10 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     dContext.drawImage(img, 0, 0, img.width, img.height, this.canvasX, this.canvasY, this.width, this.height)
 
     if (config.debug) {
-      const hitbox = this.getHitBox()
+      const hitBox = this.getHitBox()
       dContext.beginPath()
       dContext.strokeStyle = 'red'
-      dContext.rect(hitbox.left, hitbox.bottom, hitbox.right - hitbox.left, hitbox.top - hitbox.bottom)
+      dContext.rect(hitBox.left, hitBox.bottom, hitBox.right - hitBox.left, hitBox.top - hitBox.bottom)
       dContext.stroke()
     }
   }
@@ -215,7 +243,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
       if (objectData.object.deleted) {
         delete this.hittableObjects[k]
       } else {
-        if (objectData.object.hits(this)) {
+        if (objectData.object.hits({ sprite: this, useHitBox: true })) {
           objectData.callbacks.forEach((callback: any) =>
             callback(this, objectData.object)
           )
@@ -296,9 +324,9 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     this.deleted = true
   }
 
-  hits(other: Sprite) {
-    const h1 = this.getHitBox()
-    const h2 = other.getHitBox()
+  hits({ sprite, useHitBox }: { sprite: Sprite, useHitBox: boolean }) {
+    const h1 = useHitBox ? this.getHitBox() : this.getImageBox()
+    const h2 = useHitBox ? sprite.getHitBox() : sprite.getImageBox()
 
     return !(
       h1.left > h2.right ||
