@@ -15,8 +15,8 @@ const snowboarderDropRate = 0.1
 const monsterDropRate = 0.001
 
 const spawnableSprites = [
-  { sprite: sprites.smallTree, dropRate: 8 },
-  { sprite: sprites.tallTree, dropRate: 10 },
+  { sprite: sprites.smallTree, dropRate: 10 },
+  { sprite: sprites.tallTree, dropRate: 30 },
   { sprite: sprites.jump, dropRate: 1 },
   { sprite: sprites.thickSnow, dropRate: 1 },
   { sprite: sprites.thickerSnow, dropRate: 1 },

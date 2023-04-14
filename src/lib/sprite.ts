@@ -60,12 +60,12 @@ export class Sprite {
   }
 
   getHitBox() {
-    let offsets = undefined
     let part = this.data.parts[this.part]
 
     if (part && part.hitBox) {
       const hitBox = part.hitBox
-      const m = this.getSizeMultiple(part)
+      const spriteReducedSizeFactor = 1 / 3
+      const m = this.getSizeMultiple(part) * config.zoom * spriteReducedSizeFactor
 
       return {
         top: this.canvasY + (hitBox ? m * hitBox.y : 0),
@@ -73,15 +73,13 @@ export class Sprite {
         bottom: this.canvasY + (hitBox ? m * (hitBox.y + hitBox.height) : this.height),
         left: this.canvasX + (hitBox ? m * hitBox.x : 0)
       }
-    } else if (part && part.offsets) {
-      offsets = part.offsets
-    }
-
-    return {
-      top: this.canvasY + (offsets ? offsets[0] * this.height : 0),
-      right: this.canvasX + (1 - (offsets ? offsets[1] : 0)) * this.width,
-      bottom: this.canvasY + (1 - (offsets ? offsets[2] : 0)) * this.height,
-      left: this.canvasX + (offsets ? offsets[3] * this.width : 0)
+    } else {
+      return {
+        top: this.canvasY,
+        right: this.canvasX + this.width,
+        bottom: this.canvasY + this.height,
+        left: this.canvasX
+      }
     }
   }
 

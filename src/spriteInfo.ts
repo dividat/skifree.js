@@ -108,10 +108,10 @@ export const sprites: any = {
     parts: {
       main: {
         hitBox: {
-          x: 230,
-          y: 611,
-          width: 117,
-          height: 201,
+          x: 137,
+          y: 661,
+          width: 327,
+          height: 130,
         }
       }
     },
