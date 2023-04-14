@@ -2,14 +2,14 @@ import * as Random from 'lib/random'
 import * as Physics from 'lib/physics'
 import * as Vec2 from 'lib/vec2'
 import { config } from 'config'
-import GUID from 'lib/guid'
+import { nextId } from 'lib/id'
 
 export class Sprite {
   hasHittableObjects: boolean
   hittableObjects: any
   trackedSpriteToMoveToward: Sprite | undefined
   mapPosition: Array<number>
-  id: string
+  id: number
   canvasX: number
   canvasY: number
   width: number
@@ -27,7 +27,7 @@ export class Sprite {
     this.hasHittableObjects = false
     this.hittableObjects = {}
     this.mapPosition = [0, 0]
-    this.id = GUID()
+    this.id = nextId()
     this.canvasX = 0
     this.canvasY = 0
     this.width = 0
