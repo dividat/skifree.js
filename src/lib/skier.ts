@@ -86,7 +86,8 @@ export class Skier extends Sprite {
   }
 
   getAccelerationAndSpeed(dt: number) {
-    let acceleration
+    let acceleration = Vec2.zero
+    let speed = Vec2.zero
 
     const dirVect = {
       x: Math.cos(this.direction),
@@ -95,15 +96,9 @@ export class Skier extends Sprite {
     const downVect = { x: 0, y: 1 }
 
     if (this.isLying() || this.isBeingEaten()) {
-      acceleration = Vec2.zero
+      // Do nothing
     } else if (this.isJumping) {
-
-      const directionAcc = Vec2.scale(15 * Vec2.dot(dirVect, downVect), dirVect)
-      const frictionAcc = Vec2.scale(-10, this.speed)
-
-      acceleration = Vec2.scale(
-        0.00001 * dt,
-        Vec2.add(frictionAcc, directionAcc))
+      speed = Vec2.scale(0.07 * dt, downVect)
     } else {
       const perdendicularSpeed = Vec2.rotate(Math.PI / 2, this.speed)
 
@@ -117,23 +112,14 @@ export class Skier extends Sprite {
       acceleration = Vec2.scale(
         0.00001 * dt,
         Vec2.add(stopAcc, frictionAcc, directionAcc))
-    }
 
-    const speed = Physics.newSpeed({
-      dt,
-      acceleration,
-      speed: this.speed
-    })
+      speed = Physics.newSpeed({ dt, acceleration, speed: this.speed })
+    }
 
     if (speed.y <= 0) {
       speed.y = 0
       acceleration.y = 0
       speed.x = 0
-    }
-
-    if (this.isJumping) {
-      speed.x = 0
-      speed.y = Math.max(0.5, speed.y)
     }
 
     return { acceleration, speed }
@@ -188,7 +174,6 @@ export class Skier extends Sprite {
     if (!this.isJumping && this.invincibleProgress() === undefined) {
       this.collisions++
       this.lastCollisionTime = Date.now()
-      this.speed = Vec2.zero
       this.obstaclesHit.push(obs.id)
 
       // @ts-ignore
@@ -236,7 +221,6 @@ export class Skier extends Sprite {
 
   isEatenBy(monster: Monster, whenEaten: () => void) {
     this.lastEatenTime = Date.now()
-    this.speed = Vec2.zero
     this.obstaclesHit.push(monster.id)
     monster.startEating(whenEaten)
 

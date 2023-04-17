@@ -11,6 +11,12 @@ interface HitBox {
   left: number
 }
 
+// Clear area for landing after a jump
+// Obtained experimentally using debugflag
+const jumpingHeight = 1300
+const landingWidth = 170
+const landingHeight = 1500
+
 export class Sprite {
   hasHittableObjects: boolean
   hittableObjects: any
@@ -196,11 +202,25 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     dContext.drawImage(img, 0, 0, img.width, img.height, this.canvasX, this.canvasY, this.width, this.height)
 
     if (config.debug) {
+      // Hitbox
       const hitBox = this.getHitBox()
       dContext.beginPath()
       dContext.strokeStyle = 'red'
       dContext.rect(hitBox.left, hitBox.bottom, hitBox.right - hitBox.left, hitBox.top - hitBox.bottom)
       dContext.stroke()
+
+      // Landing area
+      if (this.data.name === 'jump') {
+        const right = hitBox.right + landingWidth
+        const left = hitBox.left - landingWidth
+        const bottom = hitBox.bottom + jumpingHeight + landingHeight
+        const top = hitBox.top + jumpingHeight
+
+        dContext.beginPath()
+        dContext.strokeStyle = 'green'
+        dContext.rect(left, bottom, right - left, top - bottom)
+        dContext.stroke()
+      }
     }
   }
 
@@ -269,7 +289,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
 
   checkOffScreen() {
     // Keep jumps a bit more to prevent creating objects in landing areas
-    const deletePoint = this.data.name === 'jump' ? -2000 : 0
+    const deletePoint = this.data.name === 'jump' ? -jumpingHeight - landingHeight : 0
 
     if (this.isStatic && this.isAboveOnCanvas(deletePoint)) {
       this.deleted = true
@@ -353,19 +373,14 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
 
   hitsLandingArea(other: Sprite) {
     if (this.data.name === 'jump' && other.data.name !== 'thickSnow' && other.data.name !== 'thickerSnow') {
-      // Obtained experimentally by increasing object drop rates
-      const sideWidth = 150
-      const jumpingH = 1200
-      const landingH = 500
-
       const h1 = this.getHitBox()
       const h2 = other.getHitBox()
 
       return !(
-        h2.left > (h1.right + sideWidth) ||
-        h2.right < (h1.left - sideWidth) ||
-        h2.top > (h1.bottom + jumpingH + landingH) ||
-        h2.bottom < (h1.top + jumpingH)
+        h2.left > (h1.right + landingWidth) ||
+        h2.right < (h1.left - landingWidth) ||
+        h2.top > (h1.bottom + jumpingHeight + landingHeight) ||
+        h2.bottom < (h1.top + jumpingHeight)
       )
     } else {
       return false
