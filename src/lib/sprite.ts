@@ -18,7 +18,6 @@ const landingWidth = 170
 const landingHeight = 1500
 
 export class Sprite {
-  hasHittableObjects: boolean
   hittableObjects: any
   trackedSpriteToMoveToward: Sprite | undefined
   mapPosition: Array<number>
@@ -37,7 +36,6 @@ export class Sprite {
   movingTowardSpeed: number
 
   constructor(data: any) {
-    this.hasHittableObjects = false
     this.hittableObjects = {}
     this.mapPosition = [0, 0]
     this.id = nextId()
@@ -298,9 +296,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
 
   cycle(dt: number) {
     this.checkOffScreen()
-    if (this.hasHittableObjects) {
-      this.checkHittableObjects()
-    }
+    this.checkHittableObjects()
 
     if (this.trackedSpriteToMoveToward) {
       this.setMapPositionTarget(this.trackedSpriteToMoveToward.mapPosition[0], this.trackedSpriteToMoveToward.mapPosition[1], true)
@@ -351,8 +347,6 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
       object: objectToHit,
       callbacks: [ callback ]
     }
-
-    this.hasHittableObjects = true
   }
 
   deleteOnNextCycle() {

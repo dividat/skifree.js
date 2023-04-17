@@ -17,7 +17,6 @@ const directionAmplitude: number = Math.PI
 
 export class Skier extends Sprite {
 
-  obstaclesHit: Array<any>
   pixelsTravelled: number
   isJumping: boolean
   jumps: number
@@ -31,7 +30,6 @@ export class Skier extends Sprite {
   constructor(mainCanvas: any, data: any) {
     super(data)
 
-    this.obstaclesHit = []
     this.pixelsTravelled = 0
     this.isJumping = false
     this.jumps = 0
@@ -147,7 +145,7 @@ export class Skier extends Sprite {
 
   isBlinking() {
     const invincibleProgress = this.invincibleProgress()
-    if (invincibleProgress === undefined) {
+    if (invincibleProgress === 0 || invincibleProgress === undefined) {
       return false
     } else if (invincibleProgress < 0.6) {
       return Math.floor(Date.now() / 100) % 2 === 0
@@ -157,13 +155,7 @@ export class Skier extends Sprite {
   }
 
   hits({ sprite, forPlacement }: { sprite: Sprite, forPlacement: boolean }): boolean {
-    if (this.obstaclesHit.indexOf(sprite.id) !== -1) {
-      return false
-    } else if (super.hits({ sprite, forPlacement })) {
-      return true
-    } else {
-      return false
-    }
+    return this.isHittable() && super.hits({ sprite, forPlacement })
   }
 
   getSpeedRatio() {
@@ -171,10 +163,10 @@ export class Skier extends Sprite {
   }
 
   hasHitObstacle(obs: Sprite) {
-    if (!this.isJumping && this.invincibleProgress() === undefined) {
+    if (this.isHittable()) {
+      console.log('has hit', obs)
       this.collisions++
       this.lastCollisionTime = Date.now()
-      this.obstaclesHit.push(obs.id)
 
       // @ts-ignore
       window.PlayEGI.motor('negative')
@@ -182,12 +174,19 @@ export class Skier extends Sprite {
   }
 
   hasHitSnow(obs: Sprite) {
-    if (!this.isJumping && this.invincibleProgress() === undefined) {
-      this.obstaclesHit.push(obs.id)
-      this.speed = Vec2.scale(0.5, this.speed)
+    if (this.isHittable()) {
+      this.speed = Vec2.scale(0.9, this.speed)
     }
   }
 
+  isHittable(): boolean {
+    return !this.isJumping && this.invincibleProgress() === undefined
+  }
+
+  // After being hit, the skier is invincible.
+  // - undefined: the skier is not invincible
+  // - 0: the skier is lying or being eaten
+  // - number: the skier is invincible with this progress ratio
   invincibleProgress(): number | undefined {
     const getProgress = (eventTime: number | undefined, eventDuration: number) => {
       if (eventTime !== undefined) {
@@ -196,14 +195,21 @@ export class Skier extends Sprite {
           const now = Date.now()
           const start = eventTime + eventDuration
           const end = start + invincibleDuration
-          if (now >= start && now < end) {
+          if (now < start) {
+            return 0
+          } else if (now >= start && now < end) {
             return (now - start) / (end - start)
           }
         }
       }
     }
 
-    return getProgress(this.lastCollisionTime, crashDuration) || getProgress(this.lastEatenTime, eatingDuration)
+    const collisionProgress = getProgress(this.lastCollisionTime, crashDuration)
+    const eatingProgress = getProgress(this.lastEatenTime, eatingDuration)
+
+    return collisionProgress !== undefined
+      ? collisionProgress
+      : eatingProgress
   }
 
   hasHitJump() {
@@ -221,7 +227,6 @@ export class Skier extends Sprite {
 
   isEatenBy(monster: Monster, whenEaten: () => void) {
     this.lastEatenTime = Date.now()
-    this.obstaclesHit.push(monster.id)
     monster.startEating(whenEaten)
 
     // @ts-ignore
