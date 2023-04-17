@@ -170,10 +170,10 @@ export class Skier extends Sprite {
     }
   }
 
-  hits({ sprite, useHitBox }: { sprite: Sprite, useHitBox: boolean }): boolean {
+  hits({ sprite, forPlacement }: { sprite: Sprite, forPlacement: boolean }): boolean {
     if (this.obstaclesHit.indexOf(sprite.id) !== -1) {
       return false
-    } else if (super.hits({ sprite, useHitBox })) {
+    } else if (super.hits({ sprite, forPlacement })) {
       return true
     } else {
       return false

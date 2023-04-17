@@ -33,7 +33,7 @@ export function Game (mainCanvas: any, skier: Skier) {
 
   this.canAddObject = (sprite: Sprite) => {
     return !objects.some((other: any) => {
-      return other.hits({ sprite, useHitBox: false }) || other.hitsLandingArea(sprite)
+      return other.hits({ sprite, forPlacement: true }) || other.hitsLandingArea(sprite)
     })
   }
 

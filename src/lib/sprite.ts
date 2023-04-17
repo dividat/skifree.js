@@ -4,6 +4,13 @@ import * as Vec2 from 'lib/vec2'
 import { config } from 'config'
 import { nextId } from 'lib/id'
 
+interface HitBox {
+  top: number
+  right: number
+  bottom: number
+  left: number
+}
+
 export class Sprite {
   hasHittableObjects: boolean
   hittableObjects: any
@@ -50,7 +57,17 @@ export class Sprite {
     }
   }
 
-  getImageBox() {
+  contextualHitbox(other: Sprite, forPlacement: boolean): HitBox {
+    const groupableSprites = [ 'smallTree', 'tallTree', 'thickSnow', 'thickerSnow', 'rock' ]
+
+    if (!forPlacement || groupableSprites.includes(this.data.name) && this.data.name === other.data.name) {
+      return this.getHitBox()
+    } else {
+      return this.getImageBox()
+    }
+  }
+
+  getImageBox(): HitBox {
     return {
       top: this.canvasY - 100,
       right: this.canvasX + this.width + 100,
@@ -59,7 +76,7 @@ export class Sprite {
     }
   }
 
-  getHitBox() {
+  getHitBox(): HitBox {
     let part = this.data.parts[this.part]
 
     if (part && part.hitBox) {
@@ -241,7 +258,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
       if (objectData.object.deleted) {
         delete this.hittableObjects[k]
       } else {
-        if (objectData.object.hits({ sprite: this, useHitBox: true })) {
+        if (objectData.object.hits({ sprite: this, forPlacement: false })) {
           objectData.callbacks.forEach((callback: any) =>
             callback(this, objectData.object)
           )
@@ -322,9 +339,9 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     this.deleted = true
   }
 
-  hits({ sprite, useHitBox }: { sprite: Sprite, useHitBox: boolean }) {
-    const h1 = useHitBox ? this.getHitBox() : this.getImageBox()
-    const h2 = useHitBox ? sprite.getHitBox() : sprite.getImageBox()
+  hits({ sprite, forPlacement }: { sprite: Sprite, forPlacement: boolean }) {
+    const h1 = this.contextualHitbox(sprite, forPlacement)
+    const h2 = sprite.contextualHitbox(this, forPlacement)
 
     return !(
       h1.left > h2.right ||
