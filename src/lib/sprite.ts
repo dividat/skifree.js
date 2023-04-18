@@ -104,26 +104,19 @@ export class Sprite {
     }
   }
 
-  move(dt: number, acceleration?: Vec2.Vec2, speed?: Vec2.Vec2) {
-    let pos = {
-      x: this.mapPosition[0],
-      y: this.mapPosition[1]
-    }
+  move(dt: number) {
+    if (this.movingToward !== undefined) {
+      let pos = {
+        x: this.mapPosition[0],
+        y: this.mapPosition[1]
+      }
 
-    // Assume original magic numbers for speed were created for a typical 2013 resolution
-    const heightFactor = window.devicePixelRatio * window.innerHeight/800
-    // Adjust for FPS different than the 50 FPS assumed by original game
-    const lagFactor = (dt || config.originalFrameInterval) / config.originalFrameInterval
-    const factor = heightFactor * lagFactor
+      // Assume original magic numbers for speed were created for a typical 2013 resolution
+      const heightFactor = window.devicePixelRatio * window.innerHeight/800
+      // Adjust for FPS different than the 50 FPS assumed by original game
+      const lagFactor = (dt || config.originalFrameInterval) / config.originalFrameInterval
+      const factor = heightFactor * lagFactor
 
-    if (acceleration !== undefined && speed !== undefined) {
-      pos = Physics.newPos({
-        dt,
-        acceleration,
-        speed,
-        pos
-      })
-    } else if (this.movingToward !== undefined) {
       if (this.movingToward[0] !== undefined) {
         if (pos.x > this.movingToward[0]) {
           pos.x -= Math.min(this.movingTowardSpeed * factor, Math.abs(pos.x - this.movingToward[0]))
@@ -139,9 +132,9 @@ export class Sprite {
           pos.y += Math.min(this.movingTowardSpeed * factor, Math.abs(pos.y - this.movingToward[1]))
         }
       }
-    }
 
-    this.setMapPosition(pos.x, pos.y)
+      this.setMapPosition(pos.x, pos.y)
+    }
   }
 
   determineNextFrame(dContext: any, spriteFrame: string) {

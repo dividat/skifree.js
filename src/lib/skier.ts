@@ -26,6 +26,7 @@ export class Skier extends Sprite {
   lastJump: number | undefined
   direction: number
   speed: Vec2.Vec2
+  remainingDt: number
 
   constructor(mainCanvas: any, data: any) {
     super(data)
@@ -38,6 +39,7 @@ export class Skier extends Sprite {
     this.lastJump = undefined
     this.direction = leftMostDirection
     this.speed = Vec2.zero
+    this.remainingDt = 0
   }
 
   getDiscreteDirection() {
@@ -78,26 +80,32 @@ export class Skier extends Sprite {
   }
 
   move(dt: number) {
-    const { acceleration, speed } = this.getAccelerationAndSpeed(dt)
-    this.speed = speed
-    super.move(dt, acceleration, speed)
-  }
-
-  getAccelerationAndSpeed(dt: number) {
-    let acceleration = Vec2.zero
-    let speed = Vec2.zero
-
-    const dirVect = {
-      x: Math.cos(this.direction),
-      y: Math.sin(this.direction)
-    }
     const downVect = { x: 0, y: 1 }
 
+    let pos = {
+      x: this.mapPosition[0],
+      y: this.mapPosition[1]
+    }
+
     if (this.isLying() || this.isBeingEaten()) {
-      // Do nothing
+      this.speed = Vec2.zero
     } else if (this.isJumping) {
-      speed = Vec2.scale(0.07 * dt, downVect)
+      this.speed = Vec2.scale(0.07 * dt, downVect)
+
+      pos = Physics.newPos({
+        dt,
+        acceleration: Vec2.zero,
+        speed: this.speed,
+        pos
+      })
+
+      this.setMapPosition(pos.x, pos.y)
     } else {
+      const dirVect = {
+        x: Math.cos(this.direction),
+        y: Math.sin(this.direction)
+      }
+
       const perdendicularSpeed = Vec2.rotate(Math.PI / 2, this.speed)
 
       const stopAcc = Vec2.scale(
@@ -107,20 +115,21 @@ export class Skier extends Sprite {
       const frictionAcc = Vec2.scale(-10, this.speed)
       const directionAcc = Vec2.scale(10 * Vec2.dot(dirVect, downVect), dirVect)
 
-      acceleration = Vec2.scale(
+      const acceleration = Vec2.scale(
         0.00001 * dt,
         Vec2.add(stopAcc, frictionAcc, directionAcc))
 
-      speed = Physics.newSpeed({ dt, acceleration, speed: this.speed })
-    }
+      let res = Physics.moveWithChunks({
+        dt: dt + this.remainingDt,
+        acceleration,
+        speed: this.speed,
+        pos,
+      })
 
-    if (speed.y <= 0) {
-      speed.y = 0
-      acceleration.y = 0
-      speed.x = 0
+      this.speed = res.speed
+      this.setMapPosition(res.pos.x, res.pos.y)
+      this.remainingDt = res.remainingDt
     }
-
-    return { acceleration, speed }
   }
 
   draw(dContext: any) {
