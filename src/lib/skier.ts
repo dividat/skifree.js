@@ -22,6 +22,9 @@ export class Skier extends Sprite {
   remainingDt: number
   elapsedTime: number
 
+  // debug
+  confidenceBoost: number
+
   constructor(mainCanvas: any, data: any) {
     super(data)
 
@@ -33,6 +36,7 @@ export class Skier extends Sprite {
     this.speed = Vec2.zero
     this.remainingDt = 0
     this.elapsedTime = 0
+    this.confidenceBoost = 0
   }
 
   getDiscreteDirection(): string {
@@ -110,6 +114,7 @@ export class Skier extends Sprite {
           : (this.pixelsTravelled + 1000) / (this.elapsedTime + 10000)
       confidenceBoost = Math.max(confidenceBoost * 100, 1)
       confidenceBoost = 0.10 * Math.pow(confidenceBoost, 0.6) / (1 + recentCrashes)
+      this.confidenceBoost = confidenceBoost
 
       const directionAcc = Vec2.scale(confidenceBoost * Vec2.dot(dirVect, Vec2.down), dirVect)
 
@@ -148,6 +153,11 @@ export class Skier extends Sprite {
           : (this.isLying() ? 'hit' : this.getDiscreteDirection())
 
       super.draw(dContext, spritePartToUse)
+
+      if (config.debug) {
+        dContext.font = '20px sans-serif'
+        dContext.fillText(`Confidence boost: ${this.confidenceBoost}`, 15, 170)
+      }
     }
   }
 
