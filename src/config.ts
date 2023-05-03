@@ -6,7 +6,6 @@ export const config = {
   pixelsPerMeter: 18,
   duration: 60000,
   wheelchair: false,
-  monsterDistanceThresholdMeters: 2000,
   activeSensoRatio: 1.5 / 3,
   directionAmplitudeRatio: 0.8,
   dropRate: {
@@ -16,8 +15,6 @@ export const config = {
     thickSnow: 1,
     thickerSnow: 1,
     rock: 8,
-    snowboarder: 0.1,
-    monster: 0.001,
   },
   skier: {
     lyingDurationAfterCrash: 500,
@@ -25,11 +22,14 @@ export const config = {
     jumpDuration: 1200,
   },
   monster: {
+    distanceThresholdMeters: 2000,
     eatingDuration: 1500,
     speed: 4,
+    dropRate: 0.001,
   },
   snowboarder: {
     speed: 3,
+    dropRate: 0.1,
   },
   debug: new URLSearchParams(document.location.search).has('debug'),
 }

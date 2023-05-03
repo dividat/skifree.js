@@ -5,6 +5,7 @@ const eatingSteps = 6
 
 export class Monster extends Sprite {
   eatingStartedAt: undefined | number
+  isEating: boolean
 
   constructor(data: any) {
     super(data)
@@ -14,7 +15,7 @@ export class Monster extends Sprite {
   draw(dContext: any) {
     let spritePartToUse
 
-    if (this.eatingStartedAt !== undefined) {
+    if (this.eatingStartedAt !== undefined && this.isEating) {
       const progress = (Date.now() - this.eatingStartedAt) / config.monster.eatingDuration
       const eatingStage = Math.min(Math.floor(progress * eatingSteps + 1), eatingSteps)
       spritePartToUse = 'eating' + eatingStage
@@ -30,11 +31,11 @@ export class Monster extends Sprite {
     return super.draw(dContext, spritePartToUse)
   }
 
-  startEating(whenDone: () => void) {
-    console.log('start eating')
+  startEating({ whenDone }: { whenDone: () => void }) {
     this.eatingStartedAt = Date.now()
+    this.isEating = true
     setTimeout(() => {
-      this.eatingStartedAt = undefined
+      this.isEating = false
       whenDone()
     }, config.monster.eatingDuration)
   }

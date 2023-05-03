@@ -1,5 +1,4 @@
 import { Sprite } from 'lib/sprite'
-import { Monster } from 'lib/monster'
 import * as Physics from 'lib/physics'
 import * as Vec2 from 'lib/vec2'
 import { config } from 'config'
@@ -252,13 +251,9 @@ export class Skier extends Sprite {
       : eatingProgress
   }
 
-  isEatenBy(monster: Monster, whenEaten: () => void) {
+  isEaten() {
     this.lastEatenTime = this.elapsedTime
     this.speed = Vec2.zero
-    monster.startEating(whenEaten)
-
-    // @ts-ignore
-    window.PlayEGI.motor('negative')
   }
 
   lastCollision(): number | undefined {

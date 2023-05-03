@@ -12,35 +12,23 @@ export function Game (mainCanvas: any, skier: Skier) {
   let runningTime: number = 0
   let lastStepAt: number | undefined = undefined
 
-  this.addObject = ({ sprite, type, allowCollisions }: { sprite: any, type: any, allowCollisions: boolean }) => {
+  this.addObject = (sprite: any) => {
+    objects.push(sprite)
+  }
+
+  this.canAddObject = (sprite: Sprite) => {
     // Determine graphical properties to enable hit check
     if (sprite.data.parts.main !== undefined) {
       sprite.determineNextFrame(dContext, 'main')
     }
 
-    if (type !== undefined) {
-      objects.onPush(obj => {
-        if (obj.data && obj.data.hitBehaviour && obj.data.hitBehaviour[type]) {
-          obj.onHitting(sprite, obj.data.hitBehaviour[type])
-        }
-      }, true)
-    }
-
-    if (allowCollisions || this.canAddObject(sprite)) {
-      objects.push(sprite)
-    }
-  }
-
-  this.canAddObject = (sprite: Sprite) => {
     return !objects.some((other: any) => {
       return other.hits({ sprite, forPlacement: true }) || other.hitsLandingArea(sprite)
     })
   }
 
-  this.addObjects = ({ sprites, allowCollisions }: { sprites: any, allowCollisions: boolean }) => {
-    sprites.forEach((sprite: Sprite) =>
-      this.addObject({ sprite, allowCollisions })
-    )
+  this.addObjects = (sprites: Array<any>) => {
+    sprites.forEach((sprite: Sprite) => this.addObject(sprite))
   }
 
   this.beforeCycle = (callback: any) => {

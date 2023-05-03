@@ -65,13 +65,21 @@ function loadImages(sources: Array<string>, next: any) {
 }
 
 function monsterEatsSkier(monster: Monster, skier: Skier) {
-  skier.invincibilityProgress() === undefined && skier.isEatenBy(monster, () => {
-    monster.stopFollowing()
-    const randomPositionAbove = dContext.getRandomMapPositionAboveViewport()
-    monster.setMapPositionTarget(randomPositionAbove[0], randomPositionAbove[1])
-    // Delete some time after it moved off screen
-    setTimeout(() => monster.deleteOnNextCycle(), 5000)
-  })
+  if (monster.eatingStartedAt === undefined) {
+    skier.isEaten()
+    monster.startEating({
+      whenDone: () => {
+        monster.stopFollowing()
+        const randomPositionAbove = dContext.getRandomMapPositionAboveViewport()
+        monster.setMapPositionTarget(randomPositionAbove[0], randomPositionAbove[1])
+        // Delete some time after it moved off screen
+        setTimeout(() => monster.deleteOnNextCycle(), 5000)
+      }
+    })
+
+    // @ts-ignore
+    window.PlayEGI.motor('negative')
+  }
 }
 
 function startNeverEndingGame(images: Array<any>) {
@@ -106,10 +114,7 @@ function startNeverEndingGame(images: Array<any>) {
     newMonster.follow(skier)
     newMonster.onHitting(skier, monsterEatsSkier)
 
-    game.addObject({
-      sprite: newMonster,
-      type: 'monster'
-    })
+    game.addObject(newMonster)
   }
 
   function spawnBoarder () {
@@ -120,7 +125,7 @@ function startNeverEndingGame(images: Array<any>) {
     newBoarder.setMapPositionTarget(randomPositionBelow[0], randomPositionBelow[1])
     newBoarder.onHitting(skier, sprites.snowboarder.hitBehaviour.skier)
 
-    game.addObject({ sprite: newBoarder, allowCollisions: true })
+    game.addObject(newBoarder)
   }
 
   skier = new Skier(mainCanvas, sprites.skier)
@@ -132,21 +137,21 @@ function startNeverEndingGame(images: Array<any>) {
 
   skier.determineNextFrame(dContext, 'east')
   startSign = new Sprite(sprites.signStart)
-  game.addObject({ sprite: startSign, allowCollisions: true })
+  game.addObject(startSign)
   startSign.setMapPosition(-0.4 * skier.width, -0.1 * skier.height)
 
   cottage = new Sprite(sprites.cottage)
-  game.addObject({ sprite: cottage, allowCollisions: true })
+  game.addObject(cottage)
   cottage.setMapPosition(0.7 * skier.width, -1.2 * skier.height)
 
   dContext.followSprite(skier)
 
   game.beforeCycle(() => {
     if (!game.isPaused()) {
-      game.addObjects({ sprites: createObjects(skier), allowCollisions: false })
-      randomlySpawnNPC(spawnBoarder, config.dropRate.snowboarder)
-      if (skier.pixelsTravelled / config.pixelsPerMeter > config.monsterDistanceThresholdMeters && !game.hasObject('monster')) {
-        randomlySpawnNPC(spawnMonster, config.dropRate.monster)
+      game.addObjects(createObjects(skier, game.canAddObject))
+      randomlySpawnNPC(spawnBoarder, config.snowboarder.dropRate)
+      if (skier.pixelsTravelled / config.pixelsPerMeter > config.monster.distanceThresholdMeters && !game.hasObject('monster')) {
+        randomlySpawnNPC(spawnMonster, config.monster.dropRate)
       }
     }
   })
@@ -285,7 +290,7 @@ const spawnableSprites = [
   { sprite: sprites.rock, dropRate: config.dropRate.rock }
 ]
 
-function createObjects(skier: Skier) {
+function createObjects(skier: Skier, canAddObject: (sprite: any) => boolean) {
   const rateModifier = Math.max(800 - mainCanvas.width / window.devicePixelRatio, 0)
 
   return spawnableSprites
@@ -307,4 +312,5 @@ function createObjects(skier: Skier) {
 
       return sprite
     })
+    .filter(sprite => canAddObject(sprite))
 }
