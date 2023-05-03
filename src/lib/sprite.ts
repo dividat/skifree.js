@@ -12,8 +12,8 @@ interface HitBox {
 }
 
 // Clear area for landing after a jump
-// Obtained experimentally using debugflag
-const jumpingHeight = 1300
+// Obtained experimentally using the debug flag
+const jumpingHeight = 1000
 const landingWidth = 170
 const landingHeight = 1500
 
@@ -86,7 +86,7 @@ export class Sprite {
     if (part && part.hitBox) {
       const hitBox = part.hitBox
       const spriteReducedSizeFactor = 1 / 3
-      const m = this.getSizeMultiple(part) * config.zoom * spriteReducedSizeFactor
+      const m = this.getSizeMultiple(part) * config.scaling * spriteReducedSizeFactor
 
       return {
         top: this.canvasY + (hitBox ? m * hitBox.y : 0),
@@ -164,8 +164,8 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     }
 
     const sizeMultiple = this.getSizeMultiple(part)
-    const targetWidth = Math.round(img.naturalWidth * sizeMultiple * config.zoom)
-    const targetHeight = Math.round(img.naturalHeight * sizeMultiple * config.zoom)
+    const targetWidth = Math.round(img.naturalWidth * sizeMultiple * config.scaling)
+    const targetHeight = Math.round(img.naturalHeight * sizeMultiple * config.scaling)
 
     this.width = targetWidth
     this.height = targetHeight
@@ -380,9 +380,5 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
 
   isBelowOnCanvas(cy: number) {
     return (this.canvasY) > cy
-  }
-
-  isPassable() {
-    return Boolean(this.data.isPassable)
   }
 }

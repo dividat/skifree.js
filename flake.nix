@@ -15,6 +15,10 @@
             psmisc # fuser
             esbuild
             watchexec
+
+            # Adjust sprites
+            pngquant
+            imagemagick
           ];
         }; }
       );

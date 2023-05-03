@@ -27,7 +27,12 @@ export function moveWithChunks({ dt, acceleration, speed, pos }: ChunkedSpeedPar
 
   for (let i = 0; i < steps; i++) {
     speed = newSpeed({ dt: unitDt, acceleration, speed })
-    pos = newPos({ dt: unitDt, acceleration, speed, pos })
+    pos = newPos({
+      dt: unitDt,
+      acceleration,
+      speed,
+      pos
+    })
   }
 
   return {

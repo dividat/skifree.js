@@ -8,6 +8,21 @@ export const zero: Vec2 = {
   y: 0
 }
 
+export const right: Vec2 = {
+  x: 1,
+  y: 0
+}
+
+export const down: Vec2 = {
+  x: 0,
+  y: 1
+}
+
+export const up: Vec2 = {
+  x: 0,
+  y: -1
+}
+
 export function length({ x, y }: Vec2): number {
   return Math.sqrt(x * x + y * y)
 }
@@ -17,6 +32,13 @@ export function scale(k: number, { x, y }: Vec2): Vec2 {
     x: k * x,
     y: k * y
   }
+}
+
+export function unit(v: Vec2): Vec2 {
+  const l = length(v)
+  return l === 0
+    ? v
+    : scale(1 / l, v)
 }
 
 export function add(...vs: Array<Vec2>): Vec2 {

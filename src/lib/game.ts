@@ -20,7 +20,7 @@ export function Game (mainCanvas: any, skier: Skier) {
 
     if (type !== undefined) {
       objects.onPush(obj => {
-        if (obj.data && obj.data.hitBehaviour[type]) {
+        if (obj.data && obj.data.hitBehaviour && obj.data.hitBehaviour[type]) {
           obj.onHitting(sprite, obj.data.hitBehaviour[type])
         }
       }, true)
@@ -147,7 +147,7 @@ function sortFromBackToFront(a: Sprite, b: Sprite): number {
 }
 
 function isJumpingSkier(sprite: any) {
-  return sprite.data.name === 'skier' && sprite.isJumping
+  return sprite.data.name === 'skier' && sprite.isJumping()
 }
 
 function isSnow(sprite: Sprite) {

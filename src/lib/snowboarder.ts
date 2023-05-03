@@ -1,7 +1,6 @@
 import * as Random from 'lib/random'
 import { Sprite } from 'lib/sprite'
-
-const standardSpeed = 3
+import { config } from 'config'
 
 const directions = {
   sEast: (xDiff: number) => xDiff > 0,
@@ -14,7 +13,7 @@ export class Snowboarder extends Sprite {
 
   constructor(data: any, dContext: any) {
     super(data)
-    super.setMovingTowardSpeed(standardSpeed)
+    super.setMovingTowardSpeed(config.snowboarder.speed)
     this.dContext = dContext
   }
 
@@ -35,7 +34,7 @@ export class Snowboarder extends Sprite {
   cycle(dt: number) {
     if (Random.between(0, 10) === 1) {
       super.setMapPositionTarget(this.dContext.getRandomlyInTheCentreOfMap())
-      super.setMovingTowardSpeed(standardSpeed + Random.between(-1, 1))
+      super.setMovingTowardSpeed(config.snowboarder.speed + Random.between(-1, 1))
     }
 
     super.setMapPositionTarget(undefined, this.dContext.getMapBelowViewport() + 600)

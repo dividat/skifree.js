@@ -38,9 +38,9 @@ export const sprites: any = {
         fps: 9,
         hitBox: {
           x: 115,
-          y: 88,
+          y: 178,
           width: 148,
-          height: 484
+          height: 394
         }
       },
       sWest: {
@@ -84,7 +84,6 @@ export const sprites: any = {
       },
     },
     sizeMultiple: 0.2,
-    hitBehaviour: {},
     name: 'skier'
   },
   'smallTree': {
@@ -123,38 +122,16 @@ export const sprites: any = {
   },
   'thickSnow': {
     parts: {
-      main: {
-        hitBox: {
-          x: 24,
-          y: 56,
-          width: 382,
-          height: 44
-        }
-      }
+      main: {}
     },
     sizeMultiple: 0.2,
-    hitBehaviour: {
-      skier: (snow: Sprite, skier: Skier) => skier.hasHitSnow(snow)
-    },
-    isPassable: true,
     name: 'thickSnow'
   },
   'thickerSnow': {
     parts: {
-      main: {
-        hitBox: {
-          x: 42,
-          y: 77,
-          width: 630,
-          height: 48
-        }
-      }
+      main: {}
     },
     sizeMultiple: 0.2,
-    hitBehaviour: {
-      skier: (snow: Sprite, skier: Skier) => skier.hasHitSnow(snow)
-    },
-    isPassable: true,
     name: 'thickerSnow'
   },
   'rock': {
@@ -204,7 +181,6 @@ export const sprites: any = {
       eating6: {}
     },
     sizeMultiple: 0.2,
-    hitBehaviour: {},
     name: 'monster'
   },
   'jump': {
@@ -222,7 +198,6 @@ export const sprites: any = {
     hitBehaviour: {
       skier: (jump: Sprite, skier: Skier) => skier.hasHitJump()
     },
-    isPassable: true,
     name: 'jump'
   },
   'signStart': {
@@ -230,8 +205,6 @@ export const sprites: any = {
       main: {}
     },
     sizeMultiple: 0.15,
-    hitBehaviour: {},
-    isPassable: true,
     name: 'signStart'
   },
   'cottage': {
@@ -243,8 +216,6 @@ export const sprites: any = {
       }
     },
     sizeMultiple: 0.2,
-    hitBehaviour: {},
-    isPassable: true,
     name: 'cottage'
   },
   'snowboarder': {
