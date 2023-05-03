@@ -293,7 +293,22 @@ const spawnableSprites = [
 function createObjects(skier: Skier, canAddObject: (sprite: any) => boolean) {
   const rateModifier = Math.max(800 - mainCanvas.width / window.devicePixelRatio, 0)
 
-  return spawnableSprites
+  // Add lots of trees below on the side
+  const sideObjects = [ dContext.getRandomSideMapPositionBelowViewport() ]
+    .filter(_ => {
+      const random = Random.between(0, 100) + rateModifier + 0.001
+      return random < config.dropRate.sideTallTree * skier.speed.y
+    })
+    .map(pos => {
+      const sprite = new Sprite(sprites.tallTree)
+      sprite.setMapPosition(pos[0], pos[1])
+      sprite.isStatic = true
+      sprite.onHitting(skier, sprites.tallTree.hitBehaviour.skier)
+      return sprite
+    })
+
+  // Add all kinds of objects below on the center
+  const centerObjects = spawnableSprites
     .filter((spriteInfo: any) => {
       const random = Random.between(0, 100) + rateModifier + 0.001
       return random < spriteInfo.dropRate * skier.speed.y
@@ -313,4 +328,6 @@ function createObjects(skier: Skier, canAddObject: (sprite: any) => boolean) {
       return sprite
     })
     .filter(sprite => canAddObject(sprite))
+
+  return sideObjects.concat(centerObjects)
 }

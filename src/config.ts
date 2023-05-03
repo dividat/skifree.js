@@ -11,6 +11,7 @@ export const config = {
   dropRate: {
     smallTree: 8,
     tallTree: 13,
+    sideTallTree: 100,
     jump: 1,
     thickSnow: 1,
     thickerSnow: 1,
