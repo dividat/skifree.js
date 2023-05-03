@@ -13,10 +13,9 @@ const directionAmplitude: number = Math.PI
 export class Skier extends Sprite {
 
   pixelsTravelled: number
-  jumps: number
   collisions: Array<number>
+  jumps: Array<number>
   lastEatenTime: number | undefined
-  lastJump: number | undefined
   direction: number
   speed: Vec2.Vec2
   remainingDt: number
@@ -29,9 +28,8 @@ export class Skier extends Sprite {
     super(data)
 
     this.pixelsTravelled = 0
-    this.jumps = 0
     this.collisions = []
-    this.lastJump = undefined
+    this.jumps = []
     this.direction = leftMostDirection
     this.speed = Vec2.zero
     this.remainingDt = 0
@@ -104,19 +102,7 @@ export class Skier extends Sprite {
         y: Math.sin(this.direction)
       }
 
-      const recentCrashes = this.collisions
-        .map(t => 20 * Math.pow(this.elapsedTime - t, -0.5))
-        .reduce((a, b) => a + b, 0)
-
-      let confidenceBoost =
-        this.elapsedTime === 0 || this.pixelsTravelled === 0
-          ? 0.01
-          : (this.pixelsTravelled + 1000) / (this.elapsedTime + 10000)
-      confidenceBoost = Math.max(confidenceBoost * 100, 1)
-      confidenceBoost = 0.10 * Math.pow(confidenceBoost, 0.6) / (1 + recentCrashes)
-      this.confidenceBoost = confidenceBoost
-
-      const directionAcc = Vec2.scale(confidenceBoost * Vec2.dot(dirVect, Vec2.down), dirVect)
+      const directionAcc = Vec2.scale(this.getConfidenceBoost() * Vec2.dot(dirVect, Vec2.down), dirVect)
 
       const perdendicularSpeed = Vec2.rotate(Math.PI / 2, this.speed)
       const skierOrientationFactor = this.skierDirectionMultiplier()
@@ -144,6 +130,29 @@ export class Skier extends Sprite {
     this.elapsedTime += dt
   }
 
+  getConfidenceBoost() {
+    // Default as if some distance and some time would have happened
+    // Otherwire, it can accelerate too quickly.
+    const pixelsTravelled = this.pixelsTravelled + 1000
+    const elapsedTime = this.elapsedTime + 10000
+
+    const crashesBoost = this.collisions
+      .map(t => 20 * Math.pow(this.elapsedTime - t, -0.5))
+      .reduce((a, b) => a + b, 0)
+
+    const jumpBoost = this.jumps
+      .map(t => 5 * Math.pow(this.elapsedTime - t, -0.5))
+      .reduce((a, b) => a + b, 0)
+
+    let confidenceBoost = Math.max(100 * (pixelsTravelled + 1000) / (elapsedTime + 10000), 1)
+    confidenceBoost = 0.10 * Math.pow(confidenceBoost, 0.6) / (1 + crashesBoost - jumpBoost)
+
+    // Store for debugging purposes
+    this.confidenceBoost = confidenceBoost
+
+    return confidenceBoost
+  }
+
   draw(dContext: any) {
     // Part of monster sprite while being eaten, also don’t show when blinking
     if (!this.isBeingEaten() && !this.isBlinking()) {
@@ -167,7 +176,8 @@ export class Skier extends Sprite {
   }
 
   isJumping() {
-    return this.lastJump !== undefined && this.elapsedTime - this.lastJump < config.skier.jumpDuration
+    const lastJump = this.lastJump()
+    return lastJump !== undefined && this.elapsedTime - lastJump < config.skier.jumpDuration
   }
 
   isBeingEaten() {
@@ -198,8 +208,7 @@ export class Skier extends Sprite {
   hasHitJump() {
     if (!this.isJumping()) {
       this.speed = Vec2.scale(1, Vec2.down)
-      this.jumps++
-      this.lastJump = this.elapsedTime
+      this.jumps.push(this.elapsedTime)
 
       // @ts-ignore
       window.PlayEGI.motor('positive')
@@ -215,8 +224,9 @@ export class Skier extends Sprite {
   // - 0: the skier is lying or being eaten
   // - number: the skier is invincible with this progress ratio
   invincibilityProgress(): number | undefined {
+    const lastJump = this.lastJump()
     const getProgress = (eventTime: number, eventDuration: number) => {
-      const jumpAfterEvent = this.lastJump !== undefined && this.lastJump > eventTime
+      const jumpAfterEvent = lastJump !== undefined && lastJump > eventTime
       if (!jumpAfterEvent) {
         const now = this.elapsedTime
         const start = eventTime + eventDuration
@@ -252,8 +262,14 @@ export class Skier extends Sprite {
   }
 
   lastCollision(): number | undefined {
-    if (this.collisions.length > 0) {
+    if (this.collisions) {
       return this.collisions[this.collisions.length - 1]
+    }
+  }
+
+  lastJump(): number | undefined {
+    if (this.jumps) {
+      return this.jumps[this.jumps.length - 1]
     }
   }
 }
