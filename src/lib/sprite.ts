@@ -29,7 +29,6 @@ export class Sprite {
   data: any
   movingToward: Array<number | undefined> | undefined
   metresDownTheMountain: number
-  movingWithConviction: boolean
   deleted: boolean
   isStatic: boolean
   part: any
@@ -46,7 +45,6 @@ export class Sprite {
     this.data = data || { parts: {} }
     this.movingToward = undefined
     this.metresDownTheMountain = 0
-    this.movingWithConviction = false
     this.deleted = false
     this.isStatic = false
     this.part = null
@@ -224,30 +222,6 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     this.canvasY = cy
   }
 
-  getCanvasPositionX() {
-    return this.canvasX
-  }
-
-  getCanvasPositionY() {
-    return this.canvasY
-  }
-
-  getPositionInFrontOf() {
-    return [this.canvasX, this.canvasY + this.height]
-  }
-
-  setScalarSpeed(s: number) {
-    this.movingTowardSpeed = s
-  }
-
-  setHeight(h: number) {
-    this.height = h
-  }
-
-  setWidth(w: number) {
-    this.width = w
-  }
-
   getMapPosition() {
     return this.mapPosition
   }
@@ -299,28 +273,15 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
   }
 
   setMapPositionTarget(x?: number, y?: number, override?: boolean) {
-    if (override) {
-      this.movingWithConviction = false
+    if (x === undefined && this.movingToward !== undefined) {
+      x = this.movingToward[0]
     }
 
-    if (!this.movingWithConviction) {
-      if (x === undefined && this.movingToward !== undefined) {
-        x = this.movingToward[0]
-      }
-
-      if (y === undefined && this.movingToward !== undefined) {
-        y = this.movingToward[1]
-      }
-
-      this.movingToward = [ x, y ]
-
-      this.movingWithConviction = false
+    if (y === undefined && this.movingToward !== undefined) {
+      y = this.movingToward[1]
     }
-  }
 
-  setMapPositionTargetWithConviction(cx: number, cy: number) {
-    this.setMapPositionTarget(cx, cy)
-    this.movingWithConviction = true
+    this.movingToward = [ x, y ]
   }
 
   follow(sprite: Sprite) {
@@ -376,9 +337,5 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
 
   isAboveOnCanvas(cy: number) {
     return (this.canvasY + this.height) < cy
-  }
-
-  isBelowOnCanvas(cy: number) {
-    return (this.canvasY) > cy
   }
 }
