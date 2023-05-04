@@ -9,13 +9,19 @@ export const config = {
   activeSensoRatio: 1.5 / 3,
   directionAmplitudeRatio: 0.8,
   dropRate: {
+    // Centered objects
     smallTree: 8,
-    tallTree: 13,
-    sideTallTree: 100,
+    tallTree: 8,
     jump: 1,
     thickSnow: 1,
     thickerSnow: 1,
     rock: 8,
+    
+    // Side
+    sideTallTree: 100,
+
+    // Direction
+    skierDirectionObject: 3,
   },
   skier: {
     lyingDurationAfterCrash: 500,

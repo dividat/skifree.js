@@ -1,5 +1,6 @@
 import 'lib/canvasRenderingContext2DExtensions'
 import * as Random from 'lib/random'
+import * as Vec2 from 'lib/vec2'
 import { config } from 'config'
 import { Game } from 'lib/game'
 import { Monster } from 'lib/monster'
@@ -293,8 +294,7 @@ const spawnableSprites = [
 function createObjects(skier: Skier, canAddObject: (sprite: any) => boolean) {
   const rateModifier = Math.max(800 - mainCanvas.width / window.devicePixelRatio, 0)
 
-  // Add lots of trees below on the side
-  const sideObjects = [ dContext.getRandomSideMapPositionBelowViewport() ]
+  const sideTrees = [ dContext.getRandomSideMapPositionBelowViewport() ]
     .filter(_ => {
       const random = Random.between(0, 100) + rateModifier + 0.001
       return random < config.dropRate.sideTallTree * skier.speed.y
@@ -307,8 +307,22 @@ function createObjects(skier: Skier, canAddObject: (sprite: any) => boolean) {
       return sprite
     })
 
-  // Add all kinds of objects below on the center
-  const centerObjects = spawnableSprites
+  const skierDirectionObjects = [ undefined ]
+    .filter(_ => {
+      const random = Random.between(0, 100) + rateModifier + 0.001
+      return skier.speed !== Vec2.zero && random < config.dropRate.skierDirectionObject * skier.speed.y
+    })
+    .map(_ => {
+      const sprite = new Sprite(randomObstacle())
+      const [ unused, y ] = dContext.getRandomMapPositionBelowViewport()
+      const x = skier.mapPosition[0] + skier.speed.x / skier.speed.y * (y - skier.mapPosition[1])
+      sprite.setMapPosition(x, y)
+      sprite.isStatic = true
+      sprite.onHitting(skier, sprites.tallTree.hitBehaviour.skier)
+      return sprite
+    })
+
+  const centeredObjects = spawnableSprites
     .filter((spriteInfo: any) => {
       const random = Random.between(0, 100) + rateModifier + 0.001
       return random < spriteInfo.dropRate * skier.speed.y
@@ -316,8 +330,8 @@ function createObjects(skier: Skier, canAddObject: (sprite: any) => boolean) {
     .map((spriteInfo: any) => {
       const sprite = new Sprite(spriteInfo.sprite)
 
-      const position = dContext.getRandomMapPositionBelowViewport()
-      sprite.setMapPosition(position[0], position[1])
+      const [ x, y ] = dContext.getRandomMapPositionBelowViewport()
+      sprite.setMapPosition(x, y)
 
       sprite.isStatic = true
 
@@ -327,7 +341,20 @@ function createObjects(skier: Skier, canAddObject: (sprite: any) => boolean) {
 
       return sprite
     })
-    .filter(sprite => canAddObject(sprite))
 
-  return sideObjects.concat(centerObjects)
+  return sideTrees
+    .concat(skierDirectionObjects)
+    .concat(centeredObjects)
+    .filter(sprite => canAddObject(sprite))
+}
+
+function randomObstacle() {
+  const r =Random.between(1, 3)
+  if (r == 1) {
+    return sprites.tallTree
+  } else if (r == 2) {
+    return sprites.smallTree
+  } else {
+    return sprites.rock
+  }
 }
