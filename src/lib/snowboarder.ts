@@ -41,7 +41,7 @@ export class Snowboarder extends Sprite {
     super.cycle(dt)
   }
 
-  draw(dContext: any, spriteFrame: any) {
-    return super.draw(dContext, this.getDirection())
+  draw(dContext: any, spriteFrame: any, zoom: number) {
+    return super.draw(dContext, this.getDirection(), zoom)
   }
 }

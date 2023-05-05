@@ -184,11 +184,22 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     }
   }
 
-  draw(dContext: any, spriteFrame: string) {
+  draw(dContext: any, spriteFrame: string, zoom: number) {
     const img = this.determineNextFrame(dContext, spriteFrame)
     if (img == null) return
 
-    dContext.drawImage(img, 0, 0, img.width, img.height, this.canvasX, this.canvasY, this.width, this.height)
+    const canvasW = dContext.canvas.width
+    const canvasH = dContext.canvas.height
+
+    const targetX = (this.canvasX - canvasW / 2) * zoom + canvasW / 2
+    const targetY = this.canvasY * zoom - config.skier.verticalPosRatio * canvasH * (zoom - 1)
+    const targetW = this.width * zoom
+    const targetH = this.height * zoom
+
+    dContext.drawImage(
+      img,
+      0, 0, img.width, img.height,
+      targetX, targetY, targetW, targetH)
 
     if (config.debug) {
       // Hitbox

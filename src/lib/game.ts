@@ -1,3 +1,5 @@
+import * as Vec2 from 'lib/vec2'
+import { config } from 'config'
 import { Skier } from 'lib/skier'
 import { Sprite } from 'lib/sprite'
 import { SpriteArray } from 'lib/spriteArray'
@@ -7,10 +9,13 @@ export function Game (mainCanvas: any, skier: Skier) {
   const beforeCycleCallbacks: Array<any> = []
   const afterCycleCallbacks: Array<any> = []
 
-  let objects: SpriteArray = new SpriteArray()
-  let paused: boolean = false
-  let runningTime: number = 0
+  let objects = new SpriteArray()
+  let paused = false
+  let runningTime = 0
   let lastStepAt: number | undefined = undefined
+
+  let zoom = config.zoom.max
+  const zoomConvergenceDuration = 1000
 
   this.addObject = (sprite: any) => {
     objects.push(sprite)
@@ -53,6 +58,9 @@ export function Game (mainCanvas: any, skier: Skier) {
       }
     })
 
+    const targetZoom = Math.max(1, config.zoom.max - skier.confidenceBoost * (config.zoom.max - config.zoom.min))
+    zoom = zoom + (targetZoom - zoom) * dt / zoomConvergenceDuration
+
     afterCycleCallbacks.forEach((c: any) => c())
   }
 
@@ -62,7 +70,7 @@ export function Game (mainCanvas: any, skier: Skier) {
     const allObjects = objects.slice() // Clone
     allObjects.push(skier)
     allObjects.sort(sortFromBackToFront)
-    allObjects.forEach((object: Sprite) => object.draw(dContext, 'main'))
+    allObjects.forEach((object: Sprite) => object.draw(dContext, 'main', zoom))
   }
 
   this.start = () => {

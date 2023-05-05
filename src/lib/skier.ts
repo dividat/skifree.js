@@ -101,7 +101,8 @@ export class Skier extends Sprite {
         y: Math.sin(this.direction)
       }
 
-      const directionAcc = Vec2.scale(this.getConfidenceBoost() * Vec2.dot(dirVect, Vec2.down), dirVect)
+      this.confidenceBoost = this.computeConfidenceBoost()
+      const directionAcc = Vec2.scale(this.confidenceBoost * Vec2.dot(dirVect, Vec2.down), dirVect)
 
       const perdendicularSpeed = Vec2.rotate(Math.PI / 2, this.speed)
       const skierOrientationFactor = this.skierDirectionMultiplier()
@@ -129,11 +130,11 @@ export class Skier extends Sprite {
     this.elapsedTime += dt
   }
 
-  getConfidenceBoost() {
+  computeConfidenceBoost() {
     // Default as if some distance and some time would have happened
     // Otherwire, it can accelerate too quickly.
-    const pixelsTravelled = this.pixelsTravelled + 1000
-    const elapsedTime = this.elapsedTime + 10000
+    const initPixelsTravelled = this.pixelsTravelled + 1000
+    const initElapsedTime = this.elapsedTime + 10000
 
     const crashesBoost = this.collisions
       .map(t => 20 * Math.pow(this.elapsedTime - t, -0.5))
@@ -143,16 +144,13 @@ export class Skier extends Sprite {
       .map(t => 5 * Math.pow(this.elapsedTime - t, -0.5))
       .reduce((a, b) => a + b, 0)
 
-    let confidenceBoost = Math.max(100 * (pixelsTravelled + 1000) / (elapsedTime + 10000), 1)
+    let confidenceBoost = Math.max(100 * (initPixelsTravelled + 1000) / (initElapsedTime + 10000), 1)
     confidenceBoost = 0.10 * Math.pow(confidenceBoost, 0.6) / (1 + crashesBoost - jumpBoost)
-
-    // Store for debugging purposes
-    this.confidenceBoost = confidenceBoost
 
     return confidenceBoost
   }
 
-  draw(dContext: any) {
+  draw(dContext: any, spriteFrame: string, zoom: number) {
     // Part of monster sprite while being eaten, also don’t show when blinking
     if (!this.isBeingEaten() && !this.isBlinking()) {
       const spritePartToUse =
@@ -160,7 +158,7 @@ export class Skier extends Sprite {
           ? 'jumping'
           : (this.isLying() ? 'hit' : this.getDiscreteDirection())
 
-      super.draw(dContext, spritePartToUse)
+      super.draw(dContext, spritePartToUse, zoom)
 
       if (config.debug) {
         dContext.font = '20px sans-serif'
@@ -206,7 +204,7 @@ export class Skier extends Sprite {
 
   hasHitJump() {
     if (!this.isJumping()) {
-      this.speed = Vec2.scale(1, Vec2.down)
+      this.speed = config.skier.jumpSpeed
       this.jumps.push(this.elapsedTime)
 
       // @ts-ignore

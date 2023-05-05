@@ -1,4 +1,5 @@
 import * as Random from 'lib/random'
+import { config } from 'config'
 
 CanvasRenderingContext2D.prototype.storeLoadedImage = function (key, image) {
   if (!this.images) {
@@ -21,7 +22,7 @@ CanvasRenderingContext2D.prototype.followSprite = function (sprite) {
 CanvasRenderingContext2D.prototype.getCentralPosition = function () {
   return {
     map: this.centralSprite.mapPosition,
-    canvas: [ Math.round(this.canvas.width * 0.5), Math.round(this.canvas.height * 0.15), 0]
+    canvas: [ Math.round(this.canvas.width * 0.5), Math.round(this.canvas.height * config.skier.verticalPosRatio) ]
   }
 }
 

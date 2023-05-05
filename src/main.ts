@@ -297,7 +297,7 @@ function createObjects(skier: Skier, canAddObject: (sprite: any) => boolean) {
   const sideTrees = [ dContext.getRandomSideMapPositionBelowViewport() ]
     .filter(_ => {
       const random = Random.between(0, 100) + rateModifier + 0.001
-      return random < config.dropRate.sideTallTree * skier.speed.y
+      return random < config.dropRate.side.tallTree * skier.speed.y
     })
     .map(pos => {
       const sprite = new Sprite(sprites.tallTree)
@@ -310,7 +310,7 @@ function createObjects(skier: Skier, canAddObject: (sprite: any) => boolean) {
   const skierDirectionObjects = [ undefined ]
     .filter(_ => {
       const random = Random.between(0, 100) + rateModifier + 0.001
-      return skier.speed !== Vec2.zero && random < config.dropRate.skierDirectionObject * skier.speed.y
+      return skier.speed !== Vec2.zero && random < config.dropRate.skierDirection.any * skier.speed.y
     })
     .map(_ => {
       const sprite = new Sprite(randomObstacle())
