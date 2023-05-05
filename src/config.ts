@@ -13,6 +13,7 @@ export const config = {
   zoom: {
     min: 1,
     max: 1.8,
+    convergenceDuration: 1000,
   },
   dropRate: {
     smallTree: 8,
@@ -34,6 +35,10 @@ export const config = {
     invincibilityDuration: 3000,
     jumpDuration: 1200,
     jumpSpeed: Vec2.scale(1, Vec2.down),
+    inertia: {
+      keyboard: 10,
+      senso: 1,
+    }
   },
   monster: {
     distanceThresholdMeters: 2000,

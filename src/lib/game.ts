@@ -13,9 +13,7 @@ export function Game (mainCanvas: any, skier: Skier) {
   let paused = false
   let runningTime = 0
   let lastStepAt: number | undefined = undefined
-
   let zoom = config.zoom.max
-  const zoomConvergenceDuration = 1000
 
   this.addObject = (sprite: any) => {
     objects.push(sprite)
@@ -59,7 +57,7 @@ export function Game (mainCanvas: any, skier: Skier) {
     })
 
     const targetZoom = Math.max(1, config.zoom.max - skier.confidenceBoost * (config.zoom.max - config.zoom.min))
-    zoom = zoom + (targetZoom - zoom) * dt / zoomConvergenceDuration
+    zoom = zoom + (targetZoom - zoom) * dt / config.zoom.convergenceDuration
 
     afterCycleCallbacks.forEach((c: any) => c())
   }

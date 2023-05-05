@@ -1,6 +1,7 @@
 import 'lib/canvasRenderingContext2DExtensions'
 import * as Random from 'lib/random'
 import * as Vec2 from 'lib/vec2'
+import * as Senso from 'senso'
 import { config } from 'config'
 import { Game } from 'lib/game'
 import { Monster } from 'lib/monster'
@@ -157,8 +158,6 @@ function startNeverEndingGame(images: Array<any>) {
     }
   })
 
-  let haveSeenSensoState = false
-
   // @ts-ignore
   window.PlayEGI.onSignal((signal: any) => {
     switch (signal.type) {
@@ -210,7 +209,7 @@ function startNeverEndingGame(images: Array<any>) {
 
       case 'Step':
         // Ignore steps when controlled by continuous signal
-        if (haveSeenSensoState) return
+        if (Senso.hasBeenSeen()) return
         switch (signal.direction) {
           case 'Left':
             skier.turnRight()
@@ -227,7 +226,7 @@ function startNeverEndingGame(images: Array<any>) {
         break
 
       case 'SensoState':
-        haveSeenSensoState = true
+        Senso.setHasBeenSeen()
         skier.setDirection(linearInterpolX(signal.state) * (config.wheelchair ? 3 : 1))
         break
 

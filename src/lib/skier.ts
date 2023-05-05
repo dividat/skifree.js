@@ -1,6 +1,7 @@
-import { Sprite } from 'lib/sprite'
 import * as Physics from 'lib/physics'
 import * as Vec2 from 'lib/vec2'
+import * as Senso from 'senso'
+import { Sprite } from 'lib/sprite'
 import { config } from 'config'
 
 // Facing: Left - South - East
@@ -112,8 +113,12 @@ export class Skier extends Sprite {
 
       const frictionAcc = Vec2.scale(-1, this.speed)
 
+      const inertia = Senso.hasBeenSeen()
+        ? config.skier.inertia.senso
+        : config.skier.inertia.keyboard
+
       acceleration = Vec2.scale(
-        0.01,
+        0.01 / inertia,
         Vec2.add(directionAcc, stopAcc, frictionAcc))
     }
 
