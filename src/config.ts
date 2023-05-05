@@ -36,7 +36,7 @@ export const config = {
     jumpDuration: 1200,
     jumpSpeed: Vec2.scale(1, Vec2.down),
     inertia: {
-      keyboard: 10,
+      keyboard: 6,
       senso: 1,
     }
   },
@@ -47,7 +47,8 @@ export const config = {
     dropRate: 0.001,
   },
   snowboarder: {
-    speed: 3,
+    minSpeed: 2,
+    maxSpeed: 5,
     dropRate: 0.1,
   },
   debug: new URLSearchParams(document.location.search).has('debug'),

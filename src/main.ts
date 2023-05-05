@@ -86,8 +86,6 @@ function monsterEatsSkier(monster: Monster, skier: Skier) {
 
 function startNeverEndingGame(images: Array<any>) {
   let skier: Skier
-  let startSign: Sprite
-  let cottage: Sprite
   let game: any
 
   const detectEnd = () => {
@@ -102,6 +100,13 @@ function startNeverEndingGame(images: Array<any>) {
     }
   }
 
+  function addStartingObject(sprite: any, x: number, y: number) {
+    let object = new Sprite(sprite)
+    object.setMapPosition(x * skier.width, y * skier.height)
+    object.isStatic = true
+    game.addObject(object)
+  }
+
   function randomlySpawnNPC(spawnFunction: () => void, dropRate: number) {
     const rateModifier = Math.max(800 - mainCanvas.width / window.devicePixelRatio, 0)
     if (Random.between(0, 1000 + rateModifier) <= dropRate * skier.speed.y) {
@@ -109,7 +114,7 @@ function startNeverEndingGame(images: Array<any>) {
     }
   }
 
-  function spawnMonster () {
+  function spawnMonster() {
     const newMonster = new Monster(sprites.monster)
     const randomPosition = dContext.getRandomMapPositionAboveViewport()
     newMonster.setMapPosition(randomPosition[0], randomPosition[1])
@@ -119,14 +124,18 @@ function startNeverEndingGame(images: Array<any>) {
     game.addObject(newMonster)
   }
 
-  function spawnBoarder () {
+  function spawnBoarder() {
     const newBoarder = new Snowboarder(sprites.snowboarder, dContext)
-    const randomPositionAbove = dContext.getRandomMapPositionAboveViewport()
-    const randomPositionBelow = dContext.getRandomMapPositionBelowViewport()
-    newBoarder.setMapPosition(randomPositionAbove[0], randomPositionAbove[1])
-    newBoarder.setMapPositionTarget(randomPositionBelow[0], randomPositionBelow[1])
-    newBoarder.onHitting(skier, sprites.snowboarder.hitBehaviour.skier)
 
+    const [ x, y ] = Random.bool()
+      ? dContext.getRandomMapPositionAboveViewport()
+      : dContext.getRandomMapPositionBelowViewport()
+    newBoarder.setMapPosition(x, y)
+
+    const [ tx, ty ] = dContext.getRandomMapPositionBelowViewport()
+    newBoarder.setMapPositionTarget(tx, ty)
+
+    newBoarder.onHitting(skier, sprites.snowboarder.hitBehaviour.skier)
     game.addObject(newBoarder)
   }
 
@@ -138,13 +147,12 @@ function startNeverEndingGame(images: Array<any>) {
   game = new Game(mainCanvas, skier)
 
   skier.determineNextFrame(dContext, 'east')
-  startSign = new Sprite(sprites.signStart)
-  game.addObject(startSign)
-  startSign.setMapPosition(-0.4 * skier.width, -0.1 * skier.height)
 
-  cottage = new Sprite(sprites.cottage)
-  game.addObject(cottage)
-  cottage.setMapPosition(0.7 * skier.width, -1.2 * skier.height)
+  addStartingObject(sprites.signStart, -0.4, -0.1)
+  addStartingObject(sprites.cottage, 0.7, -1.2)
+  addStartingObject(sprites.tallTree, 3, 4)
+  addStartingObject(sprites.rock, -4, 2)
+  addStartingObject(sprites.thickSnow, -3, 7)
 
   dContext.followSprite(skier)
 
