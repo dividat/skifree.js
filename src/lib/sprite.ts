@@ -11,11 +11,28 @@ interface HitBox {
   left: number
 }
 
-// Clear area for landing after a jump
-// Obtained experimentally using the debug flag
-const jumpingHeight = 1000
-const landingWidth = 170
-const landingHeight = 1500
+function collides(h1: HitBox, h2: HitBox): boolean {
+  return !(
+    h1.left > h2.right ||
+    h1.right < h2.left ||
+    h1.top > h2.bottom ||
+    h1.bottom < h2.top
+  )
+}
+
+const jumpingHeight = Physics.newPos({
+  dt: config.skier.jump.duration,
+  acceleration: Vec2.zero,
+  speed: config.skier.jump.speed,
+  pos: Vec2.zero
+}).y
+
+const landingHeight = Physics.newPos({
+  dt: config.skier.jump.landingDurationAtJumpingSpeed,
+  acceleration: Vec2.zero,
+  speed: config.skier.jump.speed,
+  pos: Vec2.zero
+}).y
 
 export class Sprite {
   hittableObjects: any
@@ -59,13 +76,13 @@ export class Sprite {
     }
   }
 
-  contextualHitbox(other: Sprite, forPlacement: boolean): HitBox {
-    const groupableSprites = [ 'smallTree', 'tallTree', 'thickSnow', 'thickerSnow', 'rock' ]
+  contextualHitBoxes(other: Sprite, forPlacement: boolean): Array<HitBox> {
+    const groupableSprites = [ 'smallTree', 'tallTree', 'rock' ]
 
     if (!forPlacement || groupableSprites.includes(this.data.name) && this.data.name === other.data.name) {
-      return this.getHitBox()
+      return this.getHitBoxes()
     } else {
-      return this.getImageBox()
+      return [ this.getImageBox() ]
     }
   }
 
@@ -78,27 +95,22 @@ export class Sprite {
     }
   }
 
-  getHitBox(): HitBox {
+  getHitBoxes(): Array<HitBox> {
     let part = this.data.parts[this.part]
 
-    if (part && part.hitBox) {
-      const hitBox = part.hitBox
+    if (part && part.hitBoxes) {
+      const hitBoxes = part.hitBoxes
       const spriteReducedSizeFactor = 1 / 3
       const m = this.getSizeMultiple(part) * config.scaling * spriteReducedSizeFactor
 
-      return {
-        top: this.canvasY + (hitBox ? m * hitBox.y : 0),
-        right: this.canvasX + (hitBox ? m * (hitBox.x + hitBox.width) : this.width),
-        bottom: this.canvasY + (hitBox ? m * (hitBox.y + hitBox.height) : this.height),
-        left: this.canvasX + (hitBox ? m * hitBox.x : 0)
-      }
+      return part.hitBoxes.map((h: any) => ({
+        top: this.canvasY + m * h.y,
+        right: this.canvasX + m * (h.x + h.width),
+        bottom: this.canvasY + m * (h.y + h.height),
+        left: this.canvasX + m * h.x
+      }))
     } else {
-      return {
-        top: this.canvasY,
-        right: this.canvasX + this.width,
-        bottom: this.canvasY + this.height,
-        left: this.canvasX
-      }
+      return []
     }
   }
 
@@ -191,8 +203,12 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     const canvasW = dContext.canvas.width
     const canvasH = dContext.canvas.height
 
-    const targetX = (this.canvasX - canvasW / 2) * zoom + canvasW / 2
-    const targetY = this.canvasY * zoom - config.skier.verticalPosRatio * canvasH * (zoom - 1)
+    const fx = (x: number): number => (x - canvasW / 2) * zoom + canvasW / 2
+    const fy = (y: number): number => y * zoom - config.skier.verticalPosRatio * canvasH * (zoom - 1)
+
+
+    const targetX = fx(this.canvasX)
+    const targetY = fy(this.canvasY)
     const targetW = this.width * zoom
     const targetH = this.height * zoom
 
@@ -203,22 +219,19 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
 
     if (config.debug) {
       // Hitbox
-      const hitBox = this.getHitBox()
-      dContext.beginPath()
-      dContext.strokeStyle = 'red'
-      dContext.rect(hitBox.left, hitBox.bottom, hitBox.right - hitBox.left, hitBox.top - hitBox.bottom)
-      dContext.stroke()
+      this.getHitBoxes().forEach(h => {
+        dContext.beginPath()
+        dContext.strokeStyle = 'red'
+        dContext.rect(fx(h.left), fy(h.bottom), (h.right - h.left) * zoom, (h.top - h.bottom) * zoom)
+        dContext.stroke()
+      })
 
       // Landing area
-      if (this.data.name === 'jump') {
-        const right = hitBox.right + landingWidth
-        const left = hitBox.left - landingWidth
-        const bottom = hitBox.bottom + jumpingHeight + landingHeight
-        const top = hitBox.top + jumpingHeight
-
+      const lhb = this.landingHitBox()
+      if (lhb !== undefined) {
         dContext.beginPath()
         dContext.strokeStyle = 'green'
-        dContext.rect(left, bottom, right - left, top - bottom)
+        dContext.rect(fx(lhb.left), fy(lhb.bottom), (lhb.right - lhb.left) * zoom, (lhb.top - lhb.bottom) * zoom)
         dContext.stroke()
       }
     }
@@ -319,30 +332,29 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
   }
 
   hits({ sprite, forPlacement }: { sprite: Sprite, forPlacement: boolean }) {
-    const h1 = this.contextualHitbox(sprite, forPlacement)
-    const h2 = sprite.contextualHitbox(this, forPlacement)
-
-    return !(
-      h1.left > h2.right ||
-      h1.right < h2.left ||
-      h1.top > h2.bottom ||
-      h1.bottom < h2.top
-    )
+    const h1s = this.contextualHitBoxes(sprite, forPlacement)
+    const h2s = sprite.contextualHitBoxes(this, forPlacement)
+    return h1s.some(h1 => h2s.some(h2 => collides(h1, h2)))
   }
 
   hitsLandingArea(other: Sprite) {
-    if (this.data.name === 'jump' && other.data.name !== 'thickSnow' && other.data.name !== 'thickerSnow') {
-      const h1 = this.getHitBox()
-      const h2 = other.getHitBox()
+    const landingHitBox = this.landingHitBox()
 
-      return !(
-        h2.left > (h1.right + landingWidth) ||
-        h2.right < (h1.left - landingWidth) ||
-        h2.top > (h1.bottom + jumpingHeight + landingHeight) ||
-        h2.bottom < (h1.top + jumpingHeight)
-      )
+    if (landingHitBox !== undefined && other.data.name !== 'thickSnow' && other.data.name !== 'thickerSnow') {
+      return other.getHitBoxes().some(h => collides(h, landingHitBox))
     } else {
       return false
+    }
+  }
+
+  landingHitBox(): HitBox | undefined {
+    if (this.data.name === 'jump') {
+      return {
+        right: this.canvasX + 2 * this.width,
+        left: this.canvasX - this.width,
+        top: this.canvasY + jumpingHeight,
+        bottom: this.canvasY + jumpingHeight + landingHeight
+      }
     }
   }
 

@@ -33,8 +33,12 @@ export const config = {
     verticalPosRatio: 0.15,
     lyingDurationAfterCrash: 500,
     invincibilityDuration: 3000,
-    jumpDuration: 1200,
-    jumpSpeed: Vec2.scale(1, Vec2.down),
+    jump: {
+      duration: 1200,
+      speed: Vec2.scale(1, Vec2.down),
+      landingWidth: 170,
+      landingDurationAtJumpingSpeed: 2000,
+    },
     inertia: {
       keyboard: 6,
       senso: 1,

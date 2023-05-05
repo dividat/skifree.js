@@ -5,72 +5,98 @@ export const sprites: any = {
   'skier': {
     parts: {
       east: {
-        hitBox: {
-          x: 198,
-          y: 366,
-          width: 402,
-          height: 57
-        }
+        hitBoxes: [
+          {
+            x: 198,
+            y: 366,
+            width: 402,
+            height: 57
+          }
+        ]
       },
       esEast: {
         frames: 3,
         fps: 4,
-        hitBox: {
-          x: 240,
-          y: 348,
-          width: 338,
-          height: 80
-        }
+        hitBoxes: [
+          {
+            x: 240,
+            y: 348,
+            width: 338,
+            height: 80
+          }
+        ]
       },
       sEast: {
         frames: 3,
         fps: 7,
         sizeMultiple: 0.182,
-        hitBox: {
-          x: 209,
-          y: 322,
-          width: 219,
-          height: 221
-        }
+        hitBoxes: [
+          {
+            x: 191,
+            y: 349,
+            width: 145,
+            height: 45
+          },
+          {
+            x: 234,
+            y: 394,
+            width: 156,
+            height: 96
+          },
+          {
+            x: 289,
+            y: 499,
+            width: 126,
+            height: 56
+          }
+        ]
       },
       south: {
         frames: 3,
         fps: 9,
-        hitBox: {
-          x: 115,
-          y: 178,
-          width: 148,
-          height: 394
-        }
+        hitBoxes: [
+          {
+            x: 115,
+            y: 178,
+            width: 148,
+            height: 394
+          }
+        ]
       },
       sWest: {
         frames: 3,
         fps: 7,
         sizeMultiple: 0.182,
-        hitBox: {
-          x: 117,
-          y: 313,
-          width: 242,
-          height: 246
-        }
+        hitBoxes: [
+          {
+            x: 117,
+            y: 313,
+            width: 242,
+            height: 246
+          }
+        ]
       },
       wsWest: {
         frames: 3,
         fps: 4,
-        hitBox: {
-          x: 55,
-          y: 345,
-          width: 343,
-          height: 103
-        }
+        hitBoxes: [
+          {
+            x: 55,
+            y: 345,
+            width: 343,
+            height: 103
+          }
+        ]
       },
       west: {
-        hitBox: {
-          x: 40,
-          y: 365,
-          width: 409,
-          height: 61
-        }
+        hitBoxes: [
+          {
+            x: 40,
+            y: 365,
+            width: 409,
+            height: 61
+          }
+        ]
       },
       hit: {
         frames: 2,
@@ -89,12 +115,14 @@ export const sprites: any = {
   'smallTree': {
     parts: {
       main: {
-        hitBox: {
-          x: 168,
-          y: 170,
-          width: 25,
-          height: 89
-        }
+        hitBoxes: [
+          {
+            x: 168,
+            y: 170,
+            width: 25,
+            height: 89
+          }
+        ]
       }
     },
     sizeMultiple: 0.2,
@@ -106,12 +134,14 @@ export const sprites: any = {
   'tallTree': {
     parts: {
       main: {
-        hitBox: {
-          x: 137,
-          y: 661,
-          width: 327,
-          height: 130,
-        }
+        hitBoxes: [
+          {
+            x: 137,
+            y: 661,
+            width: 327,
+            height: 130,
+          }
+        ]
       }
     },
     sizeMultiple: 0.2,
@@ -137,12 +167,14 @@ export const sprites: any = {
   'rock': {
     parts: {
       main: {
-        hitBox: {
-          x: 134,
-          y: 32,
-          width: 319,
-          height: 50
-        }
+        hitBoxes: [
+          {
+            x: 134,
+            y: 32,
+            width: 319,
+            height: 50
+          }
+        ]
       }
     },
     sizeMultiple: 0.2,
@@ -156,22 +188,26 @@ export const sprites: any = {
       sEast: {
         frames: 11,
         fps: 7,
-        hitBox: {
-          x: 167,
-          y: 48,
-          width: 300,
-          height: 486
-        }
+        hitBoxes: [
+          {
+            x: 167,
+            y: 48,
+            width: 300,
+            height: 486
+          }
+        ]
       },
       sWest: {
         frames: 11,
         fps: 7,
-        hitBox: {
-          x: 83,
-          y: 40,
-          width: 305,
-          height: 465
-        }
+        hitBoxes: [
+          {
+            x: 83,
+            y: 40,
+            width: 305,
+            height: 465
+          }
+        ]
       },
       eating1: {},
       eating2: {},
@@ -186,12 +222,14 @@ export const sprites: any = {
   'jump': {
     parts: {
       main: {
-        hitBox: {
-          x: 166,
-          y: 4,
-          width: 430,
-          height: 205
-        }
+        hitBoxes: [
+          {
+            x: 166,
+            y: 4,
+            width: 430,
+            height: 205
+          }
+        ]
       }
     },
     sizeMultiple: 0.2,
@@ -223,22 +261,26 @@ export const sprites: any = {
       sEast: {
         frames: 3,
         fps: 7,
-        hitBox: {
-          x: 142,
-          y: 296,
-          width: 81,
-          height: 84
-        }
+        hitBoxes: [
+          {
+            x: 142,
+            y: 296,
+            width: 81,
+            height: 84
+          }
+        ]
       },
       sWest: {
         frames: 3,
         fps: 7,
-        hitBox: {
-          x: 101,
-          y: 298,
-          width: 76,
-          height: 85
-        }
+        hitBoxes: [
+          {
+            x: 101,
+            y: 298,
+            width: 76,
+            height: 85
+          }
+        ]
       }
     },
     sizeMultiple: 0.28,

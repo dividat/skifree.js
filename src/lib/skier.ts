@@ -179,7 +179,7 @@ export class Skier extends Sprite {
 
   isJumping() {
     const lastJump = this.lastJump()
-    return lastJump !== undefined && this.elapsedTime - lastJump < config.skier.jumpDuration
+    return lastJump !== undefined && this.elapsedTime - lastJump < config.skier.jump.duration
   }
 
   isBeingEaten() {
@@ -209,7 +209,7 @@ export class Skier extends Sprite {
 
   hasHitJump() {
     if (!this.isJumping()) {
-      this.speed = config.skier.jumpSpeed
+      this.speed = config.skier.jump.speed
       this.jumps.push(this.elapsedTime)
 
       // @ts-ignore
