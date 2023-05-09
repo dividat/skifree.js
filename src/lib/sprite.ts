@@ -332,9 +332,15 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
   }
 
   hits({ sprite, forPlacement }: { sprite: Sprite, forPlacement: boolean }) {
-    const h1s = this.contextualHitBoxes(sprite, forPlacement)
-    const h2s = sprite.contextualHitBoxes(this, forPlacement)
-    return h1s.some(h1 => h2s.some(h2 => collides(h1, h2)))
+    const h1 = this.getImageBox()
+    const h2 = sprite.getImageBox()
+
+    // Check first by looking at images box before looking at precise collision using multiple hitboxes
+    if (collides(h1, h2)) {
+      const h1s = this.contextualHitBoxes(sprite, forPlacement)
+      const h2s = sprite.contextualHitBoxes(this, forPlacement)
+      return h1s.some(h1 => h2s.some(h2 => collides(h1, h2)))
+    }
   }
 
   hitsLandingArea(other: Sprite) {
