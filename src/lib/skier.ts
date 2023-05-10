@@ -1,6 +1,7 @@
 import * as Physics from 'lib/physics'
 import * as Vec2 from 'lib/vec2'
 import * as Senso from 'senso'
+import * as Canvas from 'canvas'
 import { Sprite } from 'lib/sprite'
 import { config } from 'config'
 
@@ -81,16 +82,16 @@ export class Skier extends Sprite {
   }
 
   cycle(dt: number) {
-    const y1 = this.mapPosition[1]
+    const y1 = this.pos[1]
     super.cycle(dt)
-    const y2 = this.mapPosition[1]
+    const y2 = this.pos[1]
     this.pixelsTravelled += y2 - y1
   }
 
   move(dt: number) {
     const pos = {
-      x: this.mapPosition[0],
-      y: this.mapPosition[1]
+      x: this.pos[0],
+      y: this.pos[1]
     }
 
     let acceleration
@@ -155,7 +156,7 @@ export class Skier extends Sprite {
     return confidenceBoost
   }
 
-  draw(dContext: any, spriteFrame: string, zoom: number) {
+  draw(center: [ number, number ], spriteFrame: string, zoom: number) {
     // Part of monster sprite while being eaten, also don’t show when blinking
     if (!this.isBeingEaten() && !this.isBlinking()) {
       const spritePartToUse =
@@ -163,11 +164,11 @@ export class Skier extends Sprite {
           ? 'jumping'
           : (this.isLying() ? 'hit' : this.getDiscreteDirection())
 
-      super.draw(dContext, spritePartToUse, zoom)
+      super.draw(center, spritePartToUse, zoom)
 
       if (config.debug) {
-        dContext.font = '20px sans-serif'
-        dContext.fillText(`Confidence boost: ${this.confidenceBoost}`, 15, 170)
+        Canvas.context.font = '20px sans-serif'
+        Canvas.context.fillText(`Confidence boost: ${this.confidenceBoost}`, 15, 170)
       }
     }
   }

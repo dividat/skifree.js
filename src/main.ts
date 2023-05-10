@@ -1,7 +1,8 @@
-import 'lib/canvasRenderingContext2DExtensions'
 import * as Random from 'lib/random'
 import * as Vec2 from 'lib/vec2'
+import * as Images from 'lib/images' 
 import * as Senso from 'senso'
+import * as Canvas from 'canvas' 
 import { config } from 'config'
 import { Game } from 'lib/game'
 import { Monster } from 'lib/monster'
@@ -10,28 +11,24 @@ import { Snowboarder } from 'lib/snowboarder'
 import { Sprite } from 'lib/sprite'
 import { sprites } from 'spriteInfo'
 
-const mainCanvas: any = document.getElementById('skifree-canvas')
-const dContext: any = mainCanvas.getContext('2d')
-const infoBoxControls: string = 'Use the mouse or WASD to control the skier'
 const imageSources: Array<string> = []
-;(function () {
-  for (const key in sprites) {
-      for (const partKey in sprites[key].parts) {
-          // Skip monkey patching debris
-          if (partKey === 'superior') continue
 
-          const part = sprites[key].parts[partKey]
+for (const key in sprites) {
+    for (const partKey in sprites[key].parts) {
+        // Skip monkey patching debris
+        if (partKey === 'superior') continue
 
-          if (part.frames > 0) {
-              for (let i = 1; i <= part.frames; i++) {
-                  imageSources.push("sprites/" + key + "-" + partKey + i + ".png")
-              }
-	  } else {
-              imageSources.push("sprites/" + key + "-" + partKey + ".png")
-	  }
-      }
+        const part = sprites[key].parts[partKey]
+
+        if (part.frames > 0) {
+            for (let i = 1; i <= part.frames; i++) {
+                imageSources.push("sprites/" + key + "-" + partKey + i + ".png")
+            }
+  } else {
+            imageSources.push("sprites/" + key + "-" + partKey + ".png")
   }
-})()
+    }
+}
 
 function loadImages(sources: Array<string>, next: any) {
   let loaded = 0
@@ -62,7 +59,7 @@ function loadImages(sources: Array<string>, next: any) {
     im.onload = finish
     im.onerror = finish
     im.src = src
-    dContext.storeLoadedImage(src, im)
+    Images.storeLoaded(src, im)
   })
 }
 
@@ -72,10 +69,8 @@ function monsterEatsSkier(monster: Monster, skier: Skier) {
     monster.startEating({
       whenDone: () => {
         monster.stopFollowing()
-        const randomPositionAbove = dContext.getRandomMapPositionAboveViewport()
+        const randomPositionAbove = Canvas.getRandomMapPositionAboveViewport(skier.pos)
         monster.setMapPositionTarget(randomPositionAbove[0], randomPositionAbove[1])
-        // Delete some time after it moved off screen
-        setTimeout(() => monster.deleteOnNextCycle(), 5000)
       }
     })
 
@@ -103,20 +98,18 @@ function startNeverEndingGame(images: Array<any>) {
   function addStartingObject(sprite: any, x: number, y: number) {
     let object = new Sprite(sprite)
     object.setMapPosition(x * skier.width, y * skier.height)
-    object.isStatic = true
     game.addObject(object)
   }
 
   function randomlySpawnNPC(spawnFunction: () => void, dropRate: number) {
-    const rateModifier = Math.max(800 - mainCanvas.width / window.devicePixelRatio, 0)
-    if (Random.between(0, 1000 + rateModifier) <= dropRate * skier.speed.y) {
+    if (Random.between(0, 1000) <= dropRate * skier.speed.y) {
       spawnFunction()
     }
   }
 
   function spawnMonster() {
     const newMonster = new Monster(sprites.monster)
-    const randomPosition = dContext.getRandomMapPositionAboveViewport()
+    const randomPosition = Canvas.getRandomMapPositionAboveViewport(skier.pos)
     newMonster.setMapPosition(randomPosition[0], randomPosition[1])
     newMonster.follow(skier)
     newMonster.onHitting(skier, monsterEatsSkier)
@@ -125,36 +118,34 @@ function startNeverEndingGame(images: Array<any>) {
   }
 
   function spawnBoarder() {
-    const newBoarder = new Snowboarder(sprites.snowboarder, dContext)
+    const newBoarder = new Snowboarder(skier, sprites.snowboarder)
 
     const [ x, y ] = Random.bool()
-      ? dContext.getRandomMapPositionAboveViewport()
-      : dContext.getRandomMapPositionBelowViewport()
+      ? Canvas.getRandomMapPositionAboveViewport(skier.pos)
+      : Canvas.getRandomMapPositionBelowViewport(skier.pos)
     newBoarder.setMapPosition(x, y)
 
-    const [ tx, ty ] = dContext.getRandomMapPositionBelowViewport()
+    const [ tx, ty ] = Canvas.getRandomMapPositionBelowViewport(skier.pos)
     newBoarder.setMapPositionTarget(tx, ty)
 
     newBoarder.onHitting(skier, sprites.snowboarder.hitBehaviour.skier)
     game.addObject(newBoarder)
   }
 
-  skier = new Skier(mainCanvas, sprites.skier)
+  skier = new Skier(Canvas.canvas, sprites.skier)
   skier.setMapPosition(0, 0)
   skier.setMapPositionTarget(0, -10)
 
   // @ts-ignore
-  game = new Game(mainCanvas, skier)
+  game = new Game(Canvas.canvas, skier)
 
-  skier.determineNextFrame(dContext, 'east')
+  skier.determineNextFrame('east')
 
   addStartingObject(sprites.signStart, -0.4, -0.1)
   addStartingObject(sprites.cottage, 0.7, -1.2)
   addStartingObject(sprites.tallTree, 3, 4)
   addStartingObject(sprites.rock, -4, 2)
   addStartingObject(sprites.thickSnow, -3, 7)
-
-  dContext.followSprite(skier)
 
   game.beforeCycle(() => {
     if (!game.isPaused()) {
@@ -273,19 +264,8 @@ function clamp(min: number, x: number, max: number) {
   return Math.max(min, Math.min(max, x))
 }
 
-function setupCanvas() {
-  const dpr = window.devicePixelRatio || 1
-
-  mainCanvas.width = window.innerWidth * dpr
-  mainCanvas.height = window.innerHeight * dpr
-
-  mainCanvas.style.width = window.innerWidth + 'px'
-  mainCanvas.style.height = window.innerHeight + 'px'
-
-  dContext.imageSmoothingQuality = 'high'
-}
-window.addEventListener('resize', setupCanvas, false)
-setupCanvas()
+window.addEventListener('resize', Canvas.setup, false)
+Canvas.setup()
 
 loadImages(imageSources, startNeverEndingGame)
 
@@ -299,48 +279,42 @@ const spawnableSprites = [
 ]
 
 function createObjects(skier: Skier, canAddObject: (sprite: any) => boolean) {
-  const rateModifier = Math.max(800 - mainCanvas.width / window.devicePixelRatio, 0)
-
-  const sideTrees = [ dContext.getRandomSideMapPositionBelowViewport() ]
+  const sideTrees = [ Canvas.getRandomSideMapPositionBelowViewport(skier.pos) ]
     .filter(_ => {
-      const random = Random.between(0, 100) + rateModifier + 0.001
+      const random = Random.between(0, 100) + 0.001
       return random < config.dropRate.side.tallTree * skier.speed.y
     })
     .map(pos => {
       const sprite = new Sprite(sprites.tallTree)
       sprite.setMapPosition(pos[0], pos[1])
-      sprite.isStatic = true
       sprite.onHitting(skier, sprites.tallTree.hitBehaviour.skier)
       return sprite
     })
 
   const skierDirectionObjects = [ undefined ]
     .filter(_ => {
-      const random = Random.between(0, 100) + rateModifier + 0.001
+      const random = Random.between(0, 100) + 0.001
       return skier.speed !== Vec2.zero && random < config.dropRate.skierDirection.any * skier.speed.y
     })
     .map(_ => {
       const sprite = new Sprite(randomObstacle())
-      const [ unused, y ] = dContext.getRandomMapPositionBelowViewport()
-      const x = skier.mapPosition[0] + skier.speed.x / skier.speed.y * (y - skier.mapPosition[1])
+      const [ unused, y ] = Canvas.getRandomMapPositionBelowViewport(skier.pos)
+      const x = skier.pos[0] + skier.speed.x / skier.speed.y * (y - skier.pos[1])
       sprite.setMapPosition(x, y)
-      sprite.isStatic = true
       sprite.onHitting(skier, sprites.tallTree.hitBehaviour.skier)
       return sprite
     })
 
   const centeredObjects = spawnableSprites
     .filter((spriteInfo: any) => {
-      const random = Random.between(0, 100) + rateModifier + 0.001
+      const random = Random.between(0, 100) + 0.001
       return random < spriteInfo.dropRate * skier.speed.y
     })
     .map((spriteInfo: any) => {
       const sprite = new Sprite(spriteInfo.sprite)
 
-      const [ x, y ] = dContext.getRandomMapPositionBelowViewport()
+      const [ x, y ] = Canvas.getRandomMapPositionBelowViewport(skier.pos)
       sprite.setMapPosition(x, y)
-
-      sprite.isStatic = true
 
       if (spriteInfo.sprite.hitBehaviour && spriteInfo.sprite.hitBehaviour.skier) {
         sprite.onHitting(skier, spriteInfo.sprite.hitBehaviour.skier)

@@ -1,36 +1,35 @@
 import * as Vec2 from 'lib/vec2'
+import * as Canvas from 'canvas'
 import { config } from 'config'
 import { Skier } from 'lib/skier'
 import { Sprite } from 'lib/sprite'
-import { SpriteArray } from 'lib/spriteArray'
 
-export function Game (mainCanvas: any, skier: Skier) {
-  const dContext: any = mainCanvas.getContext('2d')
+export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
   const beforeCycleCallbacks: Array<any> = []
   const afterCycleCallbacks: Array<any> = []
 
-  let objects = new SpriteArray()
+  let objects = new Array<Sprite>()
   let paused = false
   let runningTime = 0
   let lastStepAt: number | undefined = undefined
   let zoom = config.zoom.max
 
-  this.addObject = (sprite: any) => {
+  this.addObject = (sprite: Sprite) => {
     objects.push(sprite)
   }
 
   this.canAddObject = (sprite: Sprite) => {
     // Determine graphical properties to enable hit check
     if (sprite.data.parts.main !== undefined) {
-      sprite.determineNextFrame(dContext, 'main')
+      sprite.determineNextFrame('main')
     }
 
-    return !objects.some((other: any) => {
+    return !objects.some((other: Sprite) => {
       return other.hits({ sprite, forPlacement: true }) || other.hitsLandingArea(sprite)
     })
   }
 
-  this.addObjects = (sprites: Array<any>) => {
+  this.addObjects = (sprites: Array<Sprite>) => {
     sprites.forEach((sprite: Sprite) => this.addObject(sprite))
   }
 
@@ -42,16 +41,15 @@ export function Game (mainCanvas: any, skier: Skier) {
     afterCycleCallbacks.push(callback)
   }
 
-  dContext.followSprite(skier)
-
   this.cycle = (dt: number) => {
     beforeCycleCallbacks.forEach((c: any) => c())
 
     skier.cycle(dt)
 
-    objects.cull()
-    objects.forEach((object: any) => {
-      if (object.cycle) {
+    objects.forEach((object: Sprite, i: number) => {
+      if (object.canBeDeleted(skier.pos)) {
+        delete objects[i]
+      } else {
         object.cycle(dt)
       }
     })
@@ -63,12 +61,12 @@ export function Game (mainCanvas: any, skier: Skier) {
   }
 
   this.draw = () => {
-    dContext.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
+    Canvas.context.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 
     const allObjects = objects.slice() // Clone
     allObjects.push(skier)
     allObjects.sort(sortFromBackToFront)
-    allObjects.forEach((object: Sprite) => object.draw(dContext, 'main', zoom))
+    allObjects.forEach((object: Sprite) => object.draw(skier.pos, 'main', zoom))
   }
 
   this.start = () => {
@@ -95,8 +93,7 @@ export function Game (mainCanvas: any, skier: Skier) {
 
   this.reset = () => {
     paused = false
-    objects = new SpriteArray()
-    // skier.reset()
+    objects = new Array<Sprite>()
     this.start()
     runningTime = 0
   }
@@ -117,8 +114,8 @@ export function Game (mainCanvas: any, skier: Skier) {
     requestAnimationFrame(this.step.bind(this))
   }
 
-  this.hasObject = (name: any) => {
-    return objects.some((obj: any) => {
+  this.hasObject = (name: string) => {
+    return objects.some((obj: Sprite) => {
       return obj.data.name === name
     })
   }
@@ -134,8 +131,8 @@ function sortFromBackToFront(a: Sprite, b: Sprite): number {
   } else if (isSnow(b)) {
     return 1
   } else {
-    const aBottom = a.canvasY + a.height
-    const bBottom = b.canvasY + b.height
+    const aBottom = a.pos[1] + a.height
+    const bBottom = b.pos[1] + b.height
     return aBottom - bBottom
   }
 }

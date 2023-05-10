@@ -1,9 +1,7 @@
 import * as Vec2 from 'lib/vec2'
 
-const urlScaling = new URLSearchParams(document.location.search).get('zoom')
-
 export const config = {
-  scaling: (urlScaling !== null && parseFloat(urlScaling) || window.devicePixelRatio || 1) * 2,
+  scaling: window.devicePixelRatio,
   originalFrameInterval: 20,
   pixelsPerMeter: 18,
   duration: 60000,
@@ -18,7 +16,7 @@ export const config = {
   dropRate: {
     smallTree: 8,
     tallTree: 8,
-    jump: 1,
+    jump: 0.05,
     thickSnow: 1,
     thickerSnow: 1,
     rock: 8,
@@ -47,7 +45,7 @@ export const config = {
   monster: {
     distanceThresholdMeters: 2000,
     eatingDuration: 1500,
-    speed: 4,
+    speed: 5,
     dropRate: 0.001,
   },
   snowboarder: {

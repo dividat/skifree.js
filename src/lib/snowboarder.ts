@@ -1,4 +1,5 @@
 import * as Random from 'lib/random'
+import * as Canvas from 'canvas'
 import { Sprite } from 'lib/sprite'
 import { config } from 'config'
 
@@ -9,23 +10,23 @@ const directions = {
 
 export class Snowboarder extends Sprite {
 
-  dContext: any
+  skier: Sprite
   baseSpeed: number
 
-  constructor(data: any, dContext: any) {
+  constructor(skier: Sprite, data: any) {
     super(data)
+    this.skier = skier
     this.baseSpeed = Random.between(config.snowboarder.minSpeed, config.snowboarder.maxSpeed)
     super.setMovingTowardSpeed(this.baseSpeed)
-    this.dContext = dContext
   }
 
   getDirection(): string {
     const movingToward = super.getMovingToward()
-    const mapPosition = super.getMapPosition()
+    const pos = super.getMapPosition()
 
     if (movingToward !== undefined && movingToward[0] !== undefined && movingToward[1] !== undefined) {
-      const xDiff = movingToward[0] - mapPosition[0]
-      const yDiff = movingToward[1] - mapPosition[1]
+      const xDiff = movingToward[0] - pos[0]
+      const yDiff = movingToward[1] - pos[1]
 
       return directions.sEast(xDiff) ? 'sEast' : 'sWest'
     } else {
@@ -35,15 +36,19 @@ export class Snowboarder extends Sprite {
 
   cycle(dt: number) {
     if (Random.between(0, 10) === 1) {
-      super.setMapPositionTarget(this.dContext.getRandomlyInTheCentreOfMap())
+      super.setMapPositionTarget(Canvas.getRandomlyInTheCentreOfMap(this.skier.pos))
       super.setMovingTowardSpeed(this.baseSpeed + Random.between(-1, 1))
     }
 
-    super.setMapPositionTarget(undefined, this.dContext.getMapBelowViewport() + 600)
+    super.setMapPositionTarget(undefined, Canvas.getMapBelowViewport(this.skier.pos) + 600)
     super.cycle(dt)
   }
 
-  draw(dContext: any, spriteFrame: any, zoom: number) {
-    return super.draw(dContext, this.getDirection(), zoom)
+  draw(center: [ number, number ], spriteFrame: any, zoom: number) {
+    return super.draw(center, this.getDirection(), zoom)
+  }
+
+  canBeDeleted(center: [ number, number ]): boolean {
+    return false
   }
 }

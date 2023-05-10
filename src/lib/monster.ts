@@ -12,7 +12,7 @@ export class Monster extends Sprite {
     this.setMovingTowardSpeed(config.monster.speed)
   }
 
-  draw(dContext: any, spriteFrame: string, zoom: number) {
+  draw(center: [ number, number ], spriteFrame: string, zoom: number) {
     let spritePartToUse
 
     if (this.eatingStartedAt !== undefined && this.isEating) {
@@ -28,7 +28,7 @@ export class Monster extends Sprite {
       }
     }
 
-    return super.draw(dContext, spritePartToUse, zoom)
+    return super.draw(center, spritePartToUse, zoom)
   }
 
   startEating({ whenDone }: { whenDone: () => void }) {
@@ -38,5 +38,9 @@ export class Monster extends Sprite {
       this.isEating = false
       whenDone()
     }, config.monster.eatingDuration)
+  }
+
+  canBeDeleted(center: [ number, number ]): boolean {
+    return this.eatingStartedAt !== undefined && super.canBeDeleted(center)
   }
 }

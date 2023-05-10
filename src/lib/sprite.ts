@@ -1,6 +1,8 @@
 import * as Random from 'lib/random'
 import * as Physics from 'lib/physics'
 import * as Vec2 from 'lib/vec2'
+import * as Images from 'lib/images' 
+import * as Canvas from 'canvas'
 import { config } from 'config'
 import { nextId } from 'lib/id'
 
@@ -20,6 +22,12 @@ function collides(h1: HitBox, h2: HitBox): boolean {
   )
 }
 
+function hitBoxToCanvas(center: [ number, number ], h: HitBox): HitBox {
+  const [ left, top ] = Canvas.mapPositionToCanvasPosition(center, [ h.left, h.top ])
+  const [ right, bottom ] = Canvas.mapPositionToCanvasPosition(center, [ h.right, h.bottom ])
+  return { top, right, bottom, left }
+}
+
 const jumpingHeight = Physics.newPos({
   dt: config.skier.jump.duration,
   acceleration: Vec2.zero,
@@ -36,34 +44,24 @@ const landingHeight = Physics.newPos({
 
 export class Sprite {
   hittableObjects: any
-  trackedSpriteToMoveToward: Sprite | undefined
-  mapPosition: Array<number>
+  pos: [ number, number ]
   id: number
-  canvasX: number
-  canvasY: number
   width: number
   height: number
   data: any
-  movingToward: Array<number | undefined> | undefined
-  metresDownTheMountain: number
-  deleted: boolean
-  isStatic: boolean
   part: any
+  trackedSpriteToMoveToward: Sprite | undefined
+  movingToward: Array<number | undefined> | undefined
   movingTowardSpeed: number
 
   constructor(data: any) {
     this.hittableObjects = {}
-    this.mapPosition = [0, 0]
+    this.pos = [0, 0]
     this.id = nextId()
-    this.canvasX = 0
-    this.canvasY = 0
     this.width = 0
     this.height = 0
     this.data = data || { parts: {} }
     this.movingToward = undefined
-    this.metresDownTheMountain = 0
-    this.deleted = false
-    this.isStatic = false
     this.part = null
     this.movingTowardSpeed = 0
 
@@ -88,10 +86,10 @@ export class Sprite {
 
   getImageBox(): HitBox {
     return {
-      top: this.canvasY - 100,
-      right: this.canvasX + this.width + 100,
-      bottom: this.canvasY + this.height + 100,
-      left: this.canvasX - 100,
+      top: this.pos[1],
+      right: this.pos[0] + this.width,
+      bottom: this.pos[1] + this.height,
+      left: this.pos[0],
     }
   }
 
@@ -100,14 +98,13 @@ export class Sprite {
 
     if (part && part.hitBoxes) {
       const hitBoxes = part.hitBoxes
-      const spriteReducedSizeFactor = 1 / 3
-      const m = this.getSizeMultiple(part) * config.scaling * spriteReducedSizeFactor
+      const m = this.getSizeMultiple(part) * config.scaling
 
       return part.hitBoxes.map((h: any) => ({
-        top: this.canvasY + m * h.y,
-        right: this.canvasX + m * (h.x + h.width),
-        bottom: this.canvasY + m * (h.y + h.height),
-        left: this.canvasX + m * h.x
+        top: this.pos[1] + m * h.y,
+        right: this.pos[0] + m * (h.x + h.width),
+        bottom: this.pos[1] + m * (h.y + h.height),
+        left: this.pos[0] + m * h.x
       }))
     } else {
       return []
@@ -117,15 +114,14 @@ export class Sprite {
   move(dt: number) {
     if (this.movingToward !== undefined) {
       let pos = {
-        x: this.mapPosition[0],
-        y: this.mapPosition[1]
+        x: this.pos[0],
+        y: this.pos[1]
       }
 
       // Assume original magic numbers for speed were created for a typical 2013 resolution
-      const heightFactor = window.devicePixelRatio * window.innerHeight/800
       // Adjust for FPS different than the 50 FPS assumed by original game
-      const lagFactor = (dt || config.originalFrameInterval) / config.originalFrameInterval
-      const factor = heightFactor * lagFactor
+      const lagFactor = dt / config.originalFrameInterval
+      const factor = lagFactor
 
       if (this.movingToward[0] !== undefined) {
         if (pos.x > this.movingToward[0]) {
@@ -147,7 +143,7 @@ export class Sprite {
     }
   }
 
-  determineNextFrame(dContext: any, spriteFrame: string) {
+  determineNextFrame(spriteFrame: string) {
     this.part = spriteFrame
 
     const part = this.data.parts[spriteFrame]
@@ -165,7 +161,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
       overridePath = "sprites/" + this.data.name + "-" + spriteFrame + frame + ".png"
     }
 
-    const img = dContext.getLoadedImage(overridePath)
+    const img = Images.getLoaded(overridePath)
 
     if (!img || !img.complete || img.naturalHeight === 0) {
       this.width = 0
@@ -180,74 +176,76 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     this.width = targetWidth
     this.height = targetHeight
 
-    const newCanvasPosition = dContext.mapPositionToCanvasPosition(this.mapPosition)
-    this.setCanvasPosition(newCanvasPosition[0], newCanvasPosition[1])
-
     return img
   }
 
   getSizeMultiple(part: any): number {
+    let factor
     if (typeof part.sizeMultiple === 'number') {
-      return part.sizeMultiple
+      factor = part.sizeMultiple
     } else if (typeof this.data.sizeMultiple === 'number') {
-      return this.data.sizeMultiple
+      factor = this.data.sizeMultiple
     } else {
-      return 1
+      factor = 1
     }
+
+    return factor * 0.5
   }
 
-  draw(dContext: any, spriteFrame: string, zoom: number) {
-    const img = this.determineNextFrame(dContext, spriteFrame)
+  draw(center: [ number, number ], spriteFrame: string, zoom: number) {
+    const img = this.determineNextFrame(spriteFrame)
     if (img == null) return
 
-    const canvasW = dContext.canvas.width
-    const canvasH = dContext.canvas.height
+    const canvasW = Canvas.canvas.width
+    const canvasH = Canvas.canvas.height
 
     const fx = (x: number): number => (x - canvasW / 2) * zoom + canvasW / 2
     const fy = (y: number): number => y * zoom - config.skier.verticalPosRatio * canvasH * (zoom - 1)
 
+    const [ canvasX, canvasY ] = Canvas.mapPositionToCanvasPosition(center, this.pos)
 
-    const targetX = fx(this.canvasX)
-    const targetY = fy(this.canvasY)
+    const targetX = fx(canvasX)
+    const targetY = fy(canvasY)
     const targetW = this.width * zoom
     const targetH = this.height * zoom
 
-    dContext.drawImage(
+    Canvas.context.drawImage(
       img,
       0, 0, img.width, img.height,
       targetX, targetY, targetW, targetH)
 
     if (config.debug) {
-      // Hitbox
-      this.getHitBoxes().forEach(h => {
-        dContext.beginPath()
-        dContext.strokeStyle = 'red'
-        dContext.rect(fx(h.left), fy(h.bottom), (h.right - h.left) * zoom, (h.top - h.bottom) * zoom)
-        dContext.stroke()
-      })
+      this.drawDebug(center, zoom, fx, fy)
+    }
+  }
 
-      // Landing area
-      const lhb = this.landingHitBox()
-      if (lhb !== undefined) {
-        dContext.beginPath()
-        dContext.strokeStyle = 'green'
-        dContext.rect(fx(lhb.left), fy(lhb.bottom), (lhb.right - lhb.left) * zoom, (lhb.top - lhb.bottom) * zoom)
-        dContext.stroke()
-      }
+  drawDebug(center: [ number, number ], zoom: number, fx: (x: number) => number, fy: (x: number) => number) {
+    // Hitbox
+    this.getHitBoxes().forEach(h => {
+      const ch = hitBoxToCanvas(center, h)
+      Canvas.context.beginPath()
+      Canvas.context.strokeStyle = 'red'
+      Canvas.context.rect(fx(ch.left), fy(ch.bottom), (ch.right - ch.left) * zoom, (ch.top - ch.bottom) * zoom)
+      Canvas.context.stroke()
+    })
+
+    // Landing area
+    let lhb = this.landingHitBox()
+    if (lhb !== undefined) {
+      lhb = hitBoxToCanvas(center, lhb)
+      Canvas.context.beginPath()
+      Canvas.context.strokeStyle = 'green'
+      Canvas.context.rect(fx(lhb.left), fy(lhb.bottom), (lhb.right - lhb.left) * zoom, (lhb.top - lhb.bottom) * zoom)
+      Canvas.context.stroke()
     }
   }
 
   setMapPosition(x: number, y: number) {
-    this.mapPosition = [x, y]
-  }
-
-  setCanvasPosition(cx: number, cy: number) {
-    this.canvasX = cx
-    this.canvasY = cy
+    this.pos = [x, y]
   }
 
   getMapPosition() {
-    return this.mapPosition
+    return this.pos
   }
 
   setMovingToward(movingToward: Array<number>) {
@@ -276,21 +274,11 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     })
   }
 
-  checkOffScreen() {
-    // Keep jumps a bit more to prevent creating objects in landing areas
-    const deletePoint = this.data.name === 'jump' ? -jumpingHeight - landingHeight : 0
-
-    if (this.isStatic && this.isAboveOnCanvas(deletePoint)) {
-      this.deleted = true
-    }
-  }
-
   cycle(dt: number) {
-    this.checkOffScreen()
     this.checkHittableObjects()
 
     if (this.trackedSpriteToMoveToward) {
-      this.setMapPositionTarget(this.trackedSpriteToMoveToward.mapPosition[0], this.trackedSpriteToMoveToward.mapPosition[1], true)
+      this.setMapPositionTarget(this.trackedSpriteToMoveToward.pos[0], this.trackedSpriteToMoveToward.pos[1], true)
     }
 
     this.move(dt)
@@ -327,10 +315,6 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     }
   }
 
-  deleteOnNextCycle() {
-    this.deleted = true
-  }
-
   hits({ sprite, forPlacement }: { sprite: Sprite, forPlacement: boolean }) {
     const h1 = this.getImageBox()
     const h2 = sprite.getImageBox()
@@ -356,15 +340,18 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
   landingHitBox(): HitBox | undefined {
     if (this.data.name === 'jump') {
       return {
-        right: this.canvasX + 2 * this.width,
-        left: this.canvasX - this.width,
-        top: this.canvasY + jumpingHeight,
-        bottom: this.canvasY + jumpingHeight + landingHeight
+        right: this.pos[0] + 2 * this.width,
+        left: this.pos[0] - this.width,
+        top: this.pos[1] + jumpingHeight,
+        bottom: this.pos[1] + jumpingHeight + landingHeight
       }
     }
   }
 
-  isAboveOnCanvas(cy: number) {
-    return (this.canvasY + this.height) < cy
+  canBeDeleted(center: [ number, number ]): boolean {
+    // Keep jumps a bit more to prevent creating objects in landing areas
+    const deletePoint = (this.data.name === 'jump' ? -jumpingHeight - landingHeight : 0) - this.height
+
+    return Canvas.mapPositionToCanvasPosition(center, this.pos)[1] < deletePoint
   }
 }
