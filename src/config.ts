@@ -12,17 +12,17 @@ export const config = {
     convergenceDuration: 1000,
   },
   dropRate: {
-    smallTree: 80,
-    tallTree: 80,
+    smallTree: 100,
+    tallTree: 130,
     jump: 1,
-    thickSnow: 10,
-    thickerSnow: 10,
-    rock: 80,
+    thickSnow: 20,
+    thickerSnow: 20,
+    rock: 100,
     side: {
       tallTree: 1000,
     },
     skierDirection: {
-      any: 30,
+      any: 50,
     }
   },
   skier: {
