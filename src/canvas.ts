@@ -5,20 +5,25 @@ import { config } from 'config'
 export const canvas: any = document.getElementById('skifree-canvas')
 export const context: any = canvas.getContext('2d')
 let canvasCenter: [ number, number ] = [ 0, 0 ]
+export let width: number = 0
+export let height: number = 0
+export let diagonal: number = 0
 
 export function setup() {
-  const width = window.innerWidth
-  const height = window.innerHeight
-
-  canvas.width = width * window.devicePixelRatio
-  canvas.height = height * window.devicePixelRatio
+  canvas.width = window.innerWidth * window.devicePixelRatio
+  canvas.height = window.innerHeight * window.devicePixelRatio
 
   if (window.devicePixelRatio > 1) {
-    canvas.style.width = `${width}px`
-    canvas.style.height = `${height}px`
+    canvas.style.width = `${window.innerWidth}px`
+    canvas.style.height = `${window.innerHeight}px`
   }
 
+  width = canvas.width
+  height = canvas.height
+  diagonal = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2))
+
   context.imageSmoothingQuality = 'high'
+  context.font = `${diagonal / 100}px sans-serif` // text debug
 
   canvasCenter = [
     canvas.width * 0.5,
@@ -55,7 +60,7 @@ export function getMapBelowViewport(center: [ number, number ]) {
 }
 
 function getRandomlyInTheCentreOfCanvas(): number {
-  return Random.between(0, canvas.width)
+  return Random.int({ min: 0, max: canvas.width })
 }
 
 function getAboveViewport(): number {
@@ -68,7 +73,7 @@ function getBelowViewport(): number {
 
 function getRandomlyInTheSideOfCanvas(): number {
   const side = canvas.width * 0.4
-  const random = Random.between(-side, side)
+  const random = Random.int({ min: -side, max: side })
   return random < 0 ? canvas.width * 0.1 + random : canvas.width * 0.9 + random
 }
 

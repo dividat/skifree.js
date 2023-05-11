@@ -65,3 +65,7 @@ export function rotate(angle: number, { x, y }: Vec2): Vec2 {
     y: x * Math.sin(angle) + y * Math.cos(angle)
   }
 }
+
+export function applyOnLength(f: (x: number) => number, v: Vec2): Vec2 {
+  return scale(f(length(v)), unit(v))
+}

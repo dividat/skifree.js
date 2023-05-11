@@ -1,5 +1,6 @@
 import { Sprite } from 'lib/sprite'
 import { config } from 'config'
+import * as Canvas from 'canvas'
 
 const eatingSteps = 6
 
@@ -9,7 +10,8 @@ export class Monster extends Sprite {
 
   constructor(data: any) {
     super(data)
-    this.setMovingTowardSpeed(config.monster.speed)
+    const speed = config.monster.speed * Canvas.diagonal / 2000
+    this.setMovingTowardSpeed(speed)
   }
 
   draw(center: [ number, number ], spriteFrame: string, zoom: number) {

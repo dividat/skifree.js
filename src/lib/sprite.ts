@@ -28,19 +28,23 @@ function hitBoxToCanvas(center: [ number, number ], h: HitBox): HitBox {
   return { top, right, bottom, left }
 }
 
-const jumpingHeight = Physics.newPos({
-  dt: config.skier.jump.duration,
-  acceleration: Vec2.zero,
-  speed: config.skier.jump.speed,
-  pos: Vec2.zero
-}).y
+function getJumpingHeight() {
+  return Physics.newPos({
+    dt: config.skier.jump.duration,
+    acceleration: Vec2.zero,
+    speed: Vec2.scale(Canvas.diagonal * config.skier.jump.speedFactor, Vec2.down),
+    pos: Vec2.zero
+  }).y
+}
 
-const landingHeight = Physics.newPos({
-  dt: config.skier.jump.landingDurationAtJumpingSpeed,
-  acceleration: Vec2.zero,
-  speed: config.skier.jump.speed,
-  pos: Vec2.zero
-}).y
+function getLandingHeight() {
+  return Physics.newPos({
+    dt: config.skier.jump.landingDurationAtJumpingSpeed,
+    acceleration: Vec2.zero,
+    speed: Vec2.scale(Canvas.diagonal * config.skier.jump.speedFactor, Vec2.down),
+    pos: Vec2.zero
+  }).y
+}
 
 export class Sprite {
   hittableObjects: any
@@ -98,7 +102,7 @@ export class Sprite {
 
     if (part && part.hitBoxes) {
       const hitBoxes = part.hitBoxes
-      const m = this.getSizeMultiple(part) * config.scaling
+      const m = this.getSizeMultiple(part)
 
       return part.hitBoxes.map((h: any) => ({
         top: this.pos[1] + m * h.y,
@@ -170,8 +174,8 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     }
 
     const sizeMultiple = this.getSizeMultiple(part)
-    const targetWidth = Math.round(img.naturalWidth * sizeMultiple * config.scaling)
-    const targetHeight = Math.round(img.naturalHeight * sizeMultiple * config.scaling)
+    const targetWidth = Math.round(img.naturalWidth * sizeMultiple)
+    const targetHeight = Math.round(img.naturalHeight * sizeMultiple)
 
     this.width = targetWidth
     this.height = targetHeight
@@ -189,7 +193,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
       factor = 1
     }
 
-    return factor * 0.5
+    return factor * Canvas.diagonal / 3000
   }
 
   draw(center: [ number, number ], spriteFrame: string, zoom: number) {
@@ -338,17 +342,23 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
   }
 
   landingHitBox(): HitBox | undefined {
+    const jumpingHeight = getJumpingHeight()
+    const landingHeight = getLandingHeight()
+
     if (this.data.name === 'jump') {
       return {
         right: this.pos[0] + 2 * this.width,
         left: this.pos[0] - this.width,
-        top: this.pos[1] + jumpingHeight,
+        top: this.pos[1] + jumpingHeight - this.height * 5,
         bottom: this.pos[1] + jumpingHeight + landingHeight
       }
     }
   }
 
   canBeDeleted(center: [ number, number ]): boolean {
+    const jumpingHeight = getJumpingHeight()
+    const landingHeight = getLandingHeight()
+
     // Keep jumps a bit more to prevent creating objects in landing areas
     const deletePoint = (this.data.name === 'jump' ? -jumpingHeight - landingHeight : 0) - this.height
 

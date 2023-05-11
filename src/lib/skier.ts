@@ -13,7 +13,7 @@ const directionAmplitude: number = Math.PI
 
 export class Skier extends Sprite {
 
-  pixelsTravelled: number
+  downhillPixelsTravelled: number
   collisions: Array<number>
   jumps: Array<number>
   lastEatenTime: number | undefined
@@ -28,7 +28,7 @@ export class Skier extends Sprite {
   constructor(mainCanvas: any, data: any) {
     super(data)
 
-    this.pixelsTravelled = 0
+    this.downhillPixelsTravelled = 0
     this.collisions = []
     this.jumps = []
     this.direction = leftMostDirection
@@ -85,7 +85,7 @@ export class Skier extends Sprite {
     const y1 = this.pos[1]
     super.cycle(dt)
     const y2 = this.pos[1]
-    this.pixelsTravelled += y2 - y1
+    this.downhillPixelsTravelled += y2 - y1
   }
 
   move(dt: number) {
@@ -98,13 +98,20 @@ export class Skier extends Sprite {
     if (this.isLying() || this.isBeingEaten() || this.isJumping()) {
       acceleration = Vec2.zero
     } else {
-      const dirVect = {
-        x: Math.cos(this.direction),
-        y: Math.sin(this.direction)
-      }
+
+      const dirVect =
+        this.getDiscreteDirection() === 'south'
+          ? { x: 0, y: 1 } // Force going straight to the bottom if sprite is “south”
+          : {
+            x: Math.cos(this.direction),
+            y: Math.sin(this.direction)
+          }
 
       this.confidenceBoost = this.computeConfidenceBoost()
-      const directionAcc = Vec2.scale(this.confidenceBoost * Vec2.dot(dirVect, Vec2.down), dirVect)
+      const diagonalFactor = Canvas.diagonal / 2500
+      const directionAcc = Vec2.scale(
+        this.confidenceBoost * diagonalFactor * Vec2.dot(dirVect, Vec2.down),
+        dirVect)
 
       const perdendicularSpeed = Vec2.rotate(Math.PI / 2, this.speed)
       const skierOrientationFactor = this.skierDirectionMultiplier()
@@ -139,7 +146,8 @@ export class Skier extends Sprite {
   computeConfidenceBoost() {
     // Default as if some distance and some time would have happened
     // Otherwire, it can accelerate too quickly.
-    const initPixelsTravelled = this.pixelsTravelled + 1000
+    const diagonalFactor = 2000 / Canvas.diagonal
+    const initDownhillDistance = this.downhillPixelsTravelled * diagonalFactor
     const initElapsedTime = this.elapsedTime + 10000
 
     const crashesBoost = this.collisions
@@ -150,7 +158,7 @@ export class Skier extends Sprite {
       .map(t => 5 * Math.pow(this.elapsedTime - t, -0.5))
       .reduce((a, b) => a + b, 0)
 
-    let confidenceBoost = Math.max(100 * (initPixelsTravelled + 1000) / (initElapsedTime + 10000), 1)
+    let confidenceBoost = Math.max(100 * (initDownhillDistance + 1000) / (initElapsedTime + 10000), 1)
     confidenceBoost = 0.10 * Math.pow(confidenceBoost, 0.6) / (1 + crashesBoost - jumpBoost)
 
     return confidenceBoost
@@ -167,8 +175,8 @@ export class Skier extends Sprite {
       super.draw(center, spritePartToUse, zoom)
 
       if (config.debug) {
-        Canvas.context.font = '20px sans-serif'
-        Canvas.context.fillText(`Confidence boost: ${this.confidenceBoost}`, 15, 170)
+        Canvas.context.fillText(`confidence boost: ${this.confidenceBoost.toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.2)
+        Canvas.context.fillText(`speed: ${Vec2.length(this.speed).toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.25)
       }
     }
   }
@@ -210,7 +218,7 @@ export class Skier extends Sprite {
 
   hasHitJump() {
     if (!this.isJumping()) {
-      this.speed = config.skier.jump.speed
+      this.speed = Vec2.scale(Canvas.diagonal * config.skier.jump.speedFactor, Vec2.down),
       this.jumps.push(this.elapsedTime)
 
       // @ts-ignore
@@ -270,5 +278,9 @@ export class Skier extends Sprite {
     if (this.jumps) {
       return this.jumps[this.jumps.length - 1]
     }
+  }
+
+  downhillMetersTravelled(): number {
+    return this.downhillPixelsTravelled / config.pixelsPerMeter(Canvas.diagonal)
   }
 }

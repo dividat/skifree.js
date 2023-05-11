@@ -1,13 +1,9 @@
-import * as Random from 'lib/random'
-import * as Vec2 from 'lib/vec2'
 import * as Images from 'lib/images' 
 import * as Senso from 'senso'
 import * as Canvas from 'canvas' 
 import { config } from 'config'
 import { Game } from 'lib/game'
-import { Monster } from 'lib/monster'
 import { Skier, downDirection } from 'lib/skier'
-import { Snowboarder } from 'lib/snowboarder'
 import { Sprite } from 'lib/sprite'
 import { sprites } from 'spriteInfo'
 
@@ -63,22 +59,6 @@ function loadImages(sources: Array<string>, next: any) {
   })
 }
 
-function monsterEatsSkier(monster: Monster, skier: Skier) {
-  if (monster.eatingStartedAt === undefined) {
-    skier.isEaten()
-    monster.startEating({
-      whenDone: () => {
-        monster.stopFollowing()
-        const randomPositionAbove = Canvas.getRandomMapPositionAboveViewport(skier.pos)
-        monster.setMapPositionTarget(randomPositionAbove[0], randomPositionAbove[1])
-      }
-    })
-
-    // @ts-ignore
-    window.PlayEGI.motor('negative')
-  }
-}
-
 function startNeverEndingGame(images: Array<any>) {
   let skier: Skier
   let game: any
@@ -88,7 +68,7 @@ function startNeverEndingGame(images: Array<any>) {
       // @ts-ignore
       window.PlayEGI.finish({
         duration: { type: 'Duration', value: config.duration },
-        distance: { type: 'RawInt', value: Math.round(skier.pixelsTravelled / config.pixelsPerMeter) },
+        downhillDistance: { type: 'RawInt', value: Math.round(skier.downhillMetersTravelled()) },
         jumps: { type: 'RawInt', value: skier.jumps.length },
         collisions: { type: 'RawInt', value: skier.collisions.length },
       })
@@ -99,37 +79,6 @@ function startNeverEndingGame(images: Array<any>) {
     let object = new Sprite(sprite)
     object.setMapPosition(x * skier.width, y * skier.height)
     game.addObject(object)
-  }
-
-  function randomlySpawnNPC(spawnFunction: () => void, dropRate: number) {
-    if (Random.between(0, 1000) <= dropRate * skier.speed.y) {
-      spawnFunction()
-    }
-  }
-
-  function spawnMonster() {
-    const newMonster = new Monster(sprites.monster)
-    const randomPosition = Canvas.getRandomMapPositionAboveViewport(skier.pos)
-    newMonster.setMapPosition(randomPosition[0], randomPosition[1])
-    newMonster.follow(skier)
-    newMonster.onHitting(skier, monsterEatsSkier)
-
-    game.addObject(newMonster)
-  }
-
-  function spawnBoarder() {
-    const newBoarder = new Snowboarder(skier, sprites.snowboarder)
-
-    const [ x, y ] = Random.bool()
-      ? Canvas.getRandomMapPositionAboveViewport(skier.pos)
-      : Canvas.getRandomMapPositionBelowViewport(skier.pos)
-    newBoarder.setMapPosition(x, y)
-
-    const [ tx, ty ] = Canvas.getRandomMapPositionBelowViewport(skier.pos)
-    newBoarder.setMapPositionTarget(tx, ty)
-
-    newBoarder.onHitting(skier, sprites.snowboarder.hitBehaviour.skier)
-    game.addObject(newBoarder)
   }
 
   skier = new Skier(Canvas.canvas, sprites.skier)
@@ -146,16 +95,6 @@ function startNeverEndingGame(images: Array<any>) {
   addStartingObject(sprites.tallTree, 3, 4)
   addStartingObject(sprites.rock, -4, 2)
   addStartingObject(sprites.thickSnow, -3, 7)
-
-  game.beforeCycle(() => {
-    if (!game.isPaused()) {
-      game.addObjects(createObjects(skier, game.canAddObject))
-      randomlySpawnNPC(spawnBoarder, config.snowboarder.dropRate)
-      if (skier.pixelsTravelled / config.pixelsPerMeter > config.monster.distanceThresholdMeters && !game.hasObject('monster')) {
-        randomlySpawnNPC(spawnMonster, config.monster.dropRate)
-      }
-    }
-  })
 
   // @ts-ignore
   window.PlayEGI.onSignal((signal: any) => {
@@ -245,7 +184,7 @@ function linearInterpolX(state: any) {
     return 0
   } else {
     const fusedX = directions.reduce((sum, d) => state[d].f / totalForce * state[d].x + sum, 0)
-    const ratio = (1 - config.directionAmplitudeRatio) / 2 + config.directionAmplitudeRatio * centerWithAmplitude({ x: fusedX })
+    const ratio = (1 - config.skier.directionAmplitudeRatio) / 2 + config.skier.directionAmplitudeRatio * centerWithAmplitude({ x: fusedX })
     return (1 - ratio) * Math.PI
   }
 }
@@ -254,7 +193,7 @@ function linearInterpolX(state: any) {
 function centerWithAmplitude({ x }: any) {
   const sensoWidth = 3
   const centered = x - sensoWidth / 2
-  const amplitude = sensoWidth * config.activeSensoRatio
+  const amplitude = sensoWidth * config.skier.activeSensoRatio
   const halfAmplitude = amplitude / 2
   const ratio = (clamp(-halfAmplitude, centered, halfAmplitude) + halfAmplitude) / amplitude
   return ratio
@@ -268,74 +207,3 @@ window.addEventListener('resize', Canvas.setup, false)
 Canvas.setup()
 
 loadImages(imageSources, startNeverEndingGame)
-
-const spawnableSprites = [
-  { sprite: sprites.smallTree, dropRate: config.dropRate.smallTree },
-  { sprite: sprites.tallTree, dropRate: config.dropRate.tallTree },
-  { sprite: sprites.jump, dropRate: config.dropRate.jump },
-  { sprite: sprites.thickSnow, dropRate: config.dropRate.thickSnow },
-  { sprite: sprites.thickerSnow, dropRate: config.dropRate.thickerSnow },
-  { sprite: sprites.rock, dropRate: config.dropRate.rock }
-]
-
-function createObjects(skier: Skier, canAddObject: (sprite: any) => boolean) {
-  const sideTrees = [ Canvas.getRandomSideMapPositionBelowViewport(skier.pos) ]
-    .filter(_ => {
-      const random = Random.between(0, 100) + 0.001
-      return random < config.dropRate.side.tallTree * skier.speed.y
-    })
-    .map(pos => {
-      const sprite = new Sprite(sprites.tallTree)
-      sprite.setMapPosition(pos[0], pos[1])
-      sprite.onHitting(skier, sprites.tallTree.hitBehaviour.skier)
-      return sprite
-    })
-
-  const skierDirectionObjects = [ undefined ]
-    .filter(_ => {
-      const random = Random.between(0, 100) + 0.001
-      return skier.speed !== Vec2.zero && random < config.dropRate.skierDirection.any * skier.speed.y
-    })
-    .map(_ => {
-      const sprite = new Sprite(randomObstacle())
-      const [ unused, y ] = Canvas.getRandomMapPositionBelowViewport(skier.pos)
-      const x = skier.pos[0] + skier.speed.x / skier.speed.y * (y - skier.pos[1])
-      sprite.setMapPosition(x, y)
-      sprite.onHitting(skier, sprites.tallTree.hitBehaviour.skier)
-      return sprite
-    })
-
-  const centeredObjects = spawnableSprites
-    .filter((spriteInfo: any) => {
-      const random = Random.between(0, 100) + 0.001
-      return random < spriteInfo.dropRate * skier.speed.y
-    })
-    .map((spriteInfo: any) => {
-      const sprite = new Sprite(spriteInfo.sprite)
-
-      const [ x, y ] = Canvas.getRandomMapPositionBelowViewport(skier.pos)
-      sprite.setMapPosition(x, y)
-
-      if (spriteInfo.sprite.hitBehaviour && spriteInfo.sprite.hitBehaviour.skier) {
-        sprite.onHitting(skier, spriteInfo.sprite.hitBehaviour.skier)
-      }
-
-      return sprite
-    })
-
-  return sideTrees
-    .concat(skierDirectionObjects)
-    .concat(centeredObjects)
-    .filter(sprite => canAddObject(sprite))
-}
-
-function randomObstacle() {
-  const r =Random.between(1, 3)
-  if (r == 1) {
-    return sprites.tallTree
-  } else if (r == 2) {
-    return sprites.smallTree
-  } else {
-    return sprites.rock
-  }
-}
