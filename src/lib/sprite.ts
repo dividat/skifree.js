@@ -104,11 +104,14 @@ export class Sprite {
       const hitBoxes = part.hitBoxes
       const m = this.getSizeMultiple(part)
 
+      // HitBoxes are obtained from the size before the reduction
+      const n = config.spriteSizeReduction
+
       return part.hitBoxes.map((h: any) => ({
-        top: this.pos[1] + m * h.y,
-        right: this.pos[0] + m * (h.x + h.width),
-        bottom: this.pos[1] + m * (h.y + h.height),
-        left: this.pos[0] + m * h.x
+        top: this.pos[1] + n * m * h.y,
+        right: this.pos[0] + n * m * (h.x + h.width),
+        bottom: this.pos[1] + n * m * (h.y + h.height),
+        left: this.pos[0] + n * m * h.x
       }))
     } else {
       return []
@@ -193,7 +196,7 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
       factor = 1
     }
 
-    return factor * Canvas.diagonal / 3000
+    return factor * Canvas.diagonal / 1300
   }
 
   draw(center: [ number, number ], spriteFrame: string, zoom: number) {
@@ -212,6 +215,10 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     const targetY = fy(canvasY)
     const targetW = this.width * zoom
     const targetH = this.height * zoom
+
+    if (this.data.name === 'skier') {
+      console.log(img.width, img.height)
+    }
 
     Canvas.context.drawImage(
       img,

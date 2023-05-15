@@ -108,7 +108,7 @@ export class Skier extends Sprite {
           }
 
       this.confidenceBoost = this.computeConfidenceBoost()
-      const diagonalFactor = Canvas.diagonal / 2500
+      const diagonalFactor = Canvas.diagonal / 3000
       const directionAcc = Vec2.scale(
         this.confidenceBoost * diagonalFactor * Vec2.dot(dirVect, Vec2.down),
         dirVect)
@@ -148,7 +148,7 @@ export class Skier extends Sprite {
     // Otherwire, it can accelerate too quickly.
     const diagonalFactor = 2000 / Canvas.diagonal
     const initDownhillDistance = this.downhillPixelsTravelled * diagonalFactor
-    const initElapsedTime = this.elapsedTime + 10000
+    const initElapsedTime = this.elapsedTime + 20000
 
     const crashesBoost = this.collisions
       .map(t => 20 * Math.pow(this.elapsedTime - t, -0.5))
@@ -175,8 +175,9 @@ export class Skier extends Sprite {
       super.draw(center, spritePartToUse, zoom)
 
       if (config.debug) {
-        Canvas.context.fillText(`confidence boost: ${this.confidenceBoost.toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.2)
+        Canvas.context.fillText(`confidence boost: ${this.confidenceBoost.toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.20)
         Canvas.context.fillText(`speed: ${Vec2.length(this.speed).toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.25)
+        Canvas.context.fillText(`zoom: ${zoom.toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.30)
       }
     }
   }
