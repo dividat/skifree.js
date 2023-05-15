@@ -12,12 +12,12 @@ export const config = {
     convergenceDuration: 1000,
   },
   dropRate: {
-    smallTree: 100,
-    tallTree: 130,
-    jump: 1,
+    smallTree: 70,
+    tallTree: 100,
+    jump: 5,
     thickSnow: 20,
     thickerSnow: 20,
-    rock: 100,
+    rock: 70,
     side: {
       tallTree: 1000,
     },
@@ -39,7 +39,7 @@ export const config = {
     },
     inertia: {
       keyboard: 6,
-      senso: 1,
+      senso: 0.5,
     }
   },
   monster: {
