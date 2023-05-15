@@ -203,7 +203,4 @@ function clamp(min: number, x: number, max: number) {
   return Math.max(min, Math.min(max, x))
 }
 
-window.addEventListener('resize', Canvas.setup, false)
-Canvas.setup()
-
 loadImages(imageSources, startNeverEndingGame)

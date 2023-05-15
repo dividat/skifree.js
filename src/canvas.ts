@@ -2,34 +2,24 @@ import * as Random from 'lib/random'
 import { Sprite } from 'lib/sprite'
 import { config } from 'config'
 
+export let width = window.innerWidth * window.devicePixelRatio
+export let height = window.innerHeight * window.devicePixelRatio
+export let diagonal = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2))
+
 export const canvas: any = document.getElementById('skifree-canvas')
-export const context: any = canvas.getContext('2d')
-let canvasCenter: [ number, number ] = [ 0, 0 ]
-export let width: number = 0
-export let height: number = 0
-export let diagonal: number = 0
+canvas.width = width
+canvas.height = height
 
-export function setup() {
-  canvas.width = window.innerWidth * window.devicePixelRatio
-  canvas.height = window.innerHeight * window.devicePixelRatio
-
-  if (window.devicePixelRatio > 1) {
-    canvas.style.width = `${window.innerWidth}px`
-    canvas.style.height = `${window.innerHeight}px`
-  }
-
-  width = canvas.width
-  height = canvas.height
-  diagonal = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2))
-
-  context.imageSmoothingQuality = 'high'
-  context.font = `${diagonal / 100}px sans-serif` // text debug
-
-  canvasCenter = [
-    canvas.width * 0.5,
-    canvas.height * config.skier.verticalPosRatio
-  ]
+if (window.devicePixelRatio > 1) {
+  canvas.style.width = `${window.innerWidth}px`
+  canvas.style.height = `${window.innerHeight}px`
 }
+
+export const context: any = canvas.getContext('2d')
+context.imageSmoothingQuality = 'high'
+context.font = `${diagonal / 100}px sans-serif` // text debug
+
+let canvasCenter = [ width * 0.5, height * config.skier.verticalPosRatio ]
 
 export function getRandomMapPositionAboveViewport(center: [ number, number ]) {
   const xCanvas = getRandomlyInTheCentreOfCanvas()
