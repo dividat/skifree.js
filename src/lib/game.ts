@@ -21,18 +21,18 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
     sprites.push(sprite)
   }
 
-  this.canAddObject = (sprite: Sprite) => {
+  this.canAddObject = (candidate: Sprite) => {
     // Determine graphical properties to enable hit check
-    if (sprite.data.parts.main !== undefined) {
-      sprite.determineNextFrame('main')
+    if (candidate.data.parts.main !== undefined) {
+      candidate.determineNextFrame('main')
     }
 
-    return !sprites.some((other: Sprite) => {
-      if (other.hits({ sprite, forPlacement: true })) {
+    return !sprites.some((existing: Sprite) => {
+      if (existing.hits({ sprite: candidate, forPlacement: true })) {
         return true
       } else {
         const jumpsTakenIds = skier.jumps.map(j => j.spriteId)
-        return other.hitsLandingArea(sprite, jumpsTakenIds)
+        return existing.hitsLandingArea(candidate, jumpsTakenIds)
       }
     })
   }
@@ -104,16 +104,16 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
     allSprites.forEach((object: Sprite) => object.draw(skier.pos, 'main', zoom))
 
     if (config.debug) {
-      this.drawDebug()
+      this.drawDebug(allSprites)
     }
   }
 
-  this.drawDebug = () => {
+  this.drawDebug = (allSprites: Array<Sprite>) => {
     Canvas.context.fillText(`confidence boost: ${skier.confidenceBoost.toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.20)
     Canvas.context.fillText(`speed: ${Vec2.length(skier.speed).toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.25)
     Canvas.context.fillText(`zoom: ${zoom.toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.30)
 
-    sprites.forEach(sprite => {
+    allSprites.forEach(sprite => {
       // Hitbox
       sprite.getHitBoxes().forEach(h => {
         const ch = hitBoxToCanvas(skier.pos, h)

@@ -76,12 +76,16 @@ export class Sprite {
   }
 
   getImageBox(): HitBox {
-    return {
+    const box = {
       top: this.pos[1],
       right: this.pos[0] + this.width,
       bottom: this.pos[1] + this.height,
       left: this.pos[0],
     }
+
+    return this.data.name === 'jump'
+      ? { ...box, top: box.top - config.jump.freeAreaOnTop(this.height) }
+      : box
   }
 
   getHitBoxes(): Array<HitBox> {
@@ -145,7 +149,7 @@ export class Sprite {
 
     if (typeof frames === 'number' && typeof fps === 'number') {
       const deltaT = Math.floor(1000 / fps)
-const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) : 1
+      const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) : 1
 
       const frame = Math.max(0, Math.floor(Date.now() / deltaT) % (frames + firstFrameRepetitions) - firstFrameRepetitions) + 1
 
@@ -297,8 +301,8 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
 
   landingHitBox(jumpsTakenIds: Array<number>): HitBox | undefined {
     if (jumpsTakenIds.includes(this.id)) {
-      const jumpingHeight = config.skier.jump.height(Canvas.height)
-      const landingHeight = config.skier.jump.landingHeight(Canvas.height)
+      const jumpingHeight = config.jump.length(Canvas.height)
+      const landingHeight = config.jump.landingHeight(Canvas.height)
 
       return {
         right: this.pos[0] + 2 * this.width,
@@ -310,8 +314,8 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
   }
 
   canBeDeleted(center: [ number, number ]): boolean {
-    const jumpingHeight = config.skier.jump.height(Canvas.height)
-    const landingHeight = config.skier.jump.landingHeight(Canvas.height)
+    const jumpingHeight = config.jump.length(Canvas.height)
+    const landingHeight = config.jump.landingHeight(Canvas.height)
 
     // Keep jumps a bit more to prevent creating objects in landing areas
     const deletePoint = (this.data.name === 'jump' ? -jumpingHeight - landingHeight : 0) - this.height

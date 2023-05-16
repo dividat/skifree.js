@@ -189,7 +189,7 @@ export class Skier extends Sprite {
 
   isJumping() {
     const lastJump = this.lastJump()
-    return lastJump !== undefined && this.pos[1] - lastJump.y < config.skier.jump.height(Canvas.height)
+    return lastJump !== undefined && this.pos[1] - lastJump.y < config.jump.length(Canvas.height)
   }
 
   isBeingEaten() {
@@ -219,7 +219,7 @@ export class Skier extends Sprite {
 
   hasHitJump(jump: Sprite) {
     if (!this.isJumping()) {
-      this.speed = Vec2.scale(config.skier.jump.speed(Canvas.diagonal), Vec2.down),
+      this.speed = Vec2.scale(config.jump.speed(Canvas.diagonal), Vec2.down),
       this.jumps.push({ time: this.elapsedTime, spriteId: jump.id, y: jump.pos[1] })
 
       // @ts-ignore

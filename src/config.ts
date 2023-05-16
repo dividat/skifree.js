@@ -32,18 +32,20 @@ export const config = {
     verticalPosRatio: 0.15,
     lyingDurationAfterCrash: 500,
     invincibilityDuration: 3000,
-    jump: {
-      // Should be at least the screen height, so that we can prevent creating
-      // objects in landing area once the jump has been taken.
-      height: (canvasHeight: number) => canvasHeight * 1.2,
-      speed: (canvasDiagonal: number) => canvasDiagonal / 3000,
-      landingWidth: 170,
-      landingHeight: (canvasHeight: number) => canvasHeight * 2,
-    },
     inertia: {
       keyboard: 6,
       senso: 0.5,
     }
+  },
+  jump: {
+    // Ensure there is a free area before jumping
+    freeAreaOnTop: (jumpHeight: number) => 2 * jumpHeight,
+    // Jump length should be at least the screen height, so that we prevent
+    // creating objects in landing area once the jump has been taken.
+    length: (canvasHeight: number) => canvasHeight * 1.2,
+    speed: (canvasDiagonal: number) => canvasDiagonal / 3000,
+    landingWidth: 170,
+    landingHeight: (canvasHeight: number) => canvasHeight * 2,
   },
   monster: {
     distanceThresholdMeters: 2000,
