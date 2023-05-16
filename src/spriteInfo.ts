@@ -41,7 +41,7 @@ export const sprites: any = {
       sEast: {
         frames: 3,
         fps: 7,
-        sizeMultiple: 0.182,
+        sizeMultiple: 0.91,
         hitBoxes: [
           {
             x: 191,
@@ -90,7 +90,7 @@ export const sprites: any = {
       sWest: {
         frames: 3,
         fps: 7,
-        sizeMultiple: 0.182,
+        sizeMultiple: 0.91,
         hitBoxes: [
           {
             x: 150,
@@ -149,15 +149,14 @@ export const sprites: any = {
       hit: {
         frames: 2,
         fps: 0.8,
-        sizeMultiple: 0.182
+        sizeMultiple: 0.91
       },
       jumping: {
         frames: 3,
         fps: 7,
-        sizeMultiple: 0.25
+        sizeMultiple: 1.25
       },
     },
-    sizeMultiple: 0.2,
     name: 'skier'
   },
   'smallTree': {
@@ -173,7 +172,6 @@ export const sprites: any = {
         ]
       }
     },
-    sizeMultiple: 0.2,
     hitBehaviour: {
       skier: (tree: Sprite, skier: Skier) => skier.hasHitObstacle(tree)
     },
@@ -192,7 +190,6 @@ export const sprites: any = {
         ]
       }
     },
-    sizeMultiple: 0.2,
     hitBehaviour: {
       skier: (tree: Sprite, skier: Skier) => skier.hasHitObstacle(tree)
     },
@@ -202,14 +199,12 @@ export const sprites: any = {
     parts: {
       main: {}
     },
-    sizeMultiple: 0.2,
     name: 'thickSnow'
   },
   'thickerSnow': {
     parts: {
       main: {}
     },
-    sizeMultiple: 0.2,
     name: 'thickerSnow'
   },
   'rock': {
@@ -225,7 +220,6 @@ export const sprites: any = {
         ]
       }
     },
-    sizeMultiple: 0.2,
     hitBehaviour: {
       skier: (rock: Sprite, skier: Skier) => skier.hasHitObstacle(rock)
     },
@@ -264,7 +258,6 @@ export const sprites: any = {
       eating5: {},
       eating6: {}
     },
-    sizeMultiple: 0.2,
     name: 'monster'
   },
   'jump': {
@@ -310,7 +303,6 @@ export const sprites: any = {
         ]
       }
     },
-    sizeMultiple: 0.2,
     hitBehaviour: {
       skier: (jump: Sprite, skier: Skier) => skier.hasHitJump()
     },
@@ -320,7 +312,7 @@ export const sprites: any = {
     parts: {
       main: {}
     },
-    sizeMultiple: 0.15,
+    sizeMultiple: 0.75,
     name: 'signStart'
   },
   'cottage': {
@@ -331,7 +323,6 @@ export const sprites: any = {
         delay: 3000
       }
     },
-    sizeMultiple: 0.2,
     name: 'cottage'
   },
   'snowboarder': {
@@ -385,7 +376,7 @@ export const sprites: any = {
         ]
       }
     },
-    sizeMultiple: 0.28,
+    sizeMultiple: 1.4,
     hitBehaviour: {
       skier: (snowboarder: Sprite, skier: Skier) => skier.hasHitObstacle(snowboarder)
     },
