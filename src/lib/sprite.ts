@@ -1,5 +1,6 @@
 import * as Images from 'lib/images' 
 import * as Canvas from 'canvas'
+import * as Vec2 from 'lib/vec2'
 import { config } from 'config'
 import { nextId } from 'lib/id'
 
@@ -19,10 +20,16 @@ function collides(h1: HitBox, h2: HitBox): boolean {
   )
 }
 
-export function hitBoxToCanvas(center: [ number, number ], h: HitBox): HitBox {
-  const [ left, top ] = Canvas.mapPositionToCanvasPosition(center, [ h.left, h.top ])
-  const [ right, bottom ] = Canvas.mapPositionToCanvasPosition(center, [ h.right, h.bottom ])
-  return { top, right, bottom, left }
+export function hitBoxToCanvas(center: Vec2.Vec2, h: HitBox): HitBox {
+  const topLeft = Canvas.mapPositionToCanvasPosition(center, { x: h.left, y: h.top })
+  const bottomRight = Canvas.mapPositionToCanvasPosition(center, { x: h.right, y: h.bottom })
+
+  return {
+    top: topLeft.y,
+    right: bottomRight.x,
+    bottom: bottomRight.y,
+    left: topLeft.x
+  }
 }
 
 export function projectX(zoom: number, x: number): number {
@@ -39,20 +46,18 @@ interface PositionTarget {
 }
 
 export class Sprite {
-  hittableObjects: any
-  pos: [ number, number ]
+  pos: Vec2.Vec2
   id: number
   width: number
   height: number
   data: any
   part: any
   trackedSpriteToMoveToward: Sprite | undefined
-  movingToward: Array<number | undefined> | undefined
+  movingToward: Vec2.Vec2 | undefined
   movingTowardSpeed: number
 
   constructor(data: any) {
-    this.hittableObjects = {}
-    this.pos = [0, 0]
+    this.pos = Vec2.zero,
     this.id = nextId()
     this.width = 0
     this.height = 0
@@ -82,10 +87,10 @@ export class Sprite {
 
   getImageBox(): HitBox {
     const box = {
-      top: this.pos[1],
-      right: this.pos[0] + this.width,
-      bottom: this.pos[1] + this.height,
-      left: this.pos[0],
+      top: this.pos.y,
+      right: this.pos.x + this.width,
+      bottom: this.pos.y + this.height,
+      left: this.pos.x,
     }
 
     return this.data.name === 'jump'
@@ -101,10 +106,10 @@ export class Sprite {
       const m = config.spriteSizeReduction * this.getSizeMultiple(part)
 
       return part.hitBoxes.map((h: any) => ({
-        top: this.pos[1] + m * h.y,
-        right: this.pos[0] + m * (h.x + h.width),
-        bottom: this.pos[1] + m * (h.y + h.height),
-        left: this.pos[0] + m * h.x,
+        top: this.pos.y + m * h.y,
+        right: this.pos.x + m * (h.x + h.width),
+        bottom: this.pos.y + m * (h.y + h.height),
+        left: this.pos.x + m * h.x,
       }))
     } else {
       return []
@@ -113,33 +118,26 @@ export class Sprite {
 
   move(dt: number) {
     if (this.movingToward !== undefined) {
-      let pos = {
-        x: this.pos[0],
-        y: this.pos[1]
-      }
-
       // Assume original magic numbers for speed were created for a typical 2013 resolution
       // Adjust for FPS different than the 50 FPS assumed by original game
       const lagFactor = dt / config.originalFrameInterval
       const factor = lagFactor
 
-      if (this.movingToward[0] !== undefined) {
-        if (pos.x > this.movingToward[0]) {
-          pos.x -= Math.min(this.movingTowardSpeed * factor, Math.abs(pos.x - this.movingToward[0]))
-        } else if (pos.x < this.movingToward[0]) {
-          pos.x += Math.min(this.movingTowardSpeed * factor, Math.abs(pos.x - this.movingToward[0]))
+      if (this.movingToward.x !== undefined) {
+        if (this.pos.x > this.movingToward.x) {
+          this.pos.x -= Math.min(this.movingTowardSpeed * factor, Math.abs(this.pos.x - this.movingToward.x))
+        } else if (this.pos.x < this.movingToward.x) {
+          this.pos.x += Math.min(this.movingTowardSpeed * factor, Math.abs(this.pos.x - this.movingToward.x))
         }
       }
 
-      if (this.movingToward[1] !== undefined) {
-        if (pos.y > this.movingToward[1]) {
-          pos.y -= Math.min(this.movingTowardSpeed * factor, Math.abs(pos.y - this.movingToward[1]))
-        } else if (pos.y < this.movingToward[1]) {
-          pos.y += Math.min(this.movingTowardSpeed * factor, Math.abs(pos.y - this.movingToward[1]))
+      if (this.movingToward.y !== undefined) {
+        if (this.pos.y > this.movingToward.y) {
+          this.pos.y -= Math.min(this.movingTowardSpeed * factor, Math.abs(this.pos.y - this.movingToward.y))
+        } else if (this.pos.y < this.movingToward.y) {
+          this.pos.y += Math.min(this.movingTowardSpeed * factor, Math.abs(this.pos.y - this.movingToward.y))
         }
       }
-
-      this.setMapPosition(pos.x, pos.y)
     }
   }
 
@@ -187,17 +185,17 @@ export class Sprite {
       factor = 1
     }
 
-    return factor * Canvas.diagonal / 16000 / config.spriteSizeReduction
+    return factor * Canvas.diagonal / 18000 / config.spriteSizeReduction
   }
 
-  draw(center: [ number, number ], spriteFrame: string, zoom: number) {
+  draw(center: Vec2.Vec2, spriteFrame: string, zoom: number) {
     const img = this.determineNextFrame(spriteFrame)
     if (img == null) return
 
-    const [ canvasX, canvasY ] = Canvas.mapPositionToCanvasPosition(center, this.pos)
+    const canvasPos = Canvas.mapPositionToCanvasPosition(center, this.pos)
 
-    const targetX = projectX(zoom, canvasX)
-    const targetY = projectY(zoom, canvasY)
+    const targetX = projectX(zoom, canvasPos.x)
+    const targetY = projectY(zoom, canvasPos.y)
     const targetW = this.width * zoom
     const targetH = this.height * zoom
 
@@ -207,63 +205,12 @@ export class Sprite {
       targetX, targetY, targetW, targetH)
   }
 
-  setMapPosition(x: number, y: number) {
-    this.pos = [x, y]
-  }
-
-  getMapPosition() {
-    return this.pos
-  }
-
-  setMovingToward(movingToward: Array<number>) {
-    this.movingToward = movingToward
-  }
-
-  setMovingTowardSpeed(movingTowardSpeed: number) {
-    this.movingTowardSpeed = movingTowardSpeed
-  }
-
-  getMovingToward() {
-    return this.movingToward
-  }
-
-  checkHittableObjects() {
-    Object.entries(this.hittableObjects).forEach(([ k, objectData ]: any) => {
-      if (objectData.object.deleted) {
-        delete this.hittableObjects[k]
-      } else {
-        if (objectData.object.hits({ sprite: this, forPlacement: false })) {
-          objectData.callbacks.forEach((callback: any) =>
-            callback(this, objectData.object)
-          )
-        }
-      }
-    })
-  }
-
   cycle(dt: number) {
-    this.checkHittableObjects()
-
     if (this.trackedSpriteToMoveToward) {
-      this.setMapPositionTarget({
-        x: this.trackedSpriteToMoveToward.pos[0],
-        y: this.trackedSpriteToMoveToward.pos[1]
-      })
+      this.movingToward = this.trackedSpriteToMoveToward.pos
     }
 
     this.move(dt)
-  }
-
-  setMapPositionTarget({ x, y }: PositionTarget) {
-    if (x === undefined && this.movingToward !== undefined) {
-      x = this.movingToward[0]
-    }
-
-    if (y === undefined && this.movingToward !== undefined) {
-      y = this.movingToward[1]
-    }
-
-    this.movingToward = [ x, y ]
   }
 
   follow(sprite: Sprite) {
@@ -272,17 +219,6 @@ export class Sprite {
 
   stopFollowing() {
     this.trackedSpriteToMoveToward = undefined
-  }
-
-  onHitting(objectToHit: any, callback: any) {
-    if (this.hittableObjects[objectToHit.id]) {
-      return this.hittableObjects[objectToHit.id].callbacks.push(callback)
-    }
-
-    this.hittableObjects[objectToHit.id] = {
-      object: objectToHit,
-      callbacks: [ callback ]
-    }
   }
 
   hits({ sprite, forPlacement }: { sprite: Sprite, forPlacement: boolean }) {
@@ -313,21 +249,21 @@ export class Sprite {
       const landingHeight = config.jump.landingHeight(Canvas.height)
 
       return {
-        right: this.pos[0] + 2 * this.width,
-        left: this.pos[0] - this.width,
-        top: this.pos[1] + jumpingHeight - this.height * 5,
-        bottom: this.pos[1] + jumpingHeight + landingHeight
+        right: this.pos.x + 2 * this.width,
+        left: this.pos.x - this.width,
+        top: this.pos.y + jumpingHeight - this.height * 5,
+        bottom: this.pos.y + jumpingHeight + landingHeight
       }
     }
   }
 
-  canBeDeleted(center: [ number, number ]): boolean {
+  canBeDeleted(center: Vec2.Vec2): boolean {
     const jumpingHeight = config.jump.length(Canvas.height)
     const landingHeight = config.jump.landingHeight(Canvas.height)
 
     // Keep jumps a bit more to prevent creating objects in landing areas
     const deletePoint = (this.data.name === 'jump' ? -jumpingHeight - landingHeight : 0) - this.height
 
-    return Canvas.mapPositionToCanvasPosition(center, this.pos)[1] < deletePoint
+    return Canvas.mapPositionToCanvasPosition(center, this.pos).y < deletePoint
   }
 }

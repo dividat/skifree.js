@@ -172,9 +172,6 @@ export const spriteInfo: any = {
         ]
       }
     },
-    hitBehaviour: {
-      skier: (tree: Sprite, skier: Skier) => skier.hasHitObstacle(tree)
-    },
     name: 'smallTree'
   },
   'tallTree': {
@@ -189,9 +186,6 @@ export const spriteInfo: any = {
           }
         ]
       }
-    },
-    hitBehaviour: {
-      skier: (tree: Sprite, skier: Skier) => skier.hasHitObstacle(tree)
     },
     name: 'tallTree'
   },
@@ -219,9 +213,6 @@ export const spriteInfo: any = {
           }
         ]
       }
-    },
-    hitBehaviour: {
-      skier: (rock: Sprite, skier: Skier) => skier.hasHitObstacle(rock)
     },
     name: 'rock'
   },
@@ -303,9 +294,6 @@ export const spriteInfo: any = {
         ]
       }
     },
-    hitBehaviour: {
-      skier: (jump: Sprite, skier: Skier) => skier.hasHitJump(jump)
-    },
     name: 'jump'
   },
   'signStart': {
@@ -377,9 +365,6 @@ export const spriteInfo: any = {
       }
     },
     sizeMultiple: 1.4,
-    hitBehaviour: {
-      skier: (snowboarder: Sprite, skier: Skier) => skier.hasHitObstacle(snowboarder)
-    },
     name: 'snowboarder'
   }
 }

@@ -1,5 +1,6 @@
 import * as Random from 'lib/random'
 import * as Canvas from 'canvas'
+import * as Vec2 from 'lib/vec2'
 import { Sprite } from 'lib/sprite'
 import { config } from 'config'
 
@@ -17,15 +18,13 @@ export class Snowboarder extends Sprite {
     super(data)
     this.skier = skier
     this.baseSpeed = Random.int({ min: config.snowboarder.minSpeed, max: config.snowboarder.maxSpeed }) * Canvas.diagonal / 2000
-    super.setMovingTowardSpeed(this.baseSpeed)
+    super.movingTowardSpeed = this.baseSpeed
   }
 
   getDirection(): string {
-    const pos = super.getMapPosition()
-
-    if (this.movingToward !== undefined && this.movingToward[0] !== undefined && this.movingToward[1] !== undefined) {
-      const xDiff = this.movingToward[0] - pos[0]
-      const yDiff = this.movingToward[1] - pos[1]
+    if (this.movingToward !== undefined && this.movingToward.x !== undefined && this.movingToward.y !== undefined) {
+      const xDiff = this.movingToward.x - this.pos.x
+      const yDiff = this.movingToward.y - this.pos.y
 
       return directions.sEast(xDiff) ? 'sEast' : 'sWest'
     } else {
@@ -35,23 +34,25 @@ export class Snowboarder extends Sprite {
 
   cycle(dt: number) {
     if (Random.int({ min: 0, max: 10 }) === 1) {
-      super.setMapPositionTarget({
-        x: Canvas.getRandomlyInTheCentreOfMap(this.skier.pos)
-      })
-      super.setMovingTowardSpeed(this.baseSpeed + Random.int({ min: -1, max: 1 }))
+      this.movingToward = {
+        x: Canvas.getRandomlyInTheCentreOfMap(this.skier.pos),
+        y: this.movingToward && this.movingToward.y || 0,
+      }
+      super.movingTowardSpeed = this.baseSpeed + Random.int({ min: -1, max: 1 })
     }
 
-    super.setMapPositionTarget({
+    this.movingToward = {
+      x: this.movingToward && this.movingToward.x || 0,
       y: Canvas.getMapBelowViewport(this.pos) + 600
-    })
+    }
     super.cycle(dt)
   }
 
-  draw(center: [ number, number ], spriteFrame: any, zoom: number) {
+  draw(center: Vec2.Vec2, spriteFrame: any, zoom: number) {
     return super.draw(center, this.getDirection(), zoom)
   }
 
-  canBeDeleted(center: [ number, number ]): boolean {
+  canBeDeleted(center: Vec2.Vec2): boolean {
     return false
   }
 }

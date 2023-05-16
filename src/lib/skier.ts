@@ -38,6 +38,7 @@ export class Skier extends Sprite {
     this.collisions = []
     this.jumps = []
     this.direction = leftMostDirection
+    this.pos = Vec2.zero
     this.speed = Vec2.zero
     this.remainingDt = 0
     this.elapsedTime = 0
@@ -88,16 +89,16 @@ export class Skier extends Sprite {
   }
 
   cycle(dt: number) {
-    const y1 = this.pos[1]
+    const y1 = this.pos.y
     super.cycle(dt)
-    const y2 = this.pos[1]
+    const y2 = this.pos.y
     this.downhillPixelsTravelled += y2 - y1
   }
 
   move(dt: number) {
     const pos = {
-      x: this.pos[0],
-      y: this.pos[1]
+      x: this.pos.x,
+      y: this.pos.y
     }
 
     let acceleration
@@ -144,7 +145,7 @@ export class Skier extends Sprite {
     })
 
     this.speed = res.speed
-    this.setMapPosition(res.pos.x, res.pos.y)
+    this.pos = res.pos
     this.remainingDt = res.remainingDt
     this.elapsedTime += dt
   }
@@ -170,7 +171,7 @@ export class Skier extends Sprite {
     return confidenceBoost
   }
 
-  draw(center: [ number, number ], spriteFrame: string, zoom: number) {
+  draw(center: Vec2.Vec2, spriteFrame: string, zoom: number) {
     // Part of monster sprite while being eaten, also don’t show when blinking
     if (!this.isBeingEaten() && !this.isBlinking()) {
       const spritePartToUse =
@@ -189,7 +190,7 @@ export class Skier extends Sprite {
 
   isJumping() {
     const lastJump = this.lastJump()
-    return lastJump !== undefined && this.pos[1] - lastJump.y < config.jump.length(Canvas.height)
+    return lastJump !== undefined && this.pos.y - lastJump.y < config.jump.length(Canvas.height)
   }
 
   isBeingEaten() {
@@ -220,7 +221,7 @@ export class Skier extends Sprite {
   hasHitJump(jump: Sprite) {
     if (!this.isJumping()) {
       this.speed = Vec2.scale(config.jump.speed(Canvas.diagonal), Vec2.down),
-      this.jumps.push({ time: this.elapsedTime, spriteId: jump.id, y: jump.pos[1] })
+      this.jumps.push({ time: this.elapsedTime, spriteId: jump.id, y: jump.pos.y })
 
       // @ts-ignore
       window.PlayEGI.motor('positive')

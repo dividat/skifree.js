@@ -1,4 +1,5 @@
 import * as Random from 'lib/random'
+import * as Vec2 from 'lib/vec2'
 import { Sprite } from 'lib/sprite'
 import { config } from 'config'
 
@@ -17,36 +18,57 @@ if (window.devicePixelRatio > 1) {
 
 export const context: any = canvas.getContext('2d')
 context.imageSmoothingQuality = 'high'
-context.font = `${diagonal / 100}px sans-serif` // text debug
+context.font = `${diagonal / 130}px sans-serif` // text debug
 
-let canvasCenter = [ width * 0.5, height * config.skier.verticalPosRatio ]
-
-export function getRandomMapPositionAboveViewport(center: [ number, number ]) {
-  const xCanvas = getRandomlyInTheCentreOfCanvas()
-  const yCanvas = getAboveViewport()
-  return canvasPositionToMapPosition(center, [ xCanvas, yCanvas ])
+let canvasCenter = {
+  x: width * 0.5,
+  y: height * config.skier.verticalPosRatio
 }
 
-export function getRandomSideMapPositionBelowViewport(center: [ number, number ]) {
-  const xCanvas = getRandomlyInTheSideOfCanvas()
-  const yCanvas = getBelowViewport()
-  return canvasPositionToMapPosition(center, [ xCanvas, yCanvas ])
+export function getRandomMapPositionAboveViewport(center: Vec2.Vec2) {
+  return canvasPositionToMapPosition(
+    center,
+    { x: getRandomlyInTheCentreOfCanvas(),
+      y: getAboveViewport(),
+    }
+  )
 }
 
-export function getRandomMapPositionBelowViewport(center: [ number, number ]): [ number, number ] {
-  const xCanvas = getRandomlyInTheCentreOfCanvas()
-  const yCanvas = getBelowViewport()
-  return canvasPositionToMapPosition(center, [ xCanvas, yCanvas ])
+export function getRandomSideMapPositionBelowViewport(center: Vec2.Vec2) {
+  return canvasPositionToMapPosition(
+    center,
+    { x: getRandomlyInTheSideOfCanvas(),
+      y: getAboveViewport(),
+    }
+  )
 }
 
-export function getRandomlyInTheCentreOfMap(center: [ number, number ]): number {
-  const random = getRandomlyInTheCentreOfCanvas()
-  return canvasPositionToMapPosition(center, [ random, 0 ])[0]
+export function getRandomMapPositionBelowViewport(center: Vec2.Vec2): Vec2.Vec2 {
+  return canvasPositionToMapPosition(
+    center,
+    { x: getRandomlyInTheCentreOfCanvas(),
+      y: getBelowViewport(),
+    }
+  )
 }
 
-export function getMapBelowViewport(center: [ number, number ]): number {
+export function getRandomlyInTheCentreOfMap(center: Vec2.Vec2): number {
+  return canvasPositionToMapPosition(
+    center,
+    { x: getRandomlyInTheCentreOfCanvas(),
+      y: 0
+    }
+  ).x
+}
+
+export function getMapBelowViewport(center: Vec2.Vec2): number {
   const below = getBelowViewport()
-  return canvasPositionToMapPosition(center, [ 0, below ])[1]
+  return canvasPositionToMapPosition(
+    center,
+    { x: 0,
+      y: getBelowViewport()
+    }
+  ).y
 }
 
 function getRandomlyInTheCentreOfCanvas(): number {
@@ -54,7 +76,7 @@ function getRandomlyInTheCentreOfCanvas(): number {
 }
 
 function getAboveViewport(): number {
-  return 0 - Math.floor(canvas.height / 4)
+  return 0 - canvas.height / 4
 }
 
 function getBelowViewport(): number {
@@ -67,14 +89,22 @@ function getRandomlyInTheSideOfCanvas(): number {
   return random < 0 ? canvas.width * 0.1 + random : canvas.width * 0.9 + random
 }
 
-export function mapPositionToCanvasPosition(center: [ number, number ], position: [ number, number ]): [ number, number ] {
-  const mapDifferenceX = center[0] - position[0]
-  const mapDifferenceY = center[1] - position[1]
-  return [ canvasCenter[0] - mapDifferenceX, canvasCenter[1] - mapDifferenceY ]
+export function mapPositionToCanvasPosition(center: Vec2.Vec2, position: Vec2.Vec2): Vec2.Vec2 {
+  const mapDifferenceX = center.x - position.x
+  const mapDifferenceY = center.y - position.y
+
+  return {
+    x: canvasCenter.x - mapDifferenceX,
+    y: canvasCenter.y - mapDifferenceY
+  }
 }
 
-function canvasPositionToMapPosition(center: [ number, number ], position: [ number, number ]): [ number, number ] {
-  const mapDifferenceX = canvasCenter[0] - position[0]
-  const mapDifferenceY = canvasCenter[1] - position[1]
-  return [ center[0] - mapDifferenceX, center[1] - mapDifferenceY ]
+function canvasPositionToMapPosition(center: Vec2.Vec2, position: Vec2.Vec2): Vec2.Vec2 {
+  const mapDifferenceX = canvasCenter.x - position.x
+  const mapDifferenceY = canvasCenter.y - position.y
+
+  return {
+    x: center.x - mapDifferenceX,
+    y: center.y - mapDifferenceY
+  }
 }

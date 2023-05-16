@@ -1,6 +1,7 @@
 import * as Images from 'lib/images' 
 import * as Senso from 'senso'
 import * as Canvas from 'canvas' 
+import * as Vec2 from 'lib/vec2'
 import { config } from 'config'
 import { Game } from 'lib/game'
 import { Skier, downDirection } from 'lib/skier'
@@ -75,25 +76,24 @@ function startNeverEndingGame(images: Array<any>) {
     }
   }
 
-  function addStartingObject(sprite: any, x: number, y: number) {
+  function addStartingObject(sprite: any, { x, y }: Vec2.Vec2) {
     let object = new Sprite(sprite)
-    object.setMapPosition(x * skier.width, y * skier.height)
+    object.pos = { x: x * skier.width, y: y * skier.height }
     game.addObject(object)
   }
 
   skier = new Skier(Canvas.canvas, spriteInfo.skier)
-  skier.setMapPosition(0, 0)
 
   // @ts-ignore
   game = new Game(Canvas.canvas, skier)
 
   skier.determineNextFrame('east')
 
-  addStartingObject(spriteInfo.signStart, -0.4, -0.1)
-  addStartingObject(spriteInfo.cottage, 0.7, -1.2)
-  addStartingObject(spriteInfo.tallTree, 3, 4)
-  addStartingObject(spriteInfo.rock, -4, 2)
-  addStartingObject(spriteInfo.thickSnow, -3, 7)
+  addStartingObject(spriteInfo.signStart, { x: -0.4, y: -0.1 })
+  addStartingObject(spriteInfo.cottage, { x: 0.7, y: -1.2 })
+  addStartingObject(spriteInfo.tallTree, { x: 3, y: 4 })
+  addStartingObject(spriteInfo.rock, { x: -4, y: 2 })
+  addStartingObject(spriteInfo.thickSnow, { x: -3, y: 7 })
 
   // @ts-ignore
   window.PlayEGI.onSignal((signal: any) => {

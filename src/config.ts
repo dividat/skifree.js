@@ -48,10 +48,10 @@ export const config = {
     landingHeight: (canvasHeight: number) => canvasHeight * 2,
   },
   monster: {
-    distanceThresholdMeters: 2000,
-    eatingDuration: 1500,
-    speed: 5,
+    distanceThresholdMeters: 1000,
+    eatingDuration: 1600,
     dropRate: 0.001,
+    speedConvergenceDuration: 2000,
   },
   snowboarder: {
     minSpeed: 2,

@@ -1,6 +1,7 @@
 import * as Vec2 from 'lib/vec2'
 import * as Canvas from 'canvas'
 import * as Random from 'lib/random'
+import * as Convergence from 'lib/convergence'
 import { config } from 'config'
 import { Skier } from 'lib/skier'
 import { Monster } from 'lib/monster'
@@ -47,7 +48,7 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
 
   this.cycle = (dt: number) => {
     if (!paused) {
-      this.addObjects(createObjects(dt, skier, this.canAddObject))
+      this.addObjects(createObjects(sprites, dt, skier, this.canAddObject))
       randomlySpawnNPC(skier, this.spawnBoarder, config.snowboarder.dropRate)
       if (skier.downhillMetersTravelled() > config.monster.distanceThresholdMeters && !this.hasObject('monster')) {
         randomlySpawnNPC(skier, this.spawnMonster, config.monster.dropRate)
@@ -56,17 +57,42 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
 
     skier.cycle(dt)
 
-    sprites.forEach((object: Sprite, i: number) => {
-      if (object.canBeDeleted(skier.pos)) {
+    sprites.forEach((sprite: Sprite, i: number) => {
+      if (sprite.canBeDeleted(skier.pos)) {
         delete sprites[i]
       } else {
-        object.cycle(dt)
+        sprite.cycle(dt)
       }
     })
 
-    // const targetZoom = Math.max(1, config.zoom.max - skier.confidenceBoost * (config.zoom.max - config.zoom.min))
-    // zoom = zoom + (targetZoom - zoom) * dt / config.zoom.convergenceDuration
-    zoom = 0.5
+    // Check collisions
+    sprites.forEach((sprite: Sprite) => {
+      if (skier.hits({ sprite, forPlacement: false })) {
+        switch (sprite.data.name) {
+          case 'smallTree': 
+          case 'tallTree':
+          case 'rock':
+          case 'snowboarder':
+            skier.hasHitObstacle(sprite)
+            break
+          case 'monster':
+            monsterEatsSkier(sprite as Monster, skier)
+            break
+          case 'jump':
+            skier.hasHitJump(sprite)
+            break
+          default:
+            break
+        }
+      }
+    })
+
+    zoom = Convergence.converge({
+      from: zoom,
+      to: Math.max(1, config.zoom.max - skier.confidenceBoost * (config.zoom.max - config.zoom.min)),
+      time: config.zoom.convergenceDuration,
+      dt
+    })
 
     afterCycleCallbacks.forEach((c: any) => c())
   }
@@ -74,24 +100,21 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
   this.spawnBoarder = () => {
     const newBoarder = new Snowboarder(skier, spriteInfo.snowboarder)
 
-    const [ x, y ] = Random.bool()
+    const { x, y } = Random.bool()
       ? Canvas.getRandomMapPositionAboveViewport(skier.pos)
       : Canvas.getRandomMapPositionBelowViewport(skier.pos)
-    newBoarder.setMapPosition(x, y)
+    newBoarder.pos = { x, y }
 
-    const [ tx, ty ] = Canvas.getRandomMapPositionBelowViewport(skier.pos)
-    newBoarder.setMapPositionTarget({ x: tx, y: ty })
+    newBoarder.movingToward = Canvas.getRandomMapPositionBelowViewport(skier.pos)
 
-    newBoarder.onHitting(skier, spriteInfo.snowboarder.hitBehaviour.skier)
     this.addObject(newBoarder)
   }
 
   this.spawnMonster = () => {
-    const newMonster = new Monster(spriteInfo.monster)
+    const newMonster = new Monster(spriteInfo.monster, skier)
     const randomPosition = Canvas.getRandomMapPositionAboveViewport(skier.pos)
-    newMonster.setMapPosition(randomPosition[0], randomPosition[1])
+    newMonster.pos = randomPosition
     newMonster.follow(skier)
-    newMonster.onHitting(skier, monsterEatsSkier)
 
     this.addObject(newMonster)
   }
@@ -111,8 +134,9 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
 
   this.drawDebug = (allSprites: Array<Sprite>) => {
     Canvas.context.fillText(`confidence boost: ${skier.confidenceBoost.toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.20)
-    Canvas.context.fillText(`speed: ${Vec2.length(skier.speed).toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.25)
-    Canvas.context.fillText(`zoom: ${zoom.toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.30)
+    Canvas.context.fillText(`speed: ${Vec2.length(skier.speed).toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.22)
+    Canvas.context.fillText(`zoom: ${zoom.toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.24)
+    Canvas.context.fillText(`distance travelled: ${skier.downhillMetersTravelled().toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.26)
 
     allSprites.forEach(sprite => {
       // Hitbox
@@ -207,8 +231,8 @@ function sortFromBackToFront(a: Sprite, b: Sprite): number {
   } else if (isSnow(b)) {
     return 1
   } else {
-    const aBottom = a.pos[1] + a.height
-    const bBottom = b.pos[1] + b.height
+    const aBottom = a.pos.y + a.height
+    const bBottom = b.pos.y + b.height
     return aBottom - bBottom
   }
 }
@@ -230,7 +254,7 @@ const spawnableSprites = [
   { sprite: spriteInfo.jump, dropRate: config.dropRate.jump },
 ]
 
-function createObjects(dt: number, skier: Skier, canAddObject: (sprite: any) => boolean) {
+function createObjects(sprites: Array<Sprite>, dt: number, skier: Skier, canAddObject: (sprite: any) => boolean) {
   const dropRateFactor = 150 * skier.speed.y * dt / Canvas.diagonal
 
   const sideTrees = [ Canvas.getRandomSideMapPositionBelowViewport(skier.pos) ]
@@ -240,8 +264,7 @@ function createObjects(dt: number, skier: Skier, canAddObject: (sprite: any) => 
     })
     .map(pos => {
       const sprite = new Sprite(spriteInfo.tallTree)
-      sprite.setMapPosition(pos[0], pos[1])
-      sprite.onHitting(skier, spriteInfo.tallTree.hitBehaviour.skier)
+      sprite.pos = pos
       return sprite
     })
 
@@ -252,10 +275,9 @@ function createObjects(dt: number, skier: Skier, canAddObject: (sprite: any) => 
     })
     .map(_ => {
       const sprite = new Sprite(randomObstacle())
-      const [ unused, y ] = Canvas.getRandomMapPositionBelowViewport(skier.pos)
-      const x = skier.pos[0] + skier.speed.x / skier.speed.y * (y - skier.pos[1])
-      sprite.setMapPosition(x, y)
-      sprite.onHitting(skier, spriteInfo.tallTree.hitBehaviour.skier)
+      const { y } = Canvas.getRandomMapPositionBelowViewport(skier.pos)
+      const x = skier.pos.x + skier.speed.x / skier.speed.y * (y - skier.pos.y)
+      sprite.pos = { x, y }
       return sprite
     })
 
@@ -266,14 +288,7 @@ function createObjects(dt: number, skier: Skier, canAddObject: (sprite: any) => 
     })
     .map((spriteInfo: any) => {
       const sprite = new Sprite(spriteInfo.sprite)
-
-      const [ x, y ] = Canvas.getRandomMapPositionBelowViewport(skier.pos)
-      sprite.setMapPosition(x, y)
-
-      if (spriteInfo.sprite.hitBehaviour && spriteInfo.sprite.hitBehaviour.skier) {
-        sprite.onHitting(skier, spriteInfo.sprite.hitBehaviour.skier)
-      }
-
+      sprite.pos = Canvas.getRandomMapPositionBelowViewport(skier.pos)
       return sprite
     })
 
@@ -307,7 +322,8 @@ function monsterEatsSkier(monster: Monster, skier: Skier) {
       whenDone: () => {
         monster.stopFollowing()
         const randomPositionAbove = Canvas.getRandomMapPositionAboveViewport(skier.pos)
-        monster.setMapPositionTarget({ x: randomPositionAbove[0], y: randomPositionAbove[1] })
+        monster.movingToward = randomPositionAbove
+        monster.movingTowardSpeed /= 2
       }
     })
 
