@@ -1,6 +1,3 @@
-import * as Random from 'lib/random'
-import * as Physics from 'lib/physics'
-import * as Vec2 from 'lib/vec2'
 import * as Images from 'lib/images' 
 import * as Canvas from 'canvas'
 import { config } from 'config'
@@ -22,28 +19,18 @@ function collides(h1: HitBox, h2: HitBox): boolean {
   )
 }
 
-function hitBoxToCanvas(center: [ number, number ], h: HitBox): HitBox {
+export function hitBoxToCanvas(center: [ number, number ], h: HitBox): HitBox {
   const [ left, top ] = Canvas.mapPositionToCanvasPosition(center, [ h.left, h.top ])
   const [ right, bottom ] = Canvas.mapPositionToCanvasPosition(center, [ h.right, h.bottom ])
   return { top, right, bottom, left }
 }
 
-function getJumpingHeight() {
-  return Physics.newPos({
-    dt: config.skier.jump.duration,
-    acceleration: Vec2.zero,
-    speed: Vec2.scale(Canvas.diagonal * config.skier.jump.speedFactor, Vec2.down),
-    pos: Vec2.zero
-  }).y
+export function projectX(zoom: number, x: number): number {
+  return (x - Canvas.width / 2) * zoom + Canvas.width / 2
 }
 
-function getLandingHeight() {
-  return Physics.newPos({
-    dt: config.skier.jump.landingDurationAtJumpingSpeed,
-    acceleration: Vec2.zero,
-    speed: Vec2.scale(Canvas.diagonal * config.skier.jump.speedFactor, Vec2.down),
-    pos: Vec2.zero
-  }).y
+export function projectY(zoom: number, y: number): number {
+  return y * zoom - config.skier.verticalPosRatio * Canvas.height * (zoom - 1)
 }
 
 export class Sprite {
@@ -191,23 +178,17 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
       factor = 1
     }
 
-    return factor * Canvas.diagonal / 15000 / config.spriteSizeReduction
+    return factor * Canvas.diagonal / 16000 / config.spriteSizeReduction
   }
 
   draw(center: [ number, number ], spriteFrame: string, zoom: number) {
     const img = this.determineNextFrame(spriteFrame)
     if (img == null) return
 
-    const canvasW = Canvas.canvas.width
-    const canvasH = Canvas.canvas.height
-
-    const fx = (x: number): number => (x - canvasW / 2) * zoom + canvasW / 2
-    const fy = (y: number): number => y * zoom - config.skier.verticalPosRatio * canvasH * (zoom - 1)
-
     const [ canvasX, canvasY ] = Canvas.mapPositionToCanvasPosition(center, this.pos)
 
-    const targetX = fx(canvasX)
-    const targetY = fy(canvasY)
+    const targetX = projectX(zoom, canvasX)
+    const targetY = projectY(zoom, canvasY)
     const targetW = this.width * zoom
     const targetH = this.height * zoom
 
@@ -215,31 +196,6 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
       img,
       0, 0, img.width, img.height,
       targetX, targetY, targetW, targetH)
-
-    if (config.debug) {
-      this.drawDebug(center, zoom, fx, fy)
-    }
-  }
-
-  drawDebug(center: [ number, number ], zoom: number, fx: (x: number) => number, fy: (x: number) => number) {
-    // Hitbox
-    this.getHitBoxes().forEach(h => {
-      const ch = hitBoxToCanvas(center, h)
-      Canvas.context.beginPath()
-      Canvas.context.strokeStyle = 'red'
-      Canvas.context.rect(fx(ch.left), fy(ch.bottom), (ch.right - ch.left) * zoom, (ch.top - ch.bottom) * zoom)
-      Canvas.context.stroke()
-    })
-
-    // Landing area
-    let lhb = this.landingHitBox()
-    if (lhb !== undefined) {
-      lhb = hitBoxToCanvas(center, lhb)
-      Canvas.context.beginPath()
-      Canvas.context.strokeStyle = 'green'
-      Canvas.context.rect(fx(lhb.left), fy(lhb.bottom), (lhb.right - lhb.left) * zoom, (lhb.top - lhb.bottom) * zoom)
-      Canvas.context.stroke()
-    }
   }
 
   setMapPosition(x: number, y: number) {
@@ -329,8 +285,8 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     }
   }
 
-  hitsLandingArea(other: Sprite) {
-    const landingHitBox = this.landingHitBox()
+  hitsLandingArea(other: Sprite, jumpsTakenIds: Array<number>) {
+    const landingHitBox = this.landingHitBox(jumpsTakenIds)
 
     if (landingHitBox !== undefined && other.data.name !== 'thickSnow' && other.data.name !== 'thickerSnow') {
       return other.getHitBoxes().some(h => collides(h, landingHitBox))
@@ -339,11 +295,11 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
     }
   }
 
-  landingHitBox(): HitBox | undefined {
-    const jumpingHeight = getJumpingHeight()
-    const landingHeight = getLandingHeight()
+  landingHitBox(jumpsTakenIds: Array<number>): HitBox | undefined {
+    if (jumpsTakenIds.includes(this.id)) {
+      const jumpingHeight = config.skier.jump.height(Canvas.height)
+      const landingHeight = config.skier.jump.landingHeight(Canvas.height)
 
-    if (this.data.name === 'jump') {
       return {
         right: this.pos[0] + 2 * this.width,
         left: this.pos[0] - this.width,
@@ -354,8 +310,8 @@ const firstFrameRepetitions = part.delay > 0 ? Math.floor(part.delay / deltaT) :
   }
 
   canBeDeleted(center: [ number, number ]): boolean {
-    const jumpingHeight = getJumpingHeight()
-    const landingHeight = getLandingHeight()
+    const jumpingHeight = config.skier.jump.height(Canvas.height)
+    const landingHeight = config.skier.jump.landingHeight(Canvas.height)
 
     // Keep jumps a bit more to prevent creating objects in landing areas
     const deletePoint = (this.data.name === 'jump' ? -jumpingHeight - landingHeight : 0) - this.height

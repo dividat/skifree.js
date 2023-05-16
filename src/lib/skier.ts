@@ -11,11 +11,17 @@ const rightMostDirection: number = Math.PI
 const leftMostDirection: number = 0
 const directionAmplitude: number = Math.PI
 
+interface Jump {
+  spriteId: number,
+  time: number,
+  y: number,
+}
+
 export class Skier extends Sprite {
 
   downhillPixelsTravelled: number
   collisions: Array<number>
-  jumps: Array<number>
+  jumps: Array<Jump>
   lastEatenTime: number | undefined
   direction: number
   speed: Vec2.Vec2
@@ -148,14 +154,14 @@ export class Skier extends Sprite {
     // Otherwire, it can accelerate too quickly.
     const diagonalFactor = 2000 / Canvas.diagonal
     const initDownhillDistance = this.downhillPixelsTravelled * diagonalFactor
-    const initElapsedTime = this.elapsedTime + 20000
+    const initElapsedTime = this.elapsedTime + 15000
 
     const crashesBoost = this.collisions
       .map(t => 20 * Math.pow(this.elapsedTime - t, -0.5))
       .reduce((a, b) => a + b, 0)
 
     const jumpBoost = this.jumps
-      .map(t => 5 * Math.pow(this.elapsedTime - t, -0.5))
+      .map(jump => 5 * Math.pow(this.elapsedTime - jump.time, -0.5))
       .reduce((a, b) => a + b, 0)
 
     let confidenceBoost = Math.max(100 * (initDownhillDistance + 1000) / (initElapsedTime + 10000), 1)
@@ -173,12 +179,6 @@ export class Skier extends Sprite {
           : (this.isLying() ? 'hit' : this.getDiscreteDirection())
 
       super.draw(center, spritePartToUse, zoom)
-
-      if (config.debug) {
-        Canvas.context.fillText(`confidence boost: ${this.confidenceBoost.toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.20)
-        Canvas.context.fillText(`speed: ${Vec2.length(this.speed).toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.25)
-        Canvas.context.fillText(`zoom: ${zoom.toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.30)
-      }
     }
   }
 
@@ -189,7 +189,7 @@ export class Skier extends Sprite {
 
   isJumping() {
     const lastJump = this.lastJump()
-    return lastJump !== undefined && this.elapsedTime - lastJump < config.skier.jump.duration
+    return lastJump !== undefined && this.pos[1] - lastJump.y < config.skier.jump.height(Canvas.height)
   }
 
   isBeingEaten() {
@@ -217,10 +217,10 @@ export class Skier extends Sprite {
     }
   }
 
-  hasHitJump() {
+  hasHitJump(jump: Sprite) {
     if (!this.isJumping()) {
-      this.speed = Vec2.scale(Canvas.diagonal * config.skier.jump.speedFactor, Vec2.down),
-      this.jumps.push(this.elapsedTime)
+      this.speed = Vec2.scale(config.skier.jump.speed(Canvas.diagonal), Vec2.down),
+      this.jumps.push({ time: this.elapsedTime, spriteId: jump.id, y: jump.pos[1] })
 
       // @ts-ignore
       window.PlayEGI.motor('positive')
@@ -238,7 +238,7 @@ export class Skier extends Sprite {
   invincibilityProgress(): number | undefined {
     const lastJump = this.lastJump()
     const getProgress = (eventTime: number, eventDuration: number) => {
-      const jumpAfterEvent = lastJump !== undefined && lastJump > eventTime
+      const jumpAfterEvent = lastJump !== undefined && lastJump.time > eventTime
       if (!jumpAfterEvent) {
         const now = this.elapsedTime
         const start = eventTime + eventDuration
@@ -275,7 +275,7 @@ export class Skier extends Sprite {
     }
   }
 
-  lastJump(): number | undefined {
+  lastJump(): Jump | undefined {
     if (this.jumps) {
       return this.jumps[this.jumps.length - 1]
     }

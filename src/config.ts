@@ -15,7 +15,7 @@ export const config = {
   dropRate: {
     smallTree: 130,
     tallTree: 170,
-    jump: 10,
+    jump: 20,
     thickSnow: 20,
     thickerSnow: 20,
     rock: 100,
@@ -33,10 +33,12 @@ export const config = {
     lyingDurationAfterCrash: 500,
     invincibilityDuration: 3000,
     jump: {
-      duration: 1200,
-      speedFactor: (1 / 3000),
+      // Should be at least the screen height, so that we can prevent creating
+      // objects in landing area once the jump has been taken.
+      height: (canvasHeight: number) => canvasHeight * 1.2,
+      speed: (canvasDiagonal: number) => canvasDiagonal / 3000,
       landingWidth: 170,
-      landingDurationAtJumpingSpeed: 2000,
+      landingHeight: (canvasHeight: number) => canvasHeight * 2,
     },
     inertia: {
       keyboard: 6,

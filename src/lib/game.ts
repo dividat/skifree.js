@@ -4,21 +4,21 @@ import * as Random from 'lib/random'
 import { config } from 'config'
 import { Skier } from 'lib/skier'
 import { Monster } from 'lib/monster'
-import { Sprite } from 'lib/sprite'
-import { sprites } from 'spriteInfo'
+import { Sprite, hitBoxToCanvas, projectX, projectY } from 'lib/sprite'
+import { spriteInfo } from 'spriteInfo'
 import { Snowboarder } from 'lib/snowboarder'
 
 export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
   const afterCycleCallbacks: Array<any> = []
 
-  let objects = new Array<Sprite>()
+  let sprites = new Array<Sprite>()
   let paused = false
   let runningTime = 0
   let lastStepAt: number | undefined = undefined
   let zoom = config.zoom.max
 
   this.addObject = (sprite: Sprite) => {
-    objects.push(sprite)
+    sprites.push(sprite)
   }
 
   this.canAddObject = (sprite: Sprite) => {
@@ -27,8 +27,13 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
       sprite.determineNextFrame('main')
     }
 
-    return !objects.some((other: Sprite) => {
-      return other.hits({ sprite, forPlacement: true }) || other.hitsLandingArea(sprite)
+    return !sprites.some((other: Sprite) => {
+      if (other.hits({ sprite, forPlacement: true })) {
+        return true
+      } else {
+        const jumpsTakenIds = skier.jumps.map(j => j.spriteId)
+        return other.hitsLandingArea(sprite, jumpsTakenIds)
+      }
     })
   }
 
@@ -51,9 +56,9 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
 
     skier.cycle(dt)
 
-    objects.forEach((object: Sprite, i: number) => {
+    sprites.forEach((object: Sprite, i: number) => {
       if (object.canBeDeleted(skier.pos)) {
-        delete objects[i]
+        delete sprites[i]
       } else {
         object.cycle(dt)
       }
@@ -66,7 +71,7 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
   }
 
   this.spawnBoarder = () => {
-    const newBoarder = new Snowboarder(skier, sprites.snowboarder)
+    const newBoarder = new Snowboarder(skier, spriteInfo.snowboarder)
 
     const [ x, y ] = Random.bool()
       ? Canvas.getRandomMapPositionAboveViewport(skier.pos)
@@ -76,12 +81,12 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
     const [ tx, ty ] = Canvas.getRandomMapPositionBelowViewport(skier.pos)
     newBoarder.setMapPositionTarget(tx, ty)
 
-    newBoarder.onHitting(skier, sprites.snowboarder.hitBehaviour.skier)
+    newBoarder.onHitting(skier, spriteInfo.snowboarder.hitBehaviour.skier)
     this.addObject(newBoarder)
   }
 
   this.spawnMonster = () => {
-    const newMonster = new Monster(sprites.monster)
+    const newMonster = new Monster(spriteInfo.monster)
     const randomPosition = Canvas.getRandomMapPositionAboveViewport(skier.pos)
     newMonster.setMapPosition(randomPosition[0], randomPosition[1])
     newMonster.follow(skier)
@@ -93,10 +98,50 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
   this.draw = () => {
     Canvas.context.clearRect(0, 0, mainCanvas.width, mainCanvas.height)
 
-    const allObjects = objects.slice() // Clone
-    allObjects.push(skier)
-    allObjects.sort(sortFromBackToFront)
-    allObjects.forEach((object: Sprite) => object.draw(skier.pos, 'main', zoom))
+    const allSprites = sprites.slice() // Clone
+    allSprites.push(skier)
+    allSprites.sort(sortFromBackToFront)
+    allSprites.forEach((object: Sprite) => object.draw(skier.pos, 'main', zoom))
+
+    if (config.debug) {
+      this.drawDebug()
+    }
+  }
+
+  this.drawDebug = () => {
+    Canvas.context.fillText(`confidence boost: ${skier.confidenceBoost.toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.20)
+    Canvas.context.fillText(`speed: ${Vec2.length(skier.speed).toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.25)
+    Canvas.context.fillText(`zoom: ${zoom.toFixed(2)}`, Canvas.width * 0.02, Canvas.height * 0.30)
+
+    sprites.forEach(sprite => {
+      // Hitbox
+      sprite.getHitBoxes().forEach(h => {
+        const ch = hitBoxToCanvas(skier.pos, h)
+        Canvas.context.beginPath()
+        Canvas.context.strokeStyle = 'red'
+        Canvas.context.rect(
+          projectX(zoom, ch.left),
+          projectY(zoom, ch.bottom),
+          (ch.right - ch.left) * zoom,
+          (ch.top - ch.bottom) * zoom)
+        Canvas.context.stroke()
+      })
+
+      // Landing area
+      const jumpsTakenIds = skier.jumps.map(j => j.spriteId)
+      let lhb = sprite.landingHitBox(jumpsTakenIds)
+      if (lhb !== undefined) {
+        lhb = hitBoxToCanvas(skier.pos, lhb)
+        Canvas.context.beginPath()
+        Canvas.context.strokeStyle = 'green'
+        Canvas.context.rect(
+          projectX(zoom, lhb.left),
+          projectY(zoom, lhb.bottom),
+          (lhb.right - lhb.left) * zoom,
+          (lhb.top - lhb.bottom) * zoom)
+        Canvas.context.stroke()
+      }
+    })
   }
 
   this.start = () => {
@@ -123,7 +168,7 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
 
   this.reset = () => {
     paused = false
-    objects = new Array<Sprite>()
+    sprites = new Array<Sprite>()
     this.start()
     runningTime = 0
   }
@@ -145,7 +190,7 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
   }
 
   this.hasObject = (name: string) => {
-    return objects.some((obj: Sprite) => {
+    return sprites.some((obj: Sprite) => {
       return obj.data.name === name
     })
   }
@@ -176,12 +221,12 @@ function isSnow(sprite: Sprite) {
 }
 
 const spawnableSprites = [
-  { sprite: sprites.smallTree, dropRate: config.dropRate.smallTree },
-  { sprite: sprites.tallTree, dropRate: config.dropRate.tallTree },
-  { sprite: sprites.thickSnow, dropRate: config.dropRate.thickSnow },
-  { sprite: sprites.thickerSnow, dropRate: config.dropRate.thickerSnow },
-  { sprite: sprites.rock, dropRate: config.dropRate.rock },
-  { sprite: sprites.jump, dropRate: config.dropRate.jump },
+  { sprite: spriteInfo.smallTree, dropRate: config.dropRate.smallTree },
+  { sprite: spriteInfo.tallTree, dropRate: config.dropRate.tallTree },
+  { sprite: spriteInfo.thickSnow, dropRate: config.dropRate.thickSnow },
+  { sprite: spriteInfo.thickerSnow, dropRate: config.dropRate.thickerSnow },
+  { sprite: spriteInfo.rock, dropRate: config.dropRate.rock },
+  { sprite: spriteInfo.jump, dropRate: config.dropRate.jump },
 ]
 
 function createObjects(dt: number, skier: Skier, canAddObject: (sprite: any) => boolean) {
@@ -193,9 +238,9 @@ function createObjects(dt: number, skier: Skier, canAddObject: (sprite: any) => 
       return random < dropRateFactor * config.dropRate.side.tallTree
     })
     .map(pos => {
-      const sprite = new Sprite(sprites.tallTree)
+      const sprite = new Sprite(spriteInfo.tallTree)
       sprite.setMapPosition(pos[0], pos[1])
-      sprite.onHitting(skier, sprites.tallTree.hitBehaviour.skier)
+      sprite.onHitting(skier, spriteInfo.tallTree.hitBehaviour.skier)
       return sprite
     })
 
@@ -209,7 +254,7 @@ function createObjects(dt: number, skier: Skier, canAddObject: (sprite: any) => 
       const [ unused, y ] = Canvas.getRandomMapPositionBelowViewport(skier.pos)
       const x = skier.pos[0] + skier.speed.x / skier.speed.y * (y - skier.pos[1])
       sprite.setMapPosition(x, y)
-      sprite.onHitting(skier, sprites.tallTree.hitBehaviour.skier)
+      sprite.onHitting(skier, spriteInfo.tallTree.hitBehaviour.skier)
       return sprite
     })
 
@@ -240,11 +285,11 @@ function createObjects(dt: number, skier: Skier, canAddObject: (sprite: any) => 
 function randomObstacle() {
   const r =Random.int({ min: 1, max: 3 })
   if (r == 1) {
-    return sprites.tallTree
+    return spriteInfo.tallTree
   } else if (r == 2) {
-    return sprites.smallTree
+    return spriteInfo.smallTree
   } else {
-    return sprites.rock
+    return spriteInfo.rock
   }
 }
 

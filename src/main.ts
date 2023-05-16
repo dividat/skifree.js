@@ -5,16 +5,16 @@ import { config } from 'config'
 import { Game } from 'lib/game'
 import { Skier, downDirection } from 'lib/skier'
 import { Sprite } from 'lib/sprite'
-import { sprites } from 'spriteInfo'
+import { spriteInfo } from 'spriteInfo'
 
 const imageSources: Array<string> = []
 
-for (const key in sprites) {
-    for (const partKey in sprites[key].parts) {
+for (const key in spriteInfo) {
+    for (const partKey in spriteInfo[key].parts) {
         // Skip monkey patching debris
         if (partKey === 'superior') continue
 
-        const part = sprites[key].parts[partKey]
+        const part = spriteInfo[key].parts[partKey]
 
         if (part.frames > 0) {
             for (let i = 1; i <= part.frames; i++) {
@@ -81,7 +81,7 @@ function startNeverEndingGame(images: Array<any>) {
     game.addObject(object)
   }
 
-  skier = new Skier(Canvas.canvas, sprites.skier)
+  skier = new Skier(Canvas.canvas, spriteInfo.skier)
   skier.setMapPosition(0, 0)
   skier.setMapPositionTarget(0, -10)
 
@@ -90,11 +90,11 @@ function startNeverEndingGame(images: Array<any>) {
 
   skier.determineNextFrame('east')
 
-  addStartingObject(sprites.signStart, -0.4, -0.1)
-  addStartingObject(sprites.cottage, 0.7, -1.2)
-  addStartingObject(sprites.tallTree, 3, 4)
-  addStartingObject(sprites.rock, -4, 2)
-  addStartingObject(sprites.thickSnow, -3, 7)
+  addStartingObject(spriteInfo.signStart, -0.4, -0.1)
+  addStartingObject(spriteInfo.cottage, 0.7, -1.2)
+  addStartingObject(spriteInfo.tallTree, 3, 4)
+  addStartingObject(spriteInfo.rock, -4, 2)
+  addStartingObject(spriteInfo.thickSnow, -3, 7)
 
   // @ts-ignore
   window.PlayEGI.onSignal((signal: any) => {

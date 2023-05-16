@@ -1,7 +1,7 @@
 import { Sprite } from 'lib/sprite'
 import { Skier } from 'lib/skier'
 
-export const sprites: any = {
+export const spriteInfo: any = {
   'skier': {
     parts: {
       east: {
@@ -304,7 +304,7 @@ export const sprites: any = {
       }
     },
     hitBehaviour: {
-      skier: (jump: Sprite, skier: Skier) => skier.hasHitJump()
+      skier: (jump: Sprite, skier: Skier) => skier.hasHitJump(jump)
     },
     name: 'jump'
   },
