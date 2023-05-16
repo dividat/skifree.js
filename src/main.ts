@@ -83,7 +83,6 @@ function startNeverEndingGame(images: Array<any>) {
 
   skier = new Skier(Canvas.canvas, spriteInfo.skier)
   skier.setMapPosition(0, 0)
-  skier.setMapPositionTarget(0, -10)
 
   // @ts-ignore
   game = new Game(Canvas.canvas, skier)

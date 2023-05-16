@@ -64,8 +64,9 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
       }
     })
 
-    const targetZoom = Math.max(1, config.zoom.max - skier.confidenceBoost * (config.zoom.max - config.zoom.min))
-    zoom = zoom + (targetZoom - zoom) * dt / config.zoom.convergenceDuration
+    // const targetZoom = Math.max(1, config.zoom.max - skier.confidenceBoost * (config.zoom.max - config.zoom.min))
+    // zoom = zoom + (targetZoom - zoom) * dt / config.zoom.convergenceDuration
+    zoom = 0.5
 
     afterCycleCallbacks.forEach((c: any) => c())
   }
@@ -79,7 +80,7 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
     newBoarder.setMapPosition(x, y)
 
     const [ tx, ty ] = Canvas.getRandomMapPositionBelowViewport(skier.pos)
-    newBoarder.setMapPositionTarget(tx, ty)
+    newBoarder.setMapPositionTarget({ x: tx, y: ty })
 
     newBoarder.onHitting(skier, spriteInfo.snowboarder.hitBehaviour.skier)
     this.addObject(newBoarder)
@@ -306,7 +307,7 @@ function monsterEatsSkier(monster: Monster, skier: Skier) {
       whenDone: () => {
         monster.stopFollowing()
         const randomPositionAbove = Canvas.getRandomMapPositionAboveViewport(skier.pos)
-        monster.setMapPositionTarget(randomPositionAbove[0], randomPositionAbove[1])
+        monster.setMapPositionTarget({ x: randomPositionAbove[0], y: randomPositionAbove[1] })
       }
     })
 

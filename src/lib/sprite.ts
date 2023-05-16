@@ -33,6 +33,11 @@ export function projectY(zoom: number, y: number): number {
   return y * zoom - config.skier.verticalPosRatio * Canvas.height * (zoom - 1)
 }
 
+interface PositionTarget {
+  x?: number,
+  y?: number,
+}
+
 export class Sprite {
   hittableObjects: any
   pos: [ number, number ]
@@ -240,13 +245,16 @@ export class Sprite {
     this.checkHittableObjects()
 
     if (this.trackedSpriteToMoveToward) {
-      this.setMapPositionTarget(this.trackedSpriteToMoveToward.pos[0], this.trackedSpriteToMoveToward.pos[1], true)
+      this.setMapPositionTarget({
+        x: this.trackedSpriteToMoveToward.pos[0],
+        y: this.trackedSpriteToMoveToward.pos[1]
+      })
     }
 
     this.move(dt)
   }
 
-  setMapPositionTarget(x?: number, y?: number, override?: boolean) {
+  setMapPositionTarget({ x, y }: PositionTarget) {
     if (x === undefined && this.movingToward !== undefined) {
       x = this.movingToward[0]
     }

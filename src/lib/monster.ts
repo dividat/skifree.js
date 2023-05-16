@@ -22,8 +22,7 @@ export class Monster extends Sprite {
       const eatingStage = Math.min(Math.floor(progress * eatingSteps + 1), eatingSteps)
       spritePartToUse = 'eating' + eatingStage
     } else {
-      const movingToward = super.getMovingToward()
-      if (movingToward !== undefined && movingToward[0] !== undefined && movingToward[0] > super.getMapPosition()[0]) {
+      if (this.movingToward !== undefined && this.movingToward[0] !== undefined && this.movingToward[0] > super.getMapPosition()[0]) {
         spritePartToUse = 'sEast'
       } else {
         spritePartToUse = 'sWest'

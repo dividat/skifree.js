@@ -21,12 +21,11 @@ export class Snowboarder extends Sprite {
   }
 
   getDirection(): string {
-    const movingToward = super.getMovingToward()
     const pos = super.getMapPosition()
 
-    if (movingToward !== undefined && movingToward[0] !== undefined && movingToward[1] !== undefined) {
-      const xDiff = movingToward[0] - pos[0]
-      const yDiff = movingToward[1] - pos[1]
+    if (this.movingToward !== undefined && this.movingToward[0] !== undefined && this.movingToward[1] !== undefined) {
+      const xDiff = this.movingToward[0] - pos[0]
+      const yDiff = this.movingToward[1] - pos[1]
 
       return directions.sEast(xDiff) ? 'sEast' : 'sWest'
     } else {
@@ -36,11 +35,15 @@ export class Snowboarder extends Sprite {
 
   cycle(dt: number) {
     if (Random.int({ min: 0, max: 10 }) === 1) {
-      super.setMapPositionTarget(Canvas.getRandomlyInTheCentreOfMap(this.skier.pos))
+      super.setMapPositionTarget({
+        x: Canvas.getRandomlyInTheCentreOfMap(this.skier.pos)
+      })
       super.setMovingTowardSpeed(this.baseSpeed + Random.int({ min: -1, max: 1 }))
     }
 
-    super.setMapPositionTarget(undefined, Canvas.getMapBelowViewport(this.skier.pos) + 600)
+    super.setMapPositionTarget({
+      y: Canvas.getMapBelowViewport(this.pos) + 600
+    })
     super.cycle(dt)
   }
 

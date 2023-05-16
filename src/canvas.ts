@@ -33,18 +33,18 @@ export function getRandomSideMapPositionBelowViewport(center: [ number, number ]
   return canvasPositionToMapPosition(center, [ xCanvas, yCanvas ])
 }
 
-export function getRandomMapPositionBelowViewport(center: [ number, number ]) {
+export function getRandomMapPositionBelowViewport(center: [ number, number ]): [ number, number ] {
   const xCanvas = getRandomlyInTheCentreOfCanvas()
   const yCanvas = getBelowViewport()
   return canvasPositionToMapPosition(center, [ xCanvas, yCanvas ])
 }
 
-export function getRandomlyInTheCentreOfMap(center: [ number, number ]) {
+export function getRandomlyInTheCentreOfMap(center: [ number, number ]): number {
   const random = getRandomlyInTheCentreOfCanvas()
   return canvasPositionToMapPosition(center, [ random, 0 ])[0]
 }
 
-export function getMapBelowViewport(center: [ number, number ]) {
+export function getMapBelowViewport(center: [ number, number ]): number {
   const below = getBelowViewport()
   return canvasPositionToMapPosition(center, [ 0, below ])[1]
 }
@@ -67,13 +67,13 @@ function getRandomlyInTheSideOfCanvas(): number {
   return random < 0 ? canvas.width * 0.1 + random : canvas.width * 0.9 + random
 }
 
-export function mapPositionToCanvasPosition(center: [ number, number ], position: [ number, number ]) {
+export function mapPositionToCanvasPosition(center: [ number, number ], position: [ number, number ]): [ number, number ] {
   const mapDifferenceX = center[0] - position[0]
   const mapDifferenceY = center[1] - position[1]
   return [ canvasCenter[0] - mapDifferenceX, canvasCenter[1] - mapDifferenceY ]
 }
 
-function canvasPositionToMapPosition(center: [ number, number ], position: [ number, number ]) {
+function canvasPositionToMapPosition(center: [ number, number ], position: [ number, number ]): [ number, number ] {
   const mapDifferenceX = canvasCenter[0] - position[0]
   const mapDifferenceY = canvasCenter[1] - position[1]
   return [ center[0] - mapDifferenceX, center[1] - mapDifferenceY ]
