@@ -3,7 +3,7 @@ import * as Vec2 from 'lib/vec2'
 export const config = {
   scaling: window.devicePixelRatio,
   originalFrameInterval: 20,
-  pixelsPerMeter: (diagonal: number) => 18 * diagonal / 2000,
+  pixelsPerMeter: (diagonal: number) => diagonal / 250,
   duration: 60000,
   sensitivity: 1,
   spriteSizeReduction: 0.33, // Should be equal to -resize in Makefile
@@ -13,17 +13,21 @@ export const config = {
     convergenceDuration: 1000,
   },
   dropRate: {
-    smallTree: 130,
-    tallTree: 170,
-    jump: 20,
-    thickSnow: 20,
-    thickerSnow: 20,
-    rock: 100,
+    smallTree: 13,
+    tallTree: 17,
+    jump: 2,
+    thickSnow: 2,
+    thickerSnow: 2,
+    rock: 10,
+    npc: {
+      snowboarder: 0.7,
+      monster: 0.1,
+    },
     side: {
-      tallTree: 1000,
+      tallTree: 100,
     },
     skierDirection: {
-      any: 50,
+      any: 5,
     }
   },
   skier: {
@@ -54,19 +58,26 @@ export const config = {
     // creating objects in landing area once the jump has been taken.
     length: (canvasHeight: number) => canvasHeight * 1.2,
     speed: (canvasDiagonal: number) => canvasDiagonal / 3000,
-    landingWidth: 170,
+    landingWidth: (jumpWidth: number) => jumpWidth * 2,
     landingHeight: (canvasHeight: number) => canvasHeight * 2,
   },
   monster: {
     distanceThresholdMeters: 1000,
     eatingDuration: 1600,
-    dropRate: 0.001,
-    speedConvergenceDuration: 2000,
+    minSpeed: (canvasDiagonal: number) => canvasDiagonal / 30000,
+    enduranceDuration: {
+      min: 10000,
+      max: 15000,
+      tiredRatio: 0.7,
+    },
+    speedConvergenceDuration: {
+      toAccelerate: 2000,
+      toDecelerate: 1000
+    }
   },
   snowboarder: {
-    minSpeed: 2,
+    minSpeed: 1,
     maxSpeed: 5,
-    dropRate: 0.1,
   },
   debug: new URLSearchParams(document.location.search).has('debug'),
 }

@@ -1,6 +1,7 @@
 import * as Images from 'lib/images' 
 import * as Canvas from 'canvas'
 import * as Vec2 from 'lib/vec2'
+import * as Physics from 'lib/physics'
 import { config } from 'config'
 import { nextId } from 'lib/id'
 
@@ -11,7 +12,7 @@ interface HitBox {
   left: number
 }
 
-function collides(h1: HitBox, h2: HitBox): boolean {
+export function collides(h1: HitBox, h2: HitBox): boolean {
   return !(
     h1.left > h2.right ||
     h1.right < h2.left ||
@@ -53,7 +54,7 @@ export class Sprite {
   data: any
   part: any
   trackedSpriteToMoveToward: Sprite | undefined
-  movingToward: Vec2.Vec2 | undefined
+  movingToward?: Vec2.Vec2
   movingTowardSpeed: number
 
   constructor(data: any) {
@@ -116,28 +117,10 @@ export class Sprite {
     }
   }
 
-  move(dt: number) {
+  move(time: number, dt: number) {
     if (this.movingToward !== undefined) {
-      // Assume original magic numbers for speed were created for a typical 2013 resolution
-      // Adjust for FPS different than the 50 FPS assumed by original game
-      const lagFactor = dt / config.originalFrameInterval
-      const factor = lagFactor
-
-      if (this.movingToward.x !== undefined) {
-        if (this.pos.x > this.movingToward.x) {
-          this.pos.x -= Math.min(this.movingTowardSpeed * factor, Math.abs(this.pos.x - this.movingToward.x))
-        } else if (this.pos.x < this.movingToward.x) {
-          this.pos.x += Math.min(this.movingTowardSpeed * factor, Math.abs(this.pos.x - this.movingToward.x))
-        }
-      }
-
-      if (this.movingToward.y !== undefined) {
-        if (this.pos.y > this.movingToward.y) {
-          this.pos.y -= Math.min(this.movingTowardSpeed * factor, Math.abs(this.pos.y - this.movingToward.y))
-        } else if (this.pos.y < this.movingToward.y) {
-          this.pos.y += Math.min(this.movingTowardSpeed * factor, Math.abs(this.pos.y - this.movingToward.y))
-        }
-      }
+      const speed = Vec2.scale(this.movingTowardSpeed, Vec2.unit(Vec2.sub(this.movingToward, this.pos)))
+      this.pos = Physics.newPos({ dt, acceleration: Vec2.zero, speed, pos: this.pos })
     }
   }
 
@@ -188,7 +171,7 @@ export class Sprite {
     return factor * Canvas.diagonal / 18000 / config.spriteSizeReduction
   }
 
-  draw(center: Vec2.Vec2, spriteFrame: string, zoom: number) {
+  draw(time: number, center: Vec2.Vec2, spriteFrame: string, zoom: number) {
     const img = this.determineNextFrame(spriteFrame)
     if (img == null) return
 
@@ -205,12 +188,12 @@ export class Sprite {
       targetX, targetY, targetW, targetH)
   }
 
-  cycle(dt: number) {
-    if (this.trackedSpriteToMoveToward) {
+  cycle(time: number, dt: number) {
+    if (this.trackedSpriteToMoveToward !== undefined) {
       this.movingToward = this.trackedSpriteToMoveToward.pos
     }
 
-    this.move(dt)
+    this.move(time, dt)
   }
 
   follow(sprite: Sprite) {
@@ -219,6 +202,7 @@ export class Sprite {
 
   stopFollowing() {
     this.trackedSpriteToMoveToward = undefined
+    this.movingToward = undefined
   }
 
   hits({ sprite, forPlacement }: { sprite: Sprite, forPlacement: boolean }) {
@@ -246,11 +230,13 @@ export class Sprite {
   landingHitBox(jumpsTakenIds: Array<number>): HitBox | undefined {
     if (jumpsTakenIds.includes(this.id)) {
       const jumpingHeight = config.jump.length(Canvas.height)
+      const landingWidth = config.jump.landingWidth(this.width)
       const landingHeight = config.jump.landingHeight(Canvas.height)
+      const middleX = this.pos.x + this.width / 2
 
       return {
-        right: this.pos.x + 2 * this.width,
-        left: this.pos.x - this.width,
+        right: middleX + landingWidth / 2,
+        left: middleX - landingWidth / 2,
         top: this.pos.y + jumpingHeight - this.height * 5,
         bottom: this.pos.y + jumpingHeight + landingHeight
       }

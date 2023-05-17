@@ -17,6 +17,7 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
   let runningTime = 0
   let lastStepAt: number | undefined = undefined
   let zoom = config.zoom.max
+  let time = 0
 
   this.addObject = (sprite: Sprite) => {
     sprites.push(sprite)
@@ -48,41 +49,49 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
 
   this.cycle = (dt: number) => {
     if (!paused) {
+      time += dt
+
       this.addObjects(createObjects(sprites, dt, skier, this.canAddObject))
-      randomlySpawnNPC(skier, this.spawnBoarder, config.snowboarder.dropRate)
-      if (skier.downhillMetersTravelled() > config.monster.distanceThresholdMeters && !this.hasObject('monster')) {
-        randomlySpawnNPC(skier, this.spawnMonster, config.monster.dropRate)
+      randomlySpawnNPC(skier, this.spawnBoarder, config.dropRate.npc.snowboarder)
+
+      const lastJump = skier.lastJump()
+
+      // When jumping or landing, skier speed is temporarily higher, this make
+      // the monster to go too fast on the player when the skier decerelates.
+      const isJumpingOrLanding = lastJump !== undefined
+        ? skier.pos.y < lastJump.y + config.jump.length(Canvas.height) + config.jump.landingHeight(Canvas.height)
+        : false
+
+      const canSpawnMonster = (
+        skier.downhillMetersTravelled() > config.monster.distanceThresholdMeters
+        && !this.hasObject('monster')
+        && !isJumpingOrLanding)
+
+      if (canSpawnMonster) {
+        randomlySpawnNPC(skier, this.spawnMonster, config.dropRate.npc.monster)
       }
+
+      skier.cycle(time, dt)
+
+      sprites.forEach((sprite: Sprite, i: number) => {
+        if (sprite.canBeDeleted(skier.pos)) {
+          delete sprites[i]
+        } else {
+          sprite.cycle(time, dt)
+        }
+      })
     }
-
-    skier.cycle(dt)
-
-    sprites.forEach((sprite: Sprite, i: number) => {
-      if (sprite.canBeDeleted(skier.pos)) {
-        delete sprites[i]
-      } else {
-        sprite.cycle(dt)
-      }
-    })
 
     // Check collisions
     sprites.forEach((sprite: Sprite) => {
       if (skier.hits({ sprite, forPlacement: false })) {
-        switch (sprite.data.name) {
-          case 'smallTree': 
-          case 'tallTree':
-          case 'rock':
-          case 'snowboarder':
-            skier.hasHitObstacle(sprite)
-            break
-          case 'monster':
-            monsterEatsSkier(sprite as Monster, skier)
-            break
-          case 'jump':
-            skier.hasHitJump(sprite)
-            break
-          default:
-            break
+        const n = sprite.data.name
+        if (n === 'smallTree' || n === 'tallTree' || n === 'rock' || n === 'snowboarder') {
+          skier.hitObstacle(time, sprite)
+        } else if (n === 'monster') {
+          monsterEatsSkier(time, sprite as Monster, skier)
+        } else if (n === 'jump') {
+          skier.hitJump(time, sprite)
         }
       }
     })
@@ -111,12 +120,14 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
   }
 
   this.spawnMonster = () => {
-    const newMonster = new Monster(spriteInfo.monster, skier)
-    const randomPosition = Canvas.getRandomMapPositionAboveViewport(skier.pos)
-    newMonster.pos = randomPosition
-    newMonster.follow(skier)
-
-    this.addObject(newMonster)
+    const monster = new Monster(time, spriteInfo.monster, skier)
+    monster.pos = {
+      x: skier.pos.x,
+      y: Canvas.canvasPositionToMapPosition(skier.pos, { x: 0, y: -monster.height }).y
+    }
+    monster.movingTowardSpeed = Vec2.length(skier.speed)
+    monster.follow(skier)
+    this.addObject(monster)
   }
 
   this.draw = () => {
@@ -125,7 +136,7 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
     const allSprites = sprites.slice() // Clone
     allSprites.push(skier)
     allSprites.sort(sortFromBackToFront)
-    allSprites.forEach((object: Sprite) => object.draw(skier.pos, 'main', zoom))
+    allSprites.forEach((object: Sprite) => object.draw(time, skier.pos, 'main', zoom))
 
     if (config.debug) {
       this.drawDebug(allSprites)
@@ -209,7 +220,7 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
     runningTime += dt
 
     this.cycle(dt)
-    this.draw()
+    this.draw(time)
 
     requestAnimationFrame(this.step.bind(this))
   }
@@ -259,7 +270,7 @@ function createObjects(sprites: Array<Sprite>, dt: number, skier: Skier, canAddO
 
   const sideTrees = [ Canvas.getRandomSideMapPositionBelowViewport(skier.pos) ]
     .filter(_ => {
-      const random = Random.int({ min: 0, max: 1000 }) + 0.00001
+      const random = Random.float({ min: 0, max: 100 })
       return random < dropRateFactor * config.dropRate.side.tallTree
     })
     .map(pos => {
@@ -270,7 +281,7 @@ function createObjects(sprites: Array<Sprite>, dt: number, skier: Skier, canAddO
 
   const skierDirectionObjects = [ undefined ]
     .filter(_ => {
-      const random = Random.int({ min: 0, max: 1000 }) + 0.00001
+      const random = Random.float({ min: 0, max: 100 })
       return skier.speed !== Vec2.zero && random < dropRateFactor * config.dropRate.skierDirection.any
     })
     .map(_ => {
@@ -283,7 +294,7 @@ function createObjects(sprites: Array<Sprite>, dt: number, skier: Skier, canAddO
 
   const centeredObjects = spawnableSprites
     .filter((spriteInfo: any) => {
-      const random = Random.int({ min: 0, max: 1000 }) + 0.00001
+      const random = Random.float({ min: 0, max: 100 })
       return random < dropRateFactor * spriteInfo.dropRate
     })
     .map((spriteInfo: any) => {
@@ -310,22 +321,16 @@ function randomObstacle() {
 }
 
 function randomlySpawnNPC(skier: Skier, spawnFunction: () => void, dropRate: number) {
-  if (Random.int({ min: 0, max: 1000 }) <= dropRate * skier.speed.y) {
+  if (Random.float({ min: 0, max: 100 }) < dropRate * skier.speed.y * 2000 / Canvas.diagonal) {
     spawnFunction()
   }
 }
 
-function monsterEatsSkier(monster: Monster, skier: Skier) {
+function monsterEatsSkier(time: number, monster: Monster, skier: Skier) {
   if (monster.eatingStartedAt === undefined) {
-    skier.isEaten()
-    monster.startEating({
-      whenDone: () => {
-        monster.stopFollowing()
-        const randomPositionAbove = Canvas.getRandomMapPositionAboveViewport(skier.pos)
-        monster.movingToward = randomPositionAbove
-        monster.movingTowardSpeed /= 2
-      }
-    })
+    skier.setEaten(time)
+    monster.stopFollowing()
+    monster.startEating({ whenDone: () => monster.moveAbove() })
 
     // @ts-ignore
     window.PlayEGI.motor('negative')
