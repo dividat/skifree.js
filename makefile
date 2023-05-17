@@ -12,7 +12,6 @@ deps:
 sprites: materials/sprites-full-size
 	cp -r materials/sprites-full-size sprites
 	cd sprites && mogrify -resize 33% *.png # Should be equal to config.spriteSizeReduction
-	https://pngquant.org/
 	cd sprites && pngquant 100 --speed 1 --force --strip --ext .png --verbose *.png
 
 .PHONY: bundle
