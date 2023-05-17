@@ -31,7 +31,7 @@ export const config = {
     }
   },
   skier: {
-    activeSensoRatio: 1.5 / 3,
+    activeSensoRatio: 1 / 3,
     directionAmplitudeRatio: 0.6,
     verticalPosRatio: 0.15,
     lyingDurationAfterCrash: 500,
