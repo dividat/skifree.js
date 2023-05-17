@@ -17,7 +17,7 @@ export class Snowboarder extends Sprite {
   constructor(skier: Sprite, data: any) {
     super(data)
     this.skier = skier
-    this.baseSpeed = Random.int({ min: config.snowboarder.minSpeed, max: config.snowboarder.maxSpeed }) * Canvas.diagonal / 2000
+    this.baseSpeed = Random.int({ min: config.snowboarder.minSpeed, max: config.snowboarder.maxSpeed }) * Canvas.diagonal / 30000
     super.movingTowardSpeed = this.baseSpeed
   }
 
@@ -33,18 +33,11 @@ export class Snowboarder extends Sprite {
   }
 
   cycle(dt: number) {
-    if (Random.int({ min: 0, max: 10 }) === 1) {
-      this.movingToward = {
-        x: Canvas.getRandomlyInTheCentreOfMap(this.skier.pos),
-        y: this.movingToward && this.movingToward.y || 0,
-      }
-      super.movingTowardSpeed = this.baseSpeed + Random.int({ min: -1, max: 1 })
-    }
-
     this.movingToward = {
-      x: this.movingToward && this.movingToward.x || 0,
+      x: (Random.int({ min: 0, max: 10 }) === 1 ? Canvas.getRandomlyInTheCentreOfMap(this.skier.pos) : (this.movingToward && this.movingToward.x || 0)),
       y: Canvas.getMapBelowViewport(this.pos) + 600
     }
+
     super.cycle(dt)
   }
 

@@ -6,5 +6,7 @@ interface Params {
 }
 
 export function converge({ from, to, dt, time }: Params): number {
-  return from + (to - from) * dt / time
+  return time === 0
+    ? to
+    : from + (to - from) * dt / time
 }

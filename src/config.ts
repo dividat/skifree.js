@@ -29,7 +29,7 @@ export const config = {
   skier: {
     activeSensoRatio: 1.5 / 3,
     directionAmplitudeRatio: 0.6,
-    verticalPosRatio: 0.15,
+    verticalPosRatio: 0.2,
     lyingDurationAfterCrash: 500,
     invincibilityDuration: 3000,
     inertia: {
@@ -51,10 +51,19 @@ export const config = {
     distanceThresholdMeters: 1000,
     eatingDuration: 1600,
     dropRate: 0.001,
-    speedConvergenceDuration: 2000,
+    skierSpeedFactor: 1,
+    enduranceDuration: {
+      min: 15000,
+      max: 30000,
+      tiredRatio: 0.9,
+    },
+    speedConvergenceDuration: {
+      toAccelerate: 1000,
+      toDecelerate: 1500
+    }
   },
   snowboarder: {
-    minSpeed: 2,
+    minSpeed: 1,
     maxSpeed: 5,
     dropRate: 0.1,
   },
