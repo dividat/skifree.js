@@ -31,9 +31,19 @@ export const config = {
     }
   },
   skier: {
-    activeSensoRatio: 1 / 3,
-    directionAmplitudeRatio: 0.6,
-    verticalPosRatio: 0.15,
+    // Part of the Senso considered for the movement, from the center of the
+    // Senso. 1 / 3 means the maximum amplitude can be reached on the center
+    // plate.
+    activeSensoRatio: 1 / 3, 
+
+    // Max reachable amplitude when lying at the max of the amplitude on the
+    // Senso. We discard extremities because it slow down the movement of the
+    // skier too much, even if it gives more control.
+    directionAmplitudeRatio: 0.6, 
+
+    // Vertical position of the skier on the screen, from 0 (top) to 1 (bottom).
+    verticalPosRatio: 0.15, 
+
     lyingDurationAfterCrash: 500,
     invincibilityDuration: 3000,
     inertia: {
