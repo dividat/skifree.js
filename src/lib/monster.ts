@@ -38,14 +38,14 @@ export class Monster extends Sprite {
         this.stopFollowing()
         this.moveAbove()
       } else {
-        const canvasPos = Canvas.mapPositionToCanvasPosition(this.skier.pos, { x: 0, y: this.pos.y - 1.5 * this.height })
+        const canvasPos = Canvas.mapPositionToCanvasPosition(this.skier.pos, { x: 0, y: this.pos.y })
         const isPartlyAboveScreen = canvasPos.y < 0
 
         const isTired = this.elapsed >= config.monster.enduranceDuration.tiredRatio * this.enduranceDuration
 
         // Prevent the monster to lag on top of the screen
         const aboveScreenSpeedBoost = isPartlyAboveScreen && !isTired
-          ? 1 + 10 * Math.abs(canvasPos.y) / Canvas.height
+          ? 1 + 3 * Math.abs(canvasPos.y) / Canvas.height
           : 1
 
         // Make the monster to decelerate before going away
