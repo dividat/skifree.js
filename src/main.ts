@@ -107,7 +107,7 @@ function startNeverEndingGame(images: Array<any>) {
             config.duration = signal.settings.duration.value
           }
           if (signal.settings.wheelchair && signal.settings.wheelchair.value) {
-            config.wheelchair = signal.settings.wheelchair.value
+            config.sensitivity = 3
           }
         }
 
@@ -164,7 +164,7 @@ function startNeverEndingGame(images: Array<any>) {
 
       case 'SensoState':
         Senso.setHasBeenSeen()
-        skier.setDirection(linearInterpolX(signal.state) * (config.wheelchair ? 3 : 1))
+        skier.setDirection(horizontalPositionToAngle(signal.state))
         break
 
       default:
@@ -173,15 +173,16 @@ function startNeverEndingGame(images: Array<any>) {
   })
 }
 
-// Linear interpolation of x on f, as relative coordinates [-1; 1]
+// Compute the direction of travel from the horizontal CoP
 const directions = ['center', 'up', 'right', 'down', 'left']
-function linearInterpolX(state: any) {
+function horizontalPositionToAngle(state: any) {
   const totalForce = directions.reduce((sum, d) => state[d].f + sum, 0)
 
   // Avoid brownian skiing when plate is empty
   if (totalForce < 0.01) {
     return 0
   } else {
+    // Fused horizontal position factoring in all plates
     const fusedX = directions.reduce((sum, d) => state[d].f / totalForce * state[d].x + sum, 0)
     const ratio = (1 - config.skier.directionAmplitudeRatio) / 2 + config.skier.directionAmplitudeRatio * centerWithAmplitude({ x: fusedX })
     return (1 - ratio) * Math.PI
@@ -191,10 +192,11 @@ function linearInterpolX(state: any) {
 // Return [0; 1] centered with the given amplitude
 function centerWithAmplitude({ x }: any) {
   const sensoWidth = 3
-  const centered = x - sensoWidth / 2
   const amplitude = sensoWidth * config.skier.activeSensoRatio
   const halfAmplitude = amplitude / 2
-  const ratio = (clamp(-halfAmplitude, centered, halfAmplitude) + halfAmplitude) / amplitude
+
+  const horizontalDeviation = (x - sensoWidth / 2) * config.sensitivity
+  const ratio = (clamp(-halfAmplitude, horizontalDeviation, halfAmplitude) + halfAmplitude) / amplitude
   return ratio
 }
 

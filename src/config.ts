@@ -5,7 +5,7 @@ export const config = {
   originalFrameInterval: 20,
   pixelsPerMeter: (diagonal: number) => 18 * diagonal / 2000,
   duration: 60000,
-  wheelchair: false,
+  sensitivity: 1,
   spriteSizeReduction: 0.33, // Should be equal to -resize in Makefile
   zoom: {
     min: 1,
