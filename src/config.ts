@@ -13,21 +13,17 @@ export const config = {
     convergenceDuration: 1000,
   },
   dropRate: {
-    smallTree: 13,
-    tallTree: 17,
-    jump: 2,
-    thickSnow: 2,
-    thickerSnow: 2,
-    rock: 10,
-    npc: {
-      snowboarder: 1,
-      monster: 0.15,
-    },
+    smallTree: 130,
+    tallTree: 170,
+    jump: 20,
+    thickSnow: 20,
+    thickerSnow: 20,
+    rock: 100,
     side: {
-      tallTree: 100,
+      tallTree: 1000,
     },
     skierDirection: {
-      any: 5,
+      any: 50,
     }
   },
   skier: {
@@ -64,20 +60,22 @@ export const config = {
   monster: {
     distanceThresholdMeters: 1000,
     eatingDuration: 1600,
+    dropRate: 0.001,
     skierSpeedFactor: 1,
     enduranceDuration: {
-      min: 10000,
-      max: 15000,
+      min: 15000,
+      max: 30000,
       tiredRatio: 0.9,
     },
     speedConvergenceDuration: {
-      toAccelerate: 1500,
+      toAccelerate: 1000,
       toDecelerate: 1500
     }
   },
   snowboarder: {
     minSpeed: 1,
     maxSpeed: 5,
+    dropRate: 0.1,
   },
   debug: new URLSearchParams(document.location.search).has('debug'),
 }

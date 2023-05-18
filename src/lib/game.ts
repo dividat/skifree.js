@@ -49,9 +49,9 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
   this.cycle = (dt: number) => {
     if (!paused) {
       this.addObjects(createObjects(sprites, dt, skier, this.canAddObject))
-      randomlySpawnNPC(skier, this.spawnBoarder, config.dropRate.npc.snowboarder)
+      randomlySpawnNPC(skier, this.spawnBoarder, config.snowboarder.dropRate)
       if (skier.downhillMetersTravelled() > config.monster.distanceThresholdMeters && !this.hasObject('monster')) {
-        randomlySpawnNPC(skier, this.spawnMonster, config.dropRate.npc.monster)
+        randomlySpawnNPC(skier, this.spawnMonster, config.monster.dropRate)
       }
     }
 
@@ -253,7 +253,7 @@ function createObjects(sprites: Array<Sprite>, dt: number, skier: Skier, canAddO
 
   const sideTrees = [ Canvas.getRandomSideMapPositionBelowViewport(skier.pos) ]
     .filter(_ => {
-      const random = Random.float({ min: 0, max: 100 })
+      const random = Random.int({ min: 0, max: 1000 }) + 0.00001
       return random < dropRateFactor * config.dropRate.side.tallTree
     })
     .map(pos => {
@@ -264,7 +264,7 @@ function createObjects(sprites: Array<Sprite>, dt: number, skier: Skier, canAddO
 
   const skierDirectionObjects = [ undefined ]
     .filter(_ => {
-      const random = Random.float({ min: 0, max: 100 })
+      const random = Random.int({ min: 0, max: 1000 }) + 0.00001
       return skier.speed !== Vec2.zero && random < dropRateFactor * config.dropRate.skierDirection.any
     })
     .map(_ => {
@@ -277,7 +277,7 @@ function createObjects(sprites: Array<Sprite>, dt: number, skier: Skier, canAddO
 
   const centeredObjects = spawnableSprites
     .filter((spriteInfo: any) => {
-      const random = Random.float({ min: 0, max: 100 })
+      const random = Random.int({ min: 0, max: 1000 }) + 0.00001
       return random < dropRateFactor * spriteInfo.dropRate
     })
     .map((spriteInfo: any) => {
@@ -304,7 +304,7 @@ function randomObstacle() {
 }
 
 function randomlySpawnNPC(skier: Skier, spawnFunction: () => void, dropRate: number) {
-  if (Random.float({ min: 0, max: 100 }) < dropRate * skier.speed.y) {
+  if (Random.int({ min: 0, max: 1000 }) <= dropRate * skier.speed.y) {
     spawnFunction()
   }
 }
