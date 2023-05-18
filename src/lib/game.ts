@@ -68,13 +68,21 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
     // Check collisions
     sprites.forEach((sprite: Sprite) => {
       if (skier.hits({ sprite, forPlacement: false })) {
-        const n = sprite.data.name
-        if (n === 'smallTree' || n === 'tallTree' || n === 'rock' || n === 'snowboarder') {
-          skier.hasHitObstacle(sprite)
-        } else if (n === 'monster') {
-          monsterEatsSkier(sprite as Monster, skier)
-        } else if (n === 'jump') {
-          skier.hasHitJump(sprite)
+        switch (sprite.data.name) {
+          case 'smallTree': 
+          case 'tallTree':
+          case 'rock':
+          case 'snowboarder':
+            skier.hasHitObstacle(sprite)
+            break
+          case 'monster':
+            monsterEatsSkier(sprite as Monster, skier)
+            break
+          case 'jump':
+            skier.hasHitJump(sprite)
+            break
+          default:
+            break
         }
       }
     })
@@ -103,14 +111,12 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
   }
 
   this.spawnMonster = () => {
-    const monster = new Monster(spriteInfo.monster, skier)
-    monster.pos = {
-      x: skier.pos.x,
-      y: Canvas.canvasPositionToMapPosition(skier.pos, { x: 0, y: -monster.height }).y
-    }
-    monster.movingTowardSpeed = config.monster.skierSpeedFactor * Vec2.length(skier.speed)
-    monster.follow(skier)
-    this.addObject(monster)
+    const newMonster = new Monster(spriteInfo.monster, skier)
+    const randomPosition = Canvas.getRandomMapPositionAboveViewport(skier.pos)
+    newMonster.pos = randomPosition
+    newMonster.follow(skier)
+
+    this.addObject(newMonster)
   }
 
   this.draw = () => {
@@ -312,8 +318,14 @@ function randomlySpawnNPC(skier: Skier, spawnFunction: () => void, dropRate: num
 function monsterEatsSkier(monster: Monster, skier: Skier) {
   if (monster.eatingStartedAt === undefined) {
     skier.isEaten()
-    monster.stopFollowing()
-    monster.startEating({ whenDone: () => monster.moveAbove() })
+    monster.startEating({
+      whenDone: () => {
+        monster.stopFollowing()
+        const randomPositionAbove = Canvas.getRandomMapPositionAboveViewport(skier.pos)
+        monster.movingToward = randomPositionAbove
+        monster.movingTowardSpeed /= 2
+      }
+    })
 
     // @ts-ignore
     window.PlayEGI.motor('negative')

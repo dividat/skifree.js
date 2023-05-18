@@ -61,19 +61,10 @@ export const config = {
     distanceThresholdMeters: 1000,
     eatingDuration: 1600,
     dropRate: 0.001,
-    skierSpeedFactor: 1,
-    enduranceDuration: {
-      min: 15000,
-      max: 30000,
-      tiredRatio: 0.9,
-    },
-    speedConvergenceDuration: {
-      toAccelerate: 1000,
-      toDecelerate: 1500
-    }
+    speedConvergenceDuration: 2000,
   },
   snowboarder: {
-    minSpeed: 1,
+    minSpeed: 2,
     maxSpeed: 5,
     dropRate: 0.1,
   },

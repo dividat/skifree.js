@@ -99,7 +99,7 @@ export function mapPositionToCanvasPosition(center: Vec2.Vec2, position: Vec2.Ve
   }
 }
 
-export function canvasPositionToMapPosition(center: Vec2.Vec2, position: Vec2.Vec2): Vec2.Vec2 {
+function canvasPositionToMapPosition(center: Vec2.Vec2, position: Vec2.Vec2): Vec2.Vec2 {
   const mapDifferenceX = canvasCenter.x - position.x
   const mapDifferenceY = canvasCenter.y - position.y
 
