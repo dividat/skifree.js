@@ -311,7 +311,6 @@ function randomlySpawnNPC(skier: Skier, spawnFunction: () => void, dropRate: num
 
 function monsterEatsSkier(monster: Monster, skier: Skier) {
   if (monster.eatingStartedAt === undefined) {
-    console.log('start eating')
     skier.isEaten()
     monster.stopFollowing()
     monster.startEating({ whenDone: () => monster.moveAbove() })
