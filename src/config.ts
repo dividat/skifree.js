@@ -28,9 +28,9 @@ export const config = {
   },
   skier: {
     // Part of the Senso considered for the movement, from the center of the
-    // Senso. 1 / 3 means the maximum amplitude can be reached on the center
+    // Senso. 1/3 would mean the maximum amplitude can be reached on the center
     // plate.
-    activeSensoRatio: 1 / 3, 
+    activeSensoRatio: 1.5 / 3, 
 
     // Max reachable amplitude when lying at the max of the amplitude on the
     // Senso. We discard extremities because it slow down the movement of the
