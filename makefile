@@ -4,7 +4,7 @@ CFLAGS = -c -g -D $(VERSION)
 
 help:
 	@echo "  deps        install dependencies"
-	@echo "  compile     sets up your js files for production"
+	@echo "  bundle      sets up your js files for production"
 
 deps:
 	npm install
