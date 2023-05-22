@@ -4,30 +4,20 @@ CFLAGS = -c -g -D $(VERSION)
 
 help:
 	@echo "  deps        install dependencies"
-	@echo "  test        runs tests"
-	@echo "  compile     sets up your js files for production"
-	@echo "  serve       run the webserver"
+	@echo "  bundle      sets up your js files for production"
 
 deps:
 	npm install
 
-test:
-	npm test
-
-compile:
-	mkdir -p dist
-	./node_modules/browserify/bin/cmd.js js/main.js -d -o dist/skifree.js
-	./node_modules/uglify-js/bin/uglifyjs dist/skifree.js -c > dist/skifree.min.js
-
 sprites: materials/sprites-full-size
 	cp -r materials/sprites-full-size sprites
-	cd sprites && mogrify -resize 33% *.png
-	# https://pngquant.org/
+	cd sprites && mogrify -resize 33% *.png # Should be equal to config.spriteSizeReduction
 	cd sprites && pngquant 100 --speed 1 --force --strip --ext .png --verbose *.png
 
 .PHONY: bundle
-bundle: compile
+bundle:
 	rm -rf $@
 	mkdir $@
+	esbuild --bundle src/main.ts --target=es2017 --minify --outfile=dist/skifree.min.js
 	cp index.html PlayEGI* $@
 	cp -R css dist vendor sprites $@

@@ -4,7 +4,10 @@ This fork adds support for Dividat's External Game Interface (EGI), so the game 
 
 ## Development
 
-To test it with Play[dev], run `npm install && make compile`, then start a static web server in the repo (for instance `python -m http.server`). Go to https://play.dividat.com/playDev.html and enter the URL of your local Python servver.
+To test it with Play[dev], enter `nix develop`, then run `bin/dev-server`.
+
+Finally, go to https://play.dividat.com/playDev.html and use
+`http://localhost:8000` as URL.
 
 ## Builds
 
@@ -52,11 +55,6 @@ Some features which weren't in the original which I'd like to give a go:
 
 * Open up index.html in Chrome, or maybe even Firefox - I haven't tested it in anything but Chrome and Mobile Safari yet, and I probably won't I'm afraid
 * Go.
-
-## I like to run Unit tests before I do ANYTHING.
-
-* Right, well first you need to do an `npm install`
-* Run `mocha` and you should see some beautiful passing tests
 
 ## This is pretty frickin' sweet but it's clearly not finished. I can totally improve it. Let me improve it, dammit.
 
