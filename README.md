@@ -26,3 +26,5 @@ Copy this directory anywhere you want to deploy it.
 ## License
 
 See [license.md](blob/master/license.md)
+
+![Skier](sprites/skier-east.png) ![Monster](sprites/monster-sEast11.png)
