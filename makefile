@@ -1,13 +1,6 @@
-VERSION ?= edge
-
-CFLAGS = -c -g -D $(VERSION)
-
 help:
-	@echo "  deps        install dependencies"
-	@echo "  bundle      sets up your js files for production"
-
-deps:
-	npm install
+	@echo "  bundle      sets up files for production"
+	@echo "  sprites     create reduced in size sprites to fasten game loading"
 
 sprites: materials/sprites-full-size
 	cp -r materials/sprites-full-size sprites
@@ -20,4 +13,4 @@ bundle:
 	mkdir $@
 	esbuild --bundle src/main.ts --target=es2017 --minify --outfile=dist/skifree.min.js
 	cp index.html PlayEGI* $@
-	cp -R css dist vendor sprites $@
+	cp -R css dist sprites $@
