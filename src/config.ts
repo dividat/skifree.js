@@ -20,7 +20,7 @@ export const config = {
     thickerSnow: 2,
     rock: 10,
     npc: {
-      snowboarder: 0.7,
+      snowboarder: 0.6,
       monster: 0.1,
     },
     side: {
