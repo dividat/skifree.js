@@ -38,7 +38,7 @@ export function getRandomSideMapPositionBelowViewport(center: Vec2.Vec2) {
   return canvasPositionToMapPosition(
     center,
     { x: getRandomlyInTheSideOfCanvas(),
-      y: getAboveViewport(),
+      y: getBelowViewport(),
     }
   )
 }
