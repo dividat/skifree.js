@@ -1,5 +1,6 @@
+// Random float in [min, max[
 export function float({ min, max }: { min: number, max: number }): number {
-  return min + Math.random() * (max - min + 1)
+  return min + Math.random() * (max - min)
 }
 
 export function int({ min, max }: { min: number, max: number }): number {

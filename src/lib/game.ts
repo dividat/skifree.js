@@ -310,7 +310,7 @@ function createObjects(sprites: Array<Sprite>, dt: number, skier: Skier, canAddO
 }
 
 function randomObstacle() {
-  const r =Random.int({ min: 1, max: 3 })
+  const r = Random.int({ min: 1, max: 3 })
   if (r == 1) {
     return spriteInfo.tallTree
   } else if (r == 2) {
