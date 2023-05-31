@@ -13,15 +13,15 @@ export const config = {
     convergenceDuration: 1000,
   },
   dropRate: {
-    smallTree: 13,
-    tallTree: 17,
+    smallTree: 12,
+    tallTree: 16,
     jump: 2,
     thickSnow: 2,
     thickerSnow: 2,
-    rock: 10,
+    rock: 8,
     npc: {
-      snowboarder: 0.6,
-      monster: 0.1,
+      snowboarder: 0.5,
+      monster: 0.06,
     },
     side: {
       tallTree: 100,
@@ -62,7 +62,7 @@ export const config = {
     landingHeight: (canvasHeight: number) => canvasHeight * 2,
   },
   monster: {
-    distanceThresholdMeters: 1000,
+    spawnAfterMetersTravelled: 1000,
     eatingDuration: 1600,
     minSpeed: (canvasDiagonal: number) => canvasDiagonal / 30000,
     enduranceDuration: {
@@ -76,6 +76,7 @@ export const config = {
     }
   },
   snowboarder: {
+    spawnAfterMetersTravelled: 250,
     minSpeed: 1,
     maxSpeed: 5,
   },

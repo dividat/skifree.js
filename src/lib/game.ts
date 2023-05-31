@@ -52,6 +52,9 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
       time += dt
 
       this.addObjects(createObjects(sprites, dt, skier, this.canAddObject))
+
+      const canSpawnBoarder = skier.downhillMetersTravelled() > config.snowboarder.spawnAfterMetersTravelled
+
       randomlySpawnNPC(skier, this.spawnBoarder, config.dropRate.npc.snowboarder)
 
       const lastJump = skier.lastJump()
@@ -63,7 +66,7 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
         : false
 
       const canSpawnMonster = (
-        skier.downhillMetersTravelled() > config.monster.distanceThresholdMeters
+        skier.downhillMetersTravelled() > config.monster.spawnAfterMetersTravelled
         && !this.hasObject('monster')
         && !isJumpingOrLanding)
 
