@@ -26,7 +26,6 @@ export class Skier extends Sprite {
   direction: number
   speed: Vec2.Vec2
   remainingDt: number
-  elapsedTime: number
 
   // debug
   confidenceBoost: number
@@ -41,7 +40,6 @@ export class Skier extends Sprite {
     this.pos = Vec2.zero
     this.speed = Vec2.zero
     this.remainingDt = 0
-    this.elapsedTime = 0
     this.confidenceBoost = 0
   }
 
@@ -76,33 +74,33 @@ export class Skier extends Sprite {
     }
   }
 
-  turnLeft() {
+  turnLeft(): void {
     this.direction = Math.max(this.direction - directionAmplitude / 6, leftMostDirection)
   }
 
-  turnRight() {
+  turnRight(): void {
     this.direction = Math.min(this.direction + directionAmplitude / 6, rightMostDirection)
   }
 
-  setDirection(direction: number) {
+  setDirection(direction: number): void {
     this.direction = direction
   }
 
-  cycle(dt: number) {
+  cycle(time: number, dt: number): void {
     const y1 = this.pos.y
-    super.cycle(dt)
+    super.cycle(time, dt)
     const y2 = this.pos.y
     this.downhillPixelsTravelled += y2 - y1
   }
 
-  move(dt: number) {
+  move(time: number, dt: number): void {
     const pos = {
       x: this.pos.x,
       y: this.pos.y
     }
 
     let acceleration
-    if (this.isLying() || this.isBeingEaten() || this.isJumping()) {
+    if (this.isLying(time) || this.isBeingEaten(time) || this.isJumping()) {
       acceleration = Vec2.zero
     } else {
 
@@ -114,7 +112,7 @@ export class Skier extends Sprite {
             y: Math.sin(this.direction)
           }
 
-      this.confidenceBoost = this.computeConfidenceBoost()
+      this.confidenceBoost = this.computeConfidenceBoost(time)
       const diagonalFactor = Canvas.diagonal / 3000
       const directionAcc = Vec2.scale(
         this.confidenceBoost * diagonalFactor * Vec2.dot(dirVect, Vec2.down),
@@ -147,101 +145,97 @@ export class Skier extends Sprite {
     this.speed = res.speed
     this.pos = res.pos
     this.remainingDt = res.remainingDt
-    this.elapsedTime += dt
   }
 
-  computeConfidenceBoost() {
-    // Default as if some distance and some time would have happened
-    // Otherwire, it can accelerate too quickly.
-    const diagonalFactor = 2000 / Canvas.diagonal
-    const initDownhillDistance = this.downhillPixelsTravelled * diagonalFactor
-    const initElapsedTime = this.elapsedTime + 15000
-
+  // Default as if some distance and some time would have happened
+  // Otherwise, it can accelerate too quickly.
+  computeConfidenceBoost(time: number): number {
     const crashesBoost = this.collisions
-      .map(t => 20 * Math.pow(this.elapsedTime - t, -0.5))
+      .map(t => 20 * Math.pow(time - t, -0.5))
       .reduce((a, b) => a + b, 0)
 
     const jumpBoost = this.jumps
-      .map(jump => 5 * Math.pow(this.elapsedTime - jump.time, -0.5))
+      .map(jump => 5 * Math.pow(time - jump.time, -0.5))
       .reduce((a, b) => a + b, 0)
 
-    let confidenceBoost = Math.max(100 * (initDownhillDistance + 1000) / (initElapsedTime + 10000), 1)
+    const diagonalFactor = 2000 / Canvas.diagonal
+    let confidenceBoost = Math.max(100 * (this.downhillPixelsTravelled * diagonalFactor + 1000) / (time + 25000), 1)
     confidenceBoost = 0.10 * Math.pow(confidenceBoost, 0.6) / (1 + crashesBoost - jumpBoost)
 
     return confidenceBoost
   }
 
-  draw(center: Vec2.Vec2, spriteFrame: string, zoom: number) {
+  draw(time: number, center: Vec2.Vec2, spriteFrame: string, zoom: number): void {
     // Part of monster sprite while being eaten, also don’t show when blinking
-    if (!this.isBeingEaten() && !this.isBlinking()) {
+    if (!this.isBeingEaten(time) && !this.isBlinking(time)) {
       const spritePartToUse =
         this.isJumping()
           ? 'jumping'
-          : (this.isLying() ? 'hit' : this.getDiscreteDirection())
+          : (this.isLying(time) ? 'hit' : this.getDiscreteDirection())
 
-      super.draw(center, spritePartToUse, zoom)
+      super.draw(time, center, spritePartToUse, zoom)
     }
   }
 
-  isLying() {
+  isLying(time: number): boolean {
     const lastCollision = this.lastCollision()
-    return lastCollision !== undefined && this.elapsedTime - lastCollision < config.skier.lyingDurationAfterCrash
+    return lastCollision !== undefined && time - lastCollision < config.skier.lyingDurationAfterCrash
   }
 
-  isJumping() {
+  isJumping(): boolean {
     const lastJump = this.lastJump()
-    return lastJump !== undefined && this.pos.y - lastJump.y < config.jump.length(Canvas.height)
+    return lastJump !== undefined && this.pos.y - lastJump.y <= config.jump.length(Canvas.height)
   }
 
-  isBeingEaten() {
-    return this.lastEatenTime !== undefined && this.elapsedTime - this.lastEatenTime < config.monster.eatingDuration
+  isBeingEaten(time: number): boolean {
+    return this.lastEatenTime !== undefined && time - this.lastEatenTime < config.monster.eatingDuration
   }
 
-  isBlinking() {
-    const invincibilityProgress = this.invincibilityProgress()
+  isBlinking(time: number): boolean {
+    const invincibilityProgress = this.invincibilityProgress(time)
     if (invincibilityProgress === 0 || invincibilityProgress === undefined) {
       return false
     } else if (invincibilityProgress < 0.6) {
-      return Math.floor(this.elapsedTime / 100) % 2 === 0
+      return Math.floor(time / 100) % 2 === 0
     } else {
-      return Math.floor(this.elapsedTime / 50) % 2 === 0
+      return Math.floor(time / 50) % 2 === 0
     }
   }
 
-  hasHitObstacle(obs: Sprite) {
-    if (this.isHittable()) {
+  hitObstacle(time: number, obs: Sprite): void {
+    if (this.isHittable(time)) {
       this.speed = Vec2.zero
-      this.collisions.push(this.elapsedTime)
+      this.collisions.push(time)
 
       // @ts-ignore
       window.PlayEGI.motor('negative')
     }
   }
 
-  hasHitJump(jump: Sprite) {
+  hitJump(time: number, jump: Sprite): void {
     if (!this.isJumping()) {
       this.speed = Vec2.scale(config.jump.speed(Canvas.diagonal), Vec2.down),
-      this.jumps.push({ time: this.elapsedTime, spriteId: jump.id, y: jump.pos.y })
+      this.jumps.push({ time, spriteId: jump.id, y: jump.pos.y })
 
       // @ts-ignore
       window.PlayEGI.motor('positive')
     }
   }
 
-  isHittable(): boolean {
-    return !this.isJumping() && this.invincibilityProgress() === undefined
+  isHittable(time: number): boolean {
+    return !this.isJumping() && this.invincibilityProgress(time) === undefined
   }
 
   // After being hit, the skier is invincible.
   // - undefined: the skier is not invincible
   // - 0: the skier is lying or being eaten
   // - number: the skier is invincible with this progress ratio
-  invincibilityProgress(): number | undefined {
+  invincibilityProgress(time: number): number | undefined {
     const lastJump = this.lastJump()
     const getProgress = (eventTime: number, eventDuration: number) => {
       const jumpAfterEvent = lastJump !== undefined && lastJump.time > eventTime
       if (!jumpAfterEvent) {
-        const now = this.elapsedTime
+        const now = time
         const start = eventTime + eventDuration
         const end = start + config.skier.invincibilityDuration
         if (now < start) {
@@ -265,8 +259,8 @@ export class Skier extends Sprite {
       : eatingProgress
   }
 
-  isEaten() {
-    this.lastEatenTime = this.elapsedTime
+  setEaten(time: number): void {
+    this.lastEatenTime = time
     this.speed = Vec2.zero
   }
 

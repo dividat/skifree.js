@@ -68,23 +68,11 @@ export const spriteInfo: any = {
         fps: 9,
         hitBoxes: [
           {
-            x: 131,
-            y: 165,
-            width: 118,
-            height: 70
-          },
-          {
-            x: 86,
-            y: 234,
-            width: 203,
-            height: 163
-          },
-          {
-            x: 135,
-            y: 397,
-            width: 92,
-            height: 92
-          },
+            x: 136,
+            y: 250,
+            width: 95,
+            height: 233
+          }
         ]
       },
       sWest: {
@@ -149,7 +137,15 @@ export const spriteInfo: any = {
       hit: {
         frames: 2,
         fps: 0.8,
-        sizeMultiple: 0.91
+        sizeMultiple: 0.91,
+        hitBoxes: [
+          {
+            x: 181,
+            y: 293,
+            width: 323,
+            height: 145
+          }
+        ]
       },
       jumping: {
         frames: 3,

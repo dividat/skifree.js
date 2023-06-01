@@ -3,15 +3,15 @@ import * as Vec2 from 'lib/vec2'
 import { Sprite } from 'lib/sprite'
 import { config } from 'config'
 
-export let width = window.innerWidth * window.devicePixelRatio
-export let height = window.innerHeight * window.devicePixelRatio
+export let width = window.innerWidth * config.scaling
+export let height = window.innerHeight * config.scaling
 export let diagonal = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2))
 
 export const canvas: any = document.getElementById('skifree-canvas')
 canvas.width = width
 canvas.height = height
 
-if (window.devicePixelRatio > 1) {
+if (config.scaling > 1) {
   canvas.style.width = `${window.innerWidth}px`
   canvas.style.height = `${window.innerHeight}px`
 }
@@ -38,7 +38,7 @@ export function getRandomSideMapPositionBelowViewport(center: Vec2.Vec2) {
   return canvasPositionToMapPosition(
     center,
     { x: getRandomlyInTheSideOfCanvas(),
-      y: getAboveViewport(),
+      y: getBelowViewport(),
     }
   )
 }
@@ -99,7 +99,7 @@ export function mapPositionToCanvasPosition(center: Vec2.Vec2, position: Vec2.Ve
   }
 }
 
-function canvasPositionToMapPosition(center: Vec2.Vec2, position: Vec2.Vec2): Vec2.Vec2 {
+export function canvasPositionToMapPosition(center: Vec2.Vec2, position: Vec2.Vec2): Vec2.Vec2 {
   const mapDifferenceX = canvasCenter.x - position.x
   const mapDifferenceY = canvasCenter.y - position.y
 

@@ -69,7 +69,7 @@ function startNeverEndingGame(images: Array<any>) {
       // @ts-ignore
       window.PlayEGI.finish({
         duration: { type: 'Duration', value: config.duration },
-        downhillDistance: { type: 'RawInt', value: Math.round(skier.downhillMetersTravelled()) },
+        distance: { type: 'RawInt', value: Math.round(skier.downhillMetersTravelled()) },
         jumps: { type: 'RawInt', value: skier.jumps.length },
         collisions: { type: 'RawInt', value: skier.collisions.length },
       })
