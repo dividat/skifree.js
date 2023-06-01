@@ -3,7 +3,7 @@ import * as Vec2 from 'lib/vec2'
 export const config = {
   scaling: window.devicePixelRatio,
   originalFrameInterval: 20,
-  pixelsPerMeter: (diagonal: number) => diagonal / 250,
+  pixelsPerMeter: (diagonal: number) => diagonal / 180,
   duration: 60000,
   sensitivity: 1,
   spriteSizeReduction: 0.33, // Should be equal to -resize in Makefile
