@@ -58,7 +58,7 @@ export const config = {
     // creating objects in landing area once the jump has been taken.
     length: (canvasHeight: number) => canvasHeight * 1.2,
     speed: (canvasDiagonal: number) => canvasDiagonal / 3000,
-    landingWidth: (jumpWidth: number) => jumpWidth * 2,
+    landingWidth: (jumpWidth: number) => jumpWidth * 3,
     landingHeight: (canvasHeight: number) => canvasHeight * 2,
   },
   monster: {
