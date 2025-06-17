@@ -184,17 +184,20 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
   }
 
   this.start = () => {
-    this.step()
+    this.loop()
   }
 
   this.pause = () => {
     paused = true
+    // Reset the last step time when pausing
     lastStepAt = undefined
   }
 
   this.resume = () => {
-    paused = false
-    this.step()
+    paused = false 
+    // Ensure last step is reset when resuming
+    lastStepAt = undefined
+    this.loop()
   }
 
   this.isPaused = () => {
@@ -225,6 +228,10 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
     this.cycle(dt)
     this.draw(time)
 
+    this.loop()
+  }
+  
+  this.loop = () => {
     requestAnimationFrame(this.step.bind(this))
   }
 
