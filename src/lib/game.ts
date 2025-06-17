@@ -217,7 +217,7 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
     runningTime += dt
 
     this.cycle(dt)
-    this.draw(time)
+    this.draw()
     this.loop(now)
   }
   
