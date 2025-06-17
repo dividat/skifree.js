@@ -15,7 +15,6 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
   let sprites = new Array<Sprite>()
   let paused = false
   let runningTime = 0
-  let lastStepAt: number | undefined = undefined
   let zoom = config.zoom.max
   let time = 0
 
@@ -189,14 +188,10 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
 
   this.pause = () => {
     paused = true
-    // Reset the last step time when pausing
-    lastStepAt = undefined
   }
 
   this.resume = () => {
     paused = false 
-    // Ensure last step is reset when resuming
-    lastStepAt = undefined
     this.loop()
   }
 
@@ -215,26 +210,21 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
     runningTime = 0
   }
 
-  this.step = (now: number) => {
-    if (paused) return
+  this.step = (lastStepAt: number, now: number) => {
+    if (paused) return;
 
-    let dt = 0
-    if (lastStepAt !== undefined) {
-      dt = now - lastStepAt
-    }
-    lastStepAt = now
+    let dt = now - lastStepAt
     runningTime += dt
 
     this.cycle(dt)
     this.draw(time)
-
-    this.loop()
+    this.loop(now)
   }
   
-  this.loop = () => {
-    requestAnimationFrame(this.step.bind(this))
+  this.loop = (lastStepAt: number | undefined) => {
+    requestAnimationFrame(now => this.step(lastStepAt || now, now))
   }
-
+  
   this.hasObject = (name: string) => {
     return sprites.some((obj: Sprite) => {
       return obj.data.name === name
