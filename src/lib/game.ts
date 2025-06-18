@@ -13,7 +13,7 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
   const afterCycleCallbacks: Array<any> = []
 
   let sprites = new Array<Sprite>()
-  let paused = false
+  let paused = true
   let runningTime = 0
   let zoom = config.zoom.max
   let time = 0
@@ -182,17 +182,15 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
     })
   }
 
-  this.start = () => {
-    this.loop()
-  }
-
   this.pause = () => {
     paused = true
   }
 
   this.resume = () => {
-    paused = false 
-    this.loop()
+    if (paused) {
+      paused = false
+      this.loop()
+    }
   }
 
   this.isPaused = () => {
@@ -201,13 +199,6 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
 
   this.getRunningTime = () => {
     return runningTime
-  }
-
-  this.reset = () => {
-    paused = false
-    sprites = new Array<Sprite>()
-    this.start()
-    runningTime = 0
   }
 
   this.step = (lastStepAt: number, now: number) => {
