@@ -211,7 +211,7 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
   }
 
   this.step = (lastStepAt: number, now: number) => {
-    if (paused) return;
+    if (paused) return
 
     let dt = now - lastStepAt
     runningTime += dt
