@@ -13,9 +13,8 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
   const afterCycleCallbacks: Array<any> = []
 
   let sprites = new Array<Sprite>()
-  let paused = false
+  let paused = true
   let runningTime = 0
-  let lastStepAt: number | undefined = undefined
   let zoom = config.zoom.max
   let time = 0
 
@@ -183,18 +182,15 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
     })
   }
 
-  this.start = () => {
-    this.step()
-  }
-
   this.pause = () => {
     paused = true
-    lastStepAt = undefined
   }
 
   this.resume = () => {
-    paused = false
-    this.step()
+    if (paused) {
+      paused = false
+      this.loop()
+    }
   }
 
   this.isPaused = () => {
@@ -205,29 +201,21 @@ export function Game (mainCanvas: HTMLCanvasElement, skier: Skier) {
     return runningTime
   }
 
-  this.reset = () => {
-    paused = false
-    sprites = new Array<Sprite>()
-    this.start()
-    runningTime = 0
-  }
-
-  this.step = (now: number) => {
+  this.step = (lastStepAt: number, now: number) => {
     if (paused) return
 
-    let dt = 0
-    if (lastStepAt !== undefined) {
-      dt = now - lastStepAt
-    }
-    lastStepAt = now
+    let dt = now - lastStepAt
     runningTime += dt
 
     this.cycle(dt)
-    this.draw(time)
-
-    requestAnimationFrame(this.step.bind(this))
+    this.draw()
+    this.loop(now)
   }
-
+  
+  this.loop = (lastStepAt: number | undefined) => {
+    requestAnimationFrame(now => this.step(lastStepAt || now, now))
+  }
+  
   this.hasObject = (name: string) => {
     return sprites.some((obj: Sprite) => {
       return obj.data.name === name

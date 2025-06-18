@@ -12,7 +12,6 @@
           buildInputs = with pkgs; [
             nodePackages.typescript
             python3
-            psmisc # fuser
             esbuild
             watchexec
 

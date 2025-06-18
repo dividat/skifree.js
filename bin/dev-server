@@ -6,7 +6,8 @@ mkdir -p dist
 # Run server
 
 python -m http.server 8000 &
-trap "fuser -k 8000/tcp" EXIT
+trap "lsof -ti:8000 | xargs kill -9" EXIT
+
 
 # Watch TypeScript
 
